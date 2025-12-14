@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '@warehouse-network/db/src/client'
-import { acceptInvitationSchema } from '../lib/schemas'
+import prisma from '../../lib/prisma'
+import { acceptInvitationSchema } from '../../lib/schemas'
 import bcrypt from 'bcrypt'
 
 export default async function handler(
@@ -32,13 +32,6 @@ export default async function handler(
           email: invitation.email,
           password: hashedPassword,
           role: invitation.role,
-        },
-      })
-
-      await prisma.operatorUser.create({
-        data: {
-          operatorId: invitation.operatorId,
-          userId: user.id,
         },
       })
 

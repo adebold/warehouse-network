@@ -3,21 +3,22 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import type { RFQ, Warehouse, ChargeCategory } from '@prisma/client'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../../lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../api/auth/[...nextauth]'
 
 interface NewQuoteProps {
   rfq: RFQ
   warehouses: Warehouse[]
+  chargeCategories: ChargeCategory[]
 }
 
-const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses }) => {
+const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }) => {
   const { data: session, status } = useSession()
   const router = useRouter()
   const [formData, setFormData] = useState({
     warehouseId: '',
-    items: [] as { chargeCategory: ChargeCategory; unitPrice: number; quantity: number; description: string }[],
+    items: [] as { chargeCategoryId: string; unitPrice: number; quantity: number; description: string }[],
     currency: 'USD',
     assumptions: '',
     guaranteedCharges: false,
@@ -33,7 +34,8 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses }) => {
   }, [session, status, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type } = e.target
+    const checked = (e.target as HTMLInputElement).checked
     setFormData(prevState => ({
       ...prevState,
       [name]: type === 'checkbox' ? checked : value,
@@ -53,7 +55,7 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses }) => {
       ...prevState,
       items: [
         ...prevState.items,
-        { chargeCategory: 'RECEIVING', unitPrice: 0, quantity: 1, description: '' },
+        { chargeCategoryId: '', unitPrice: 0, quantity: 1, description: '' },
       ],
     }))
   }
@@ -166,14 +168,14 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses }) => {
         {formData.items.map((item, index) => (
           <div key={index}>
             <select
-              name="chargeCategory"
-              value={item.chargeCategory}
-              onChange={e => handleItemChange(index, 'chargeCategory', e.target.value)}
+              name="chargeCategoryId"
+              value={item.chargeCategoryId}
+              onChange={e => handleItemChange(index, 'chargeCategoryId', e.target.value)}
             >
-              <option value="RECEIVING">Receiving</option>
-              <option value="STORAGE">Storage</option>
-              <option value="PICKING">Picking</option>
-              <option value="PICKUP_RELEASE">Pickup / Release</option>
+              <option value="">Select charge category</option>
+              {chargeCategories.map(category => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
             </select>
             <input
               type="number"
@@ -221,10 +223,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     where: { status: 'READY_FOR_MARKETPLACE' },
   })
 
+  const chargeCategories = await prisma.chargeCategory.findMany()
+
   return {
     props: {
       rfq: JSON.parse(JSON.stringify(rfq)),
       warehouses: JSON.parse(JSON.stringify(warehouses)),
+      chargeCategories: JSON.parse(JSON.stringify(chargeCategories)),
     },
   }
 }

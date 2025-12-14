@@ -3,9 +3,9 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import type { CityPage } from '@prisma/client'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../../lib/prisma'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '../../../api/auth/[...nextauth]'
+import { authOptions } from '../../../pages/api/auth/[...nextauth]'
 
 interface CityPagesProps {
   cityPages: CityPage[]
@@ -29,7 +29,8 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
   }, [session, status, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target
+    const { name, value, type } = e.target
+    const checked = (e.target as HTMLInputElement).checked
     setFormData(prevState => ({
       ...prevState,
       [name]: type === 'checkbox' ? checked : value,

@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
+import { authOptions } from '../../auth/[...nextauth]'
+import prisma from '../../../../lib/prisma'
 import { cityPageSchema } from '../../../../lib/schemas'
 
 export default async function handler(
@@ -23,14 +23,6 @@ export default async function handler(
 
       const { city, region, h1, introContent, isActive } = validation.data
 
-      const author = await prisma.user.findUnique({
-        where: { id: session.user.id },
-      })
-
-      if (!author) {
-        return res.status(404).json({ message: 'Author not found.' })
-      }
-
       const slug = `${city.toLowerCase().replace(/ /g, '-')}-${(region || '').toLowerCase().replace(/ /g, '-')}`.replace(/--/g, '-').replace(/^-|-$/g, '');
 
       const cityPage = await prisma.cityPage.create({
@@ -40,7 +32,6 @@ export default async function handler(
           h1,
           introContent,
           isActive,
-          authorId: author.id,
           slug,
         },
       })

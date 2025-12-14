@@ -1,44 +1,96 @@
 import { z } from 'zod'
 
-export const operatorApplicationSchema = z.object({
-  legalName: z.string().min(1, 'Legal name is required'),
-  registrationDetails: z.string().min(1, 'Registration details are required'),
-  primaryContact: z.string().min(1, 'Primary contact is required'),
-  operatingRegions: z.string().min(1, 'Operating regions are required'),
-  warehouseCount: z.number().int().positive('Warehouse count must be a positive number'),
-  goodsCategories: z.string().min(1, 'Goods categories are required'),
-  insurance: z.boolean().refine(val => val === true, 'You must acknowledge that you have insurance'),
-})
+// Enums matching new warehouse listing schema
+export const UseType = {
+  STORAGE: 'STORAGE',
+  LIGHT_MANUFACTURING: 'LIGHT_MANUFACTURING',
+  HEAVY_MANUFACTURING: 'HEAVY_MANUFACTURING',
+  DISTRIBUTION: 'DISTRIBUTION',
+  FULFILLMENT: 'FULFILLMENT',
+  COLD_STORAGE: 'COLD_STORAGE',
+  FOOD_PROCESSING: 'FOOD_PROCESSING',
+  AUTOMOTIVE: 'AUTOMOTIVE',
+  RETAIL_DISTRIBUTION: 'RETAIL_DISTRIBUTION'
+} as const
 
-export const applicationReviewSchema = z.object({
-  status: z.enum(['APPROVED', 'REJECTED']),
-})
+export const LeaseType = {
+  GROSS: 'GROSS',
+  NET: 'NET',
+  NNN: 'NNN',
+  MODIFIED_GROSS: 'MODIFIED_GROSS'
+} as const
 
-export const operatorProfileSchema = z.object({
-  legalName: z.string().min(1, 'Legal name is required'),
-  registrationDetails: z.string().min(1, 'Registration details are required'),
-  primaryContact: z.string().min(1, 'Primary contact is required'),
-  operatingRegions: z.string().min(1, 'Operating regions are required'),
-  warehouseCount: z.number().int().positive('Warehouse count must be a positive number'),
-  goodsCategories: z.string().min(1, 'Goods categories are required'),
-})
-
-export const acceptInvitationSchema = z.object({
-  token: z.string().min(1),
-  name: z.string().min(1),
-  password: z.string().min(8),
-})
-
-export const warehouseSchema = z.object({
-  name: z.string().min(1, 'Warehouse name is required'),
+// Warehouse Listing Schemas
+export const warehouseListingSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  description: z.string().optional(),
+  
+  // Location
   address: z.string().min(1, 'Address is required'),
-  operatingHours: z.string().min(1, 'Operating hours are required'),
-  capacity: z.number().int().positive('Capacity must be a positive number'),
-  supportedGoods: z.string().min(1, 'Supported goods are required'),
-  dockAccessInstructions: z.string().min(1, 'Dock access instructions are required'),
+  city: z.string().min(1, 'City is required'),
+  postalCode: z.string().min(1, 'Postal code is required'),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  distanceToHighway: z.number().positive().optional(),
+  
+  // Physical specs
+  totalSqFt: z.number().int().positive('Total square footage must be positive'),
+  minDivisibleSqFt: z.number().int().positive().optional(),
+  clearHeight: z.number().positive('Clear height must be positive'),
+  columnSpacing: z.string().optional(),
+  heavyLoadCapable: z.boolean().default(false),
+  floorLoadPsf: z.number().int().positive().optional(),
+  
+  // Zoning
+  zoningCategory: z.string().min(1, 'Zoning category is required'),
+  permittedUses: z.array(z.nativeEnum(UseType)).min(1, 'At least one permitted use is required'),
+  
+  // Parking & Yard
+  employeeParkingSpaces: z.number().int().nonnegative().default(0),
+  trailerParkingSpaces: z.number().int().nonnegative().default(0),
+  hasYardStorage: z.boolean().default(false),
+  yardStorageArea: z.number().positive().optional(),
+  
+  // Lease terms
+  leaseType: z.nativeEnum(LeaseType),
+  askingRentPsf: z.number().positive('Asking rent must be positive'),
+  estimatedCamPsf: z.number().positive().optional(),
+  minLeaseTerm: z.number().int().positive('Minimum lease term must be positive'),
+  maxLeaseTerm: z.number().int().positive().optional(),
+  availabilityDate: z.string().transform(str => new Date(str)),
 })
 
-export const pricingRulesSchema = z.record(z.nativeEnum(['RECEIVING', 'STORAGE', 'PICKING', 'PICKUP_RELEASE']), z.number().positive())
+// Dock Door Schema
+export const dockDoorSchema = z.object({
+  count: z.number().int().positive().default(1),
+  dockHeight: z.number().positive('Dock height must be positive'),
+  description: z.string().optional(),
+})
+
+// Drive-in Door Schema  
+export const driveInDoorSchema = z.object({
+  count: z.number().int().positive().default(1),
+  width: z.number().positive('Width must be positive'),
+  height: z.number().positive('Height must be positive'),
+  description: z.string().optional(),
+})
+
+// Contact Schema
+export const contactSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  title: z.string().optional(),
+  company: z.string().optional(),
+  email: z.string().email('Valid email is required'),
+  phone: z.string().optional(),
+  mobile: z.string().optional(),
+})
+
+// Inquiry Schema
+export const inquirySchema = z.object({
+  companyName: z.string().optional(),
+  spaceNeeded: z.number().int().positive().optional(),
+  message: z.string().min(1, 'Message is required'),
+})
 
 export const receivingOrderSchema = z.object({
   customerId: z.string().min(1, 'Customer is required'),
@@ -127,4 +179,15 @@ export const disputeSchema = z.object({
 export const updateDisputeSchema = z.object({
   resolution: z.string().min(1, 'Resolution details are required'),
   status: z.enum(['IN_REVIEW', 'RESOLVED', 'ESCALATED']),
+})
+
+export const acceptInvitationSchema = z.object({
+  token: z.string().min(1, 'Token is required'),
+  name: z.string().min(1, 'Name is required'),
+  password: z.string().min(8, 'Password must be at least 8 characters long'),
+})
+
+export const applicationReviewSchema = z.object({
+  status: z.enum(['APPROVED', 'REJECTED']),
+  notes: z.string().optional(),
 })

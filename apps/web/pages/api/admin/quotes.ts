@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
-import { quoteSchema } from '../../lib/schemas'
+import prisma from '../../../lib/prisma'
+import { quoteSchema } from '../../../lib/schemas'
 
 export default async function handler(
   req: NextApiRequest,
@@ -35,7 +35,12 @@ export default async function handler(
           expiryDate: new Date(expiryDate),
           items: {
             create: items.map(item => ({
-              chargeCategory: item.chargeCategory,
+              chargeCategory: {
+                connectOrCreate: {
+                  where: { name: item.chargeCategory },
+                  create: { name: item.chargeCategory },
+                },
+              },
               unitPrice: item.unitPrice,
               quantity: item.quantity,
               description: item.description,

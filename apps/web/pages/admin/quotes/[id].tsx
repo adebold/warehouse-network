@@ -2,13 +2,17 @@ import type { NextPage, GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import type { Quote, RFQ, QuoteItem } from '@prisma/client'
-import prisma from '@warehouse-network/db/src/client'
+import type { Quote, RFQ, QuoteItem, ChargeCategory } from '@prisma/client'
+import prisma from '../../../lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../api/auth/[...nextauth]'
 
 interface QuoteDetailsProps {
-  quote: Quote & { rfq: RFQ; warehouse: { name: string }; items: QuoteItem[] }
+  quote: Quote & { 
+    rfq: RFQ; 
+    warehouse: { name: string }; 
+    items: (QuoteItem & { chargeCategory: ChargeCategory })[] 
+  }
 }
 
 const QuoteDetails: NextPage<QuoteDetailsProps> = ({ quote }) => {
@@ -47,7 +51,7 @@ const QuoteDetails: NextPage<QuoteDetailsProps> = ({ quote }) => {
         <tbody>
           {quote.items.map(item => (
             <tr key={item.id}>
-              <td>{item.chargeCategory}</td>
+              <td>{item.chargeCategory.name}</td>
               <td>{item.unitPrice}</td>
               <td>{item.quantity}</td>
               <td>{item.description}</td>
@@ -72,7 +76,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     include: {
       rfq: true,
       warehouse: { select: { name: true } },
-      items: true,
+      items: {
+        include: {
+          chargeCategory: true,
+        },
+      },
     },
   })
 
