@@ -4,10 +4,10 @@
   "version": "1.0.0",
   "description": "Warehouse Management Platform",
   "scripts": {
-    "dev": "pnpm --filter web dev",
-    "build": "pnpm --filter web build",
-    "start": "pnpm --filter web start",
-    "lint": "pnpm --filter web lint"
+    "dev": "bun --filter web dev",
+    "build": "bun run build --filter web",
+    "start": "bun --filter web start",
+    "lint": "bun --filter web lint"
   },
   "keywords": [],
   "author": "",

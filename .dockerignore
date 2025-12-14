@@ -43,7 +43,6 @@ yarn-error.log*
 docs
 
 # Docker
-Dockerfile
 docker-compose*.yml
 .dockerignore
 
@@ -53,8 +52,6 @@ docker-compose*.yml
 
 # Kubernetes
 k8s
-*.yaml
-*.yml
 
 # Database
 *.sqlite

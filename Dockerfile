@@ -1,46 +1,40 @@
-# Multi-stage Dockerfile for Next.js application
-FROM node:18-alpine AS deps
-# Install pnpm
-RUN npm install -g pnpm@8.6.1
-# Add libc6-compat for Alpine compatibility
-RUN apk add --no-cache libc6-compat
+# Multi-stage Dockerfile for Next.js application with Bun
+FROM oven/bun:1 AS deps
 WORKDIR /app
 
 # Copy package files
-COPY package.json pnpm-workspace.yaml ./
+COPY package.json bun.lockb* ./
 COPY apps/web/package.json ./apps/web/
 COPY packages/core/package.json ./packages/core/
 COPY packages/db/package.json ./packages/db/
 COPY packages/integrations/package.json ./packages/integrations/
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN bun install --frozen-lockfile || bun install
 
 # Builder stage
-FROM node:18-alpine AS builder
-RUN npm install -g pnpm@8.6.1
+FROM oven/bun:1 AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 
 # Generate Prisma Client
-RUN cd packages/db && pnpm prisma generate
+RUN cd packages/db && bunx prisma@^5 generate
 
 # Build the application
-ENV NEXT_TELEMETRY_DISABLED 1
-RUN pnpm run build --filter=web
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN bun run build --filter=web
 
 # Runner stage
-FROM node:18-alpine AS runner
-RUN npm install -g pnpm@8.6.1
+FROM oven/bun:1 AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create non-root user
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 --gid nodejs nextjs
 
 # Copy necessary files
 COPY --from=builder /app/apps/web/public ./apps/web/public
@@ -56,6 +50,6 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT 3000
+ENV PORT=3000
 
-CMD ["node", "apps/web/server.js"]
+CMD ["bun", "run", "apps/web/server.js"]

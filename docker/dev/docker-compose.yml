@@ -16,7 +16,7 @@ services:
       context: ../..
       dockerfile: Dockerfile
       target: builder
-    command: sh -c "cd packages/db && pnpm prisma migrate dev && cd /app && pnpm run dev --filter=web"
+    command: sh -c "cd packages/db && bunx prisma@^5 migrate dev && cd /app && bun run dev --filter=web"
     ports:
       - "3000:3000"
     environment:

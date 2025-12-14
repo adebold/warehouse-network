@@ -35,7 +35,7 @@ const securityHeaders = [
       default-src 'self';
       script-src 'self' 'unsafe-eval' 'unsafe-inline' https://js.stripe.com;
       style-src 'self' 'unsafe-inline';
-      img-src 'self' data: https: blob:;
+      img-src 'self' data: https: blob: https://images.unsplash.com https://source.unsplash.com;
       font-src 'self';
       connect-src 'self' https://api.stripe.com;
       frame-src https://js.stripe.com https://hooks.stripe.com;
@@ -52,6 +52,9 @@ const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   output: 'standalone',
+  images: {
+    domains: ['images.unsplash.com', 'source.unsplash.com'],
+  },
   async headers() {
     return [
       {
