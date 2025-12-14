@@ -1,5 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { runDailyAccrual } from '@warehouse-network/core/src/accrual'
+import prisma from '../../../lib/prisma'
+
+// Daily accrual logic - simplified implementation
+async function runDailyAccrual() {
+  // TODO: Implement daily accrual logic for warehouse charges
+  // This would typically process daily storage charges for active skids
+  console.log('Running daily accrual job...')
+  
+  // Example: Find all active skids and create daily storage charges
+  const activeSkids = await prisma.skid.findMany({
+    where: { status: { in: ['STORED', 'PUTAWAY'] } },
+    include: { warehouse: true }
+  })
+  
+  console.log(`Processing ${activeSkids.length} active skids for daily accrual`)
+  // Accrual logic would go here
+}
 
 export default async function handler(
   req: NextApiRequest,

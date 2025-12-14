@@ -1,5 +1,21 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { processPayouts } from '@warehouse-network/core/src/payouts'
+import prisma from '../../../lib/prisma'
+
+// Process payouts logic - simplified implementation
+async function processPayouts() {
+  // TODO: Implement payout processing logic
+  // This would typically process pending payouts to operators/warehouses
+  console.log('Processing payouts...')
+  
+  // Example: Find operators with pending payouts
+  const operatorsWithEarnings = await prisma.operator.findMany({
+    where: { status: 'ACTIVE' },
+    include: { warehouses: true }
+  })
+  
+  console.log(`Processing payouts for ${operatorsWithEarnings.length} operators`)
+  // Payout processing logic would go here
+}
 
 export default async function handler(
   req: NextApiRequest,

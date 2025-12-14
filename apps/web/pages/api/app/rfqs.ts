@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
-import { rfqSchema } from '../../lib/schemas'
+import prisma from '../../../lib/prisma'
+import { rfqSchema } from '../../../lib/schemas'
 
 export default async function handler(
   req: NextApiRequest,
@@ -30,7 +30,7 @@ export default async function handler(
       const rfq = await prisma.rFQ.create({
         data: {
           customerId: session.user.customerId,
-          preferredWarehouseIds: preferredWarehouseIds.join(','), // Store as comma-separated string for simplicity
+          preferredWarehouseIds: preferredWarehouseIds, // Store as array per schema definition
           estimatedSkidCount,
           footprintType,
           expectedInboundDate: new Date(expectedInboundDate),

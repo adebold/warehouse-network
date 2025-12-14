@@ -1,9 +1,16 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../../../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
-import { generateSkidsSchema } from '../../../../../../lib/schemas'
-import { generateSkidCode } from '@warehouse-network/core/src/skid'
+import { authOptions } from '../../../auth/[...nextauth]'
+import prisma from '../../../../../lib/prisma'
+import { generateSkidsSchema } from '../../../../../lib/schemas'
+// Generate unique skid code
+function generateSkidCode(reference?: string, sequence?: number): string {
+  const timestamp = Date.now().toString(36).toUpperCase()
+  const random = Math.random().toString(36).substring(2, 8).toUpperCase()
+  const sequenceStr = sequence ? sequence.toString().padStart(2, '0') : '01'
+  const prefix = reference ? reference.substring(0, 3).toUpperCase() : 'SKD'
+  return `${prefix}-${timestamp}-${sequenceStr}-${random}`
+}
 
 export default async function handler(
   req: NextApiRequest,

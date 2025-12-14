@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../lib/prisma'
 import { operatorApplicationSchema } from '../../lib/schemas'
 
 export default async function handler(

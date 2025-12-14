@@ -2,12 +2,15 @@
 FROM oven/bun:1 AS deps
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy package files
-COPY package.json bun.lockb* ./
+COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
-COPY packages/core/package.json ./packages/core/
-COPY packages/db/package.json ./packages/db/
-COPY packages/integrations/package.json ./packages/integrations/
 
 # Install dependencies
 RUN bun install --frozen-lockfile || bun install
@@ -19,11 +22,12 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client
-RUN cd packages/db && bunx prisma@^5 generate
+RUN cd apps/web && bunx prisma generate
 
 # Build the application
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN bun run build --filter=web
+ENV NODE_ENV=production
+RUN cd apps/web && bun run build
 
 # Runner stage
 FROM oven/bun:1 AS runner
@@ -32,19 +36,29 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Install system dependencies for production
+RUN apt-get update && apt-get install -y \
+    dumb-init \
+    curl \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
 RUN groupadd --system --gid 1001 nodejs
 RUN useradd --system --uid 1001 --gid nodejs nextjs
 
-# Copy necessary files
-COPY --from=builder /app/apps/web/public ./apps/web/public
-COPY --from=builder /app/apps/web/.next/standalone ./
-COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static
+# Create necessary directories
+RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
 
-# Copy Prisma schema and generated client
-COPY --from=builder /app/packages/db/prisma ./packages/db/prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+
+# Copy Prisma files
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/prisma ./apps/web/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 USER nextjs
 
@@ -52,4 +66,10 @@ EXPOSE 3000
 
 ENV PORT=3000
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Use dumb-init for proper signal handling
+ENTRYPOINT ["dumb-init", "--"]
 CMD ["bun", "run", "apps/web/server.js"]

@@ -1,6 +1,7 @@
 import type { NextPage, GetServerSideProps } from 'next'
 import { useState } from 'react'
-import prisma from '@warehouse-network/db/src/client'
+import { useRouter } from 'next/router'
+import prisma from '../../lib/prisma'
 import type { Invitation } from '@prisma/client'
 
 interface AcceptInvitationProps {
@@ -9,6 +10,7 @@ interface AcceptInvitationProps {
 }
 
 const AcceptInvitation: NextPage<AcceptInvitationProps> = ({ invitation, error }) => {
+  const router = useRouter()
   const [name, setName] = useState('')
   const [password, setPassword] = useState('')
 
@@ -21,7 +23,7 @@ const AcceptInvitation: NextPage<AcceptInvitationProps> = ({ invitation, error }
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ token: invitation.token, name, password }),
+        body: JSON.stringify({ token: invitation?.token, name, password }),
       })
 
       if (response.ok) {

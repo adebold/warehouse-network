@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
+import { authOptions } from '../auth/[...nextauth]'
+import prisma from '../../../lib/prisma'
 
 export default async function handler(
   req: NextApiRequest,
@@ -15,17 +15,18 @@ export default async function handler(
     }
 
     try {
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email ?? '' },
-        include: { operatorUser: true },
+      // TODO: This needs to be updated when proper User-Operator relationship is established
+      // For now, we'll find an operator based on the user's email or other identifier
+      const operators = await prisma.operator.findMany({
+        where: { primaryContact: session.user.email ?? '' },
       })
 
-      if (!user?.operatorUser) {
+      if (operators.length === 0) {
         return res.status(404).json({ message: 'Operator not found for this user.' })
       }
 
       const operator = await prisma.operator.update({
-        where: { id: user.operatorUser.operatorId },
+        where: { id: operators[0].id },
         data: {
           termsAccepted: true,
           termsAcceptedAt: new Date(),

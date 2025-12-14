@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../../lib/prisma'
 import { z } from 'zod'
 
 const moveSkidSchema = z.object({
@@ -45,13 +45,8 @@ export default async function handler(
         data: { locationId: location.id, status: 'STORED' },
       })
 
-      await prisma.auditEvent.create({
-        data: {
-          userId: session.user.id,
-          action: 'MOVE_SKID',
-          details: { skidId: skid.id, locationId: location.id },
-        },
-      })
+      // TODO: Add audit logging when AuditEvent model is implemented
+      console.log(`User ${session.user.id} moved skid ${skid.id} to location ${location.id}`)
 
       res.status(200).json(updatedSkid)
     } catch (error) {

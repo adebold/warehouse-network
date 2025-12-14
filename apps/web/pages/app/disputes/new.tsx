@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import type { Skid, DisputeType } from '@prisma/client'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../../lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../api/auth/[...nextauth]'
 

@@ -1,0 +1,265 @@
+// Warehouse Real Estate Listing Platform Schema
+// This is the new schema for warehouse/industrial space listings
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core Models
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole        @default(USER)
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  // Listings they manage
+  listings      Listing[]
+  inquiries     Inquiry[]
+}
+
+enum UserRole {
+  USER
+  BROKER
+  LANDLORD
+  ADMIN
+}
+
+// Location & Geographic Data
+model Listing {
+  id                    String            @id @default(cuid())
+  title                 String
+  description           String?           @db.Text
+  status                ListingStatus     @default(AVAILABLE)
+  
+  // Location Data
+  address               String
+  city                  String
+  postalCode            String
+  latitude              Float?
+  longitude             Float?
+  distanceToHighway     Float?            // km to nearest major highway
+  
+  // Physical Specifications
+  totalSqFt             Int
+  minDivisibleSqFt      Int?              // minimum divisible space
+  clearHeight           Float             // in feet
+  columnSpacing         String?           // e.g., "24x40", optional in v1
+  heavyLoadCapable      Boolean           @default(false)
+  floorLoadPsf          Int?              // pounds per square foot
+  
+  // Loading & Access
+  dockDoors             DockDoor[]
+  driveInDoors          DriveInDoor[]
+  
+  // Zoning & Use
+  zoningCategory        String            // e.g., "EL", "E", "EO" for Ontario
+  permittedUses         PermittedUse[]
+  
+  // Parking & Yard
+  employeeParkingSpaces Int               @default(0)
+  trailerParkingSpaces  Int               @default(0)
+  hasYardStorage        Boolean           @default(false)
+  yardStorageArea       Float?            // square feet
+  
+  // Lease & Pricing
+  leaseType             LeaseType
+  askingRentPsf         Float             // per square foot annually
+  estimatedCamPsf       Float?            // Common Area Maintenance
+  minLeaseTerm          Int               // months
+  maxLeaseTerm          Int?              // months, null = no max
+  availabilityDate      DateTime
+  
+  // Media & Documentation
+  photos                Photo[]
+  floorPlan             String?           // URL to floor plan
+  virtualTourUrl        String?
+  
+  // Contacts
+  landlordContact       Contact?          @relation("LandlordContact", fields: [landlordContactId], references: [id])
+  landlordContactId     String?
+  brokerContact         Contact?          @relation("BrokerContact", fields: [brokerContactId], references: [id])
+  brokerContactId       String?
+  
+  // Metadata
+  createdBy             User              @relation(fields: [createdById], references: [id])
+  createdById           String
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  
+  // Inquiries
+  inquiries             Inquiry[]
+
+  @@index([city])
+  @@index([status])
+  @@index([totalSqFt])
+  @@index([askingRentPsf])
+  @@index([latitude, longitude])
+}
+
+enum ListingStatus {
+  AVAILABLE
+  UNDER_NEGOTIATION
+  LEASED
+  WITHDRAWN
+}
+
+enum LeaseType {
+  GROSS
+  NET
+  NNN              // Triple Net
+  MODIFIED_GROSS
+}
+
+// Loading Infrastructure
+model DockDoor {
+  id          String  @id @default(cuid())
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId   String
+  count       Int     @default(1)
+  dockHeight  Float   // feet from ground
+  description String? // e.g., "hydraulic leveler", "dock seal"
+}
+
+model DriveInDoor {
+  id          String  @id @default(cuid())
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId   String
+  count       Int     @default(1)
+  width       Float   // feet
+  height      Float   // feet
+  description String? // e.g., "overhead door", "grade level"
+}
+
+// Use Classifications
+model PermittedUse {
+  id          String  @id @default(cuid())
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId   String
+  useType     UseType
+  description String?
+}
+
+enum UseType {
+  STORAGE
+  LIGHT_MANUFACTURING
+  HEAVY_MANUFACTURING
+  DISTRIBUTION
+  FULFILLMENT
+  COLD_STORAGE
+  FOOD_PROCESSING
+  AUTOMOTIVE
+  RETAIL_DISTRIBUTION
+}
+
+// Contact Information
+model Contact {
+  id               String    @id @default(cuid())
+  name             String
+  title            String?
+  company          String?
+  email            String
+  phone            String?
+  mobile           String?
+  
+  // Relations
+  landlordListings Listing[] @relation("LandlordContact")
+  brokerListings   Listing[] @relation("BrokerContact")
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([email])
+}
+
+// Media
+model Photo {
+  id          String  @id @default(cuid())
+  listing     Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId   String
+  url         String
+  alt         String?
+  caption     String?
+  order       Int     @default(0)
+  isPrimary   Boolean @default(false)
+  
+  createdAt   DateTime @default(now())
+
+  @@index([listingId, order])
+}
+
+// User Interactions
+model Inquiry {
+  id          String        @id @default(cuid())
+  listing     Listing       @relation(fields: [listingId], references: [id])
+  listingId   String
+  user        User          @relation(fields: [userId], references: [id])
+  userId      String
+  
+  companyName String?
+  spaceNeeded Int?          // square feet
+  message     String        @db.Text
+  status      InquiryStatus @default(NEW)
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([listingId])
+  @@index([userId])
+  @@index([status])
+}
+
+enum InquiryStatus {
+  NEW
+  CONTACTED
+  IN_PROGRESS
+  CLOSED
+}
+
+// Authentication Models (keeping minimal NextAuth support)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}

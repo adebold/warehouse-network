@@ -24,7 +24,8 @@
     "qrcode": "1.5.4",
     "@yudiel/react-qr-scanner": "2.4.1",
     "node-cron": "3.0.0",
-    "@stripe/stripe-js": "2.1.0"
+    "@stripe/stripe-js": "2.1.0",
+    "stripe": "14.7.0"
   },
   "devDependencies": {
     "typescript": "5.2.2",

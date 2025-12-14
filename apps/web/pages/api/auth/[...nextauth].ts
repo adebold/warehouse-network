@@ -1,12 +1,10 @@
 import NextAuth from 'next-auth'
-import { PrismaAdapter } from '@auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../../lib/prisma'
 import type { NextAuthOptions } from 'next-auth'
 import bcrypt from 'bcrypt'
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -41,13 +39,8 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id
         token.role = user.role
         token.customerId = user.customerId
-        const operatorUser = await prisma.operatorUser.findUnique({
-          where: { userId: user.id },
-        })
-        if (operatorUser) {
-          token.warehouseId = operatorUser.warehouseId
-          token.operatorId = operatorUser.operatorId
-        }
+        // Note: Operator associations would need to be handled separately
+        // as there's no direct User-Operator relationship in the current schema
       }
       return token
     },

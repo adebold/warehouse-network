@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '@warehouse-network/db/src/client'
-import { registerWithReferralSchema } from '../../lib/schemas'
+import prisma from '../../../lib/prisma'
+import { registerWithReferralSchema } from '../../../lib/schemas'
 import bcrypt from 'bcrypt'
 import { ReferralType, UserRole } from '@prisma/client'
 

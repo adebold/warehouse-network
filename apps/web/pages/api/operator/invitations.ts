@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../../lib/prisma'
 import { z } from 'zod'
 import crypto from 'crypto'
 
@@ -29,16 +29,17 @@ export default async function handler(
 
       const { email, role } = validation.data
 
-      const user = await prisma.user.findUnique({
-        where: { email: session.user.email ?? '' },
-        include: { operatorUser: true },
+      // TODO: This needs to be updated when proper User-Operator relationship is established
+      // For now, we'll find an operator based on the user's email
+      const operators = await prisma.operator.findMany({
+        where: { primaryContact: session.user.email ?? '' },
       })
 
-      if (!user?.operatorUser) {
+      if (operators.length === 0) {
         return res.status(404).json({ message: 'Operator not found for this user.' })
       }
 
-      const operatorId = user.operatorUser.operatorId
+      const operatorId = operators[0].id
       const token = crypto.randomBytes(32).toString('hex')
       const expires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
@@ -48,7 +49,7 @@ export default async function handler(
           role,
           token,
           expires,
-          operatorId,
+          // Note: operatorId relationship not tracked in current Invitation model
         },
       })
 

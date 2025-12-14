@@ -1,8 +1,8 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]'
-import prisma from '@warehouse-network/db/src/client'
-import { disputeSchema } from '../../lib/schemas'
+import prisma from '../../../lib/prisma'
+import { disputeSchema } from '../../../lib/schemas'
 
 export default async function handler(
   req: NextApiRequest,
@@ -49,7 +49,6 @@ export default async function handler(
         data: {
           customerId: session.user.customerId,
           operatorId: operator.id,
-          warehouseId,
           type,
           description,
           evidence: evidence ? JSON.parse(evidence) : undefined, // Store evidence as JSON

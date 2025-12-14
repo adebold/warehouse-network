@@ -191,3 +191,39 @@ export const applicationReviewSchema = z.object({
   status: z.enum(['APPROVED', 'REJECTED']),
   notes: z.string().optional(),
 })
+
+export const operatorApplicationSchema = z.object({
+  legalName: z.string().min(1, 'Legal name is required'),
+  registrationDetails: z.string().min(1, 'Registration details are required'),
+  primaryContact: z.string().min(1, 'Primary contact is required'),
+  operatingRegions: z.string().min(1, 'Operating regions are required'),
+  warehouseCount: z.number().int().nonnegative('Warehouse count must be non-negative'),
+  goodsCategories: z.string().min(1, 'Goods categories are required'),
+  insurance: z.boolean(),
+})
+
+export const operatorProfileSchema = z.object({
+  legalName: z.string().min(1, 'Legal name is required').optional(),
+  registrationDetails: z.string().min(1, 'Registration details are required').optional(),
+  primaryContact: z.string().min(1, 'Primary contact is required').optional(),
+  operatingRegions: z.string().min(1, 'Operating regions are required').optional(),
+  warehouseCount: z.number().int().nonnegative('Warehouse count must be non-negative').optional(),
+  goodsCategories: z.string().min(1, 'Goods categories are required').optional(),
+})
+
+export const warehouseSchema = z.object({
+  name: z.string().min(1, 'Warehouse name is required'),
+  address: z.string().min(1, 'Address is required'),
+  operatingHours: z.string().min(1, 'Operating hours are required'),
+  capacity: z.number().int().positive('Capacity must be a positive number'),
+  supportedGoods: z.string().min(1, 'Supported goods are required'),
+  dockAccessInstructions: z.string().min(1, 'Dock access instructions are required'),
+})
+
+export const pricingRulesSchema = z.object({
+  rules: z.array(z.object({
+    chargeCategoryId: z.string().min(1, 'Charge category is required'),
+    price: z.number().positive('Price must be positive'),
+    currency: z.string().min(1, 'Currency is required'),
+  })).min(1, 'At least one pricing rule is required'),
+})

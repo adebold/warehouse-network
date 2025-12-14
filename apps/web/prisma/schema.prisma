@@ -587,3 +587,32 @@ model ChargeCategory {
   quoteItems   QuoteItem[]
   chargeLines  ChargeLine[]
 }
+
+model Referral {
+  id           String      @id @default(cuid())
+  code         String      @unique
+  referrerId   String
+  refereeId    String?
+  referralType ReferralType
+  source       String      @default("link")
+  status       ReferralStatus @default(PENDING)
+  qualifiedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@index([code])
+  @@index([referrerId])
+}
+
+enum ReferralStatus {
+  PENDING
+  USED
+  EXPIRED
+  QUALIFIED
+}
+
+enum ReferralType {
+  CUSTOMER_TO_CUSTOMER
+  OPERATOR_TO_OPERATOR
+  OPERATOR_TO_CUSTOMER
+}

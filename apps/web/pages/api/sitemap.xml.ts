@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../lib/prisma'
 
 const generateSitemap = (cityPages: { slug: string }[]) => {
   const baseUrl = process.env.BASE_URL || 'http://localhost:3000'

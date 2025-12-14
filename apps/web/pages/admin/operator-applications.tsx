@@ -1,5 +1,5 @@
 import type { NextPage, GetServerSideProps } from 'next'
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../lib/prisma'
 import type { Operator } from '@prisma/client'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
