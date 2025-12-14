@@ -3,6 +3,7 @@ import { PrismaAdapter } from '@auth/prisma-adapter'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import prisma from '@warehouse-network/db/src/client'
 import type { NextAuthOptions } from 'next-auth'
+import bcrypt from 'bcrypt'
 
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
@@ -21,11 +22,13 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         })
 
-        if (user && user.password === credentials.password) {
-          return user
-        } else {
-          return null
+        if (user && user.password) {
+          const isPasswordValid = await bcrypt.compare(credentials.password, user.password)
+          if (isPasswordValid) {
+            return user
+          }
         }
+        return null
       },
     }),
   ],
