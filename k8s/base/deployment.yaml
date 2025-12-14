@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: warehouse-app
+  namespace: warehouse-network
+  labels:
+    app: warehouse-app
+    component: web
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: warehouse-app
+      component: web
+  template:
+    metadata:
+      labels:
+        app: warehouse-app
+        component: web
+    spec:
+      containers:
+      - name: app
+        image: ghcr.io/adebold/warehouse-network:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        envFrom:
+        - secretRef:
+            name: warehouse-secrets
+        - configMapRef:
+            name: warehouse-config
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/ready
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        volumeMounts:
+        - name: uploads
+          mountPath: /app/uploads
+      volumes:
+      - name: uploads
+        persistentVolumeClaim:
+          claimName: warehouse-uploads
+      imagePullSecrets:
+      - name: ghcr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: warehouse-app
+  namespace: warehouse-network
+  labels:
+    app: warehouse-app
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: warehouse-app
+    component: web
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: warehouse-uploads
+  namespace: warehouse-network
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efs-sc
+  resources:
+    requests:
+      storage: 50Gi

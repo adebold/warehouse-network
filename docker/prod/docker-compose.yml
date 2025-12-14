@@ -1,0 +1,83 @@
+version: '3.9'
+
+# Production uses Kubernetes - this is for local production testing only
+services:
+  app:
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_URL: https://warehouse-network.com
+    deploy:
+      replicas: 3
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+
+  nginx:
+    image: nginx:alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_cache:/var/cache/nginx
+    depends_on:
+      - app
+    deploy:
+      replicas: 2
+    networks:
+      - warehouse-network
+
+  postgres:
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    environment:
+      POSTGRES_REPLICATION_MODE: master
+      POSTGRES_REPLICATION_USER: replicator
+      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
+
+  postgres-replica:
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      POSTGRES_REPLICATION_MODE: slave
+      POSTGRES_MASTER_HOST: postgres
+      POSTGRES_REPLICATION_USER: replicator
+      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 2
+    networks:
+      - warehouse-network
+
+volumes:
+  postgres_data_prod:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /data/postgres
+  nginx_cache:
+
+networks:
+  warehouse-network:
+    driver: overlay
+    attachable: true

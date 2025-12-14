@@ -1,0 +1,57 @@
+version: '3.9'
+
+services:
+  postgres:
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres_data_dev:/var/lib/postgresql/data
+
+  redis:
+    ports:
+      - "6379:6379"
+
+  app:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: builder
+    command: sh -c "cd packages/db && pnpm prisma migrate dev && cd /app && pnpm run dev --filter=web"
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXTAUTH_URL: http://localhost:3000
+    volumes:
+      - ../../apps/web:/app/apps/web
+      - ../../packages:/app/packages
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@warehouse.local
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - warehouse-network
+
+  mailhog:
+    image: mailhog/mailhog:latest
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - warehouse-network
+
+networks:
+  warehouse-network:
+    external: true

@@ -1,0 +1,131 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment:
+      name: staging
+      url: https://staging.warehouse-network.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to Staging
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_KEY: ${{ secrets.STAGING_KEY }}
+        run: |
+          echo "$STAGING_KEY" > deploy_key
+          chmod 600 deploy_key
+          ssh -o StrictHostKeyChecking=no -i deploy_key $STAGING_HOST '
+            cd /opt/warehouse-network
+            git pull origin develop
+            docker-compose -f docker-compose.base.yml -f docker/staging/docker-compose.yml pull
+            docker-compose -f docker-compose.base.yml -f docker/staging/docker-compose.yml up -d
+            docker system prune -af
+          '
+          
+      - name: Run migrations
+        run: |
+          ssh -o StrictHostKeyChecking=no -i deploy_key $STAGING_HOST '
+            cd /opt/warehouse-network
+            docker-compose -f docker-compose.base.yml -f docker/staging/docker-compose.yml exec -T app \
+              sh -c "cd packages/db && pnpm prisma migrate deploy"
+          '
+          
+      - name: Health check
+        run: |
+          sleep 30
+          curl -f https://staging.warehouse-network.com/api/health || exit 1
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment:
+      name: production
+      url: https://warehouse-network.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'v1.28.0'
+          
+      - name: Configure kubectl
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          echo "$KUBE_CONFIG" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          
+      - name: Deploy to Kubernetes
+        run: |
+          export IMAGE_TAG=${GITHUB_REF#refs/tags/}
+          kubectl set image deployment/warehouse-app \
+            app=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:$IMAGE_TAG \
+            -n warehouse-network
+          kubectl rollout status deployment/warehouse-app -n warehouse-network
+          
+      - name: Run migrations
+        run: |
+          kubectl exec -it deployment/warehouse-app -n warehouse-network -- \
+            sh -c "cd packages/db && pnpm prisma migrate deploy"
+            
+      - name: Update Sentry release
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
+          SENTRY_PROJECT: warehouse-network
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          npx @sentry/cli releases new $VERSION
+          npx @sentry/cli releases set-commits $VERSION --auto
+          npx @sentry/cli releases finalize $VERSION
+          npx @sentry/cli releases deploys $VERSION new -e production
+
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    if: failure() && startsWith(github.ref, 'refs/tags/v')
+    needs: deploy-production
+    environment:
+      name: production-rollback
+    steps:
+      - name: Rollback Kubernetes deployment
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          echo "$KUBE_CONFIG" | base64 -d > kubeconfig
+          export KUBECONFIG=kubeconfig
+          kubectl rollout undo deployment/warehouse-app -n warehouse-network
+          kubectl rollout status deployment/warehouse-app -n warehouse-network
+          
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "🚨 Production deployment rolled back!",
+              attachments: [{
+                color: 'danger',
+                text: `Deployment of ${process.env.GITHUB_REF} failed and was rolled back.`
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
