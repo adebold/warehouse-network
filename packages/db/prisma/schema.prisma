@@ -1,0 +1,523 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Platform {
+  id        String      @id @default(cuid())
+  name      String
+  operators Operator[]
+}
+
+model Operator {
+  id                    String      @id @default(cuid())
+  legalName             String
+  platform              Platform    @relation(fields: [platformId], references: [id])
+  platformId            String
+  warehouses            Warehouse[]
+  users                 OperatorUser[]
+  ledger                OperatorLedgerEntry[]
+  payouts               Payout[]
+  status                OperatorStatus @default(APPLIED)
+  registrationDetails   String
+  primaryContact        String
+  operatingRegions      String
+  warehouseCount        Int
+  goodsCategories       String
+  insuranceAcknowledged Boolean
+  termsAccepted         Boolean   @default(false)
+  termsAcceptedAt       DateTime?
+  invitations           Invitation[]
+  stripeAccountId       String?   @unique
+  stripeOnboardingComplete Boolean @default(false)
+  referralsMade         Referral[] @relation("OperatorReferralsMade")
+  trustScore            OperatorTrustScore?
+  disputes              Dispute[] @relation("OperatorDisputes")
+}
+
+model Invitation {
+  id          String   @id @default(cuid())
+  email       String
+  token       String   @unique
+  expires     DateTime
+  operator    Operator @relation(fields: [operatorId], references: [id])
+  operatorId  String
+  role        UserRole
+}
+
+enum OperatorStatus {
+  APPLIED
+  APPROVED
+  REJECTED
+  ACTIVE_PENDING_WAREHOUSE
+  ACTIVE
+  SUSPENDED
+  OFFBOARDING
+}
+
+model OperatorUser {
+  id          String      @id @default(cuid())
+  operator    Operator    @relation(fields: [operatorId], references: [id])
+  operatorId  String
+  user        User        @relation(fields: [userId], references: [id])
+  userId      String      @unique
+  warehouse   Warehouse?  @relation(fields: [warehouseId], references: [id])
+  warehouseId String?
+}
+
+model User {
+  id            String          @id @default(cuid())
+  name          String?
+  email         String?         @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole        @default(CUSTOMER_USER)
+  accounts      Account[]
+  sessions      Session[]
+  operatorUser  OperatorUser?
+  auditEvents   AuditEvent[]
+  customer      Customer?       @relation(fields: [customerId], references: [id])
+  customerId    String?
+  cityPages     CityPage[]
+  credits       Credit[]
+  referralsMade Referral[] @relation("UserReferralsMade")
+  referralsReceived Referral[] @relation("UserReferralsReceived")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  action    String
+  details   Json
+  timestamp DateTime @default(now())
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  WAREHOUSE_STAFF
+  FINANCE_ADMIN
+  CUSTOMER_ADMIN
+  CUSTOMER_USER
+  OPERATOR_ADMIN
+}
+
+enum WarehouseStatus {
+  INACTIVE
+  READY_FOR_MARKETPLACE
+  ACTIVE
+  SUSPENDED
+}
+
+model PricingRule {
+  id              String        @id @default(cuid())
+  warehouse       Warehouse     @relation(fields: [warehouseId], references: [id])
+  warehouseId     String
+  chargeCategory  ChargeCategory
+  price           Float
+  currency        String
+}
+
+enum ChargeCategory {
+  RECEIVING
+  STORAGE
+  PICKING
+  PICKUP_RELEASE
+}
+
+model Warehouse {
+  id                      String    @id @default(cuid())
+  name                    String
+  address                 String
+  operatingHours          String
+  capacity                Int
+  supportedGoods          String
+  dockAccessInstructions  String
+  status                  WarehouseStatus @default(INACTIVE)
+  operator                Operator  @relation(fields: [operatorId], references: [id])
+  operatorId              String
+  skids                   Skid[]
+  pricingRules            PricingRule[]
+  operatorUsers           OperatorUser[]
+  locations               Location[]
+  releaseRequests         ReleaseRequest[]
+  qualityScore            WarehouseQualityScore?
+  disputes                Dispute[] @relation("WarehouseDisputes")
+}
+
+model Location {
+  id          String    @id @default(cuid())
+  name        String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId String
+  skids       Skid[]
+}
+
+model Skid {
+  id                      String          @id @default(cuid())
+  skidCode                String          @unique
+  customer                Customer        @relation(fields: [customerId], references: [id])
+  customerId              String
+  warehouse               Warehouse       @relation(fields: [warehouseId], references: [id])
+  warehouseId             String
+  status                  SkidStatus
+  receivingOrder          ReceivingOrder? @relation(fields: [receivingOrderId], references: [id])
+  receivingOrderId        String?
+  footprint               String? // standard / oversized
+  specialHandlingNotes    String?
+  location                Location?       @relation(fields: [locationId], references: [id])
+  locationId              String?
+  releaseRequests         SkidsOnReleaseRequests[]
+  chargeLines             ChargeLine[]
+  disputes                SkidsOnDisputes[]
+}
+
+model ReleaseRequest {
+  id                  String    @id @default(cuid())
+  requestedAt         DateTime
+  carrierDetails      String
+  status              ReleaseRequestStatus @default(PENDING)
+  customer            Customer  @relation(fields: [customerId], references: [id])
+  customerId          String
+  warehouse           Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId         String
+  skids               SkidsOnReleaseRequests[]
+}
+
+model SkidsOnReleaseRequests {
+  skid            Skid            @relation(fields: [skidId], references: [id])
+  skidId          String
+  releaseRequest  ReleaseRequest  @relation(fields: [releaseRequestId], references: [id])
+  releaseRequestId String
+
+  @@id([skidId, releaseRequestId])
+}
+
+enum ReleaseRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model ReceivingOrder {
+  id                String    @id @default(cuid())
+  reference         String    @unique
+  warehouse         Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId       String
+  customer          Customer  @relation(fields: [customerId], references: [id])
+  customerId        String
+  carrier           String?
+  expectedSkidCount Int?
+  notes             String?
+  skids             Skid[]
+}
+
+enum SkidStatus {
+  RECEIVED
+  PUTAWAY
+  STORED
+  PICKING
+  READY
+  RELEASED
+  SHIPPED
+  HOLD
+}
+
+model Customer {
+  id    String @id @default(cuid())
+  name  String
+  skids Skid[]
+  users User[]
+  releaseRequests ReleaseRequest[]
+  disputes        Dispute[] @relation("CustomerDisputes")
+}
+
+model OperatorLedgerEntry {
+  id          String                  @id @default(cuid())
+  operator    Operator                @relation(fields: [operatorId], references: [id])
+  operatorId  String
+  type        OperatorLedgerEntryType
+  amount      Float
+  currency    String
+  timestamp   DateTime                @default(now())
+  description String?
+}
+
+enum OperatorLedgerEntryType {
+  CHARGE
+  PAYOUT
+  ADJUSTMENT
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  operator    Operator     @relation(fields: [operatorId], references: [id])
+  operatorId  String
+  amount      Float
+  currency    String
+  status      PayoutStatus @default(PENDING)
+  stripePayoutId String?    @unique
+  createdAt   DateTime     @default(now())
+  processedAt DateTime?
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  CANCELED
+}
+
+
+model ChargeLine {
+  id              String        @id @default(cuid())
+  skid            Skid          @relation(fields: [skidId], references: [id])
+  skidId          String
+  chargeCategory  ChargeCategory
+  amount          Float
+  currency        String
+  timestamp       DateTime      @default(now())
+}
+
+model JobRun {
+  id          String    @id @default(cuid())
+  jobName     String
+  status      String
+  startedAt   DateTime  @default(now())
+  finishedAt  DateTime?
+  details     Json?
+}
+
+model RFQ {
+  id                    String    @id @default(cuid())
+  customer              Customer  @relation(fields: [customerId], references: [id])
+  customerId            String
+  preferredWarehouseIds String[] // Comma-separated list of warehouse IDs
+  estimatedSkidCount    Int
+  footprintType         String
+  expectedInboundDate   DateTime
+  expectedDuration      String? // e.g., "unknown", "3 months"
+  specialHandlingNotes  String?
+  status                RFQStatus @default(PENDING)
+  quotes                Quote[]
+}
+
+enum RFQStatus {
+  PENDING
+  QUOTED
+  REJECTED
+}
+
+model Quote {
+  id                String          @id @default(cuid())
+  rfq               RFQ             @relation(fields: [rfqId], references: [id])
+  rfqId             String
+  warehouse         Warehouse       @relation(fields: [warehouseId], references: [id])
+  warehouseId       String
+  items             QuoteItem[]
+  currency          String
+  assumptions       String?
+  guaranteedCharges Boolean         @default(false)
+  depositAmount     Float
+  accrualStartRule  AccrualStartRule
+  expiryDate        DateTime
+  version           Int             @default(1)
+  status            QuoteStatus     @default(PENDING)
+}
+
+enum AccrualStartRule {
+  ON_RECEIPT
+  FIXED_DATE
+}
+
+enum QuoteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  DEPOSIT_PAID
+}
+
+model QuoteItem {
+  id             String        @id @default(cuid())
+  quote          Quote         @relation(fields: [quoteId], references: [id])
+  quoteId        String
+  chargeCategory ChargeCategory
+  unitPrice      Float
+  quantity       Int
+  description    String?
+}
+
+model Deposit {
+  id            String    @id @default(cuid())
+  customer      Customer  @relation(fields: [customerId], references: [id])
+  customerId    String
+  quote         Quote     @relation(fields: [quoteId], references: [id])
+  quoteId       String
+  amount        Float
+  currency      String
+  stripeChargeId String    @unique
+  status        String    @default("succeeded")
+  createdAt     DateTime  @default(now())
+}
+
+model CityPage {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  city          String
+  region        String?
+  h1            String
+  introContent  String    @db.Text
+  isActive      Boolean   @default(false)
+  version       Int       @default(1)
+  author        User      @relation(fields: [authorId], references: [id])
+  authorId      String
+  lastEditedAt  DateTime  @default(now())
+}
+
+model Referral {
+  id              String         @id @default(cuid())
+  code            String         @unique
+  referrer        User           @relation("UserReferralsMade", fields: [referrerId], references: [id])
+  referrerId      String
+  referee         User?          @relation("UserReferralsReceived", fields: [refereeId], references: [id])
+  refereeId       String?
+  referralType    ReferralType
+  source          String
+  status          ReferralStatus @default(PENDING)
+  qualifiedAt     DateTime?
+  createdAt       DateTime       @default(now())
+}
+
+enum ReferralType {
+  CUSTOMER_TO_CUSTOMER
+  OPERATOR_TO_OPERATOR
+  OPERATOR_TO_CUSTOMER
+}
+
+enum ReferralStatus {
+  PENDING
+  QUALIFIED
+  REJECTED
+}
+
+model Credit {
+  id            String    @id @default(cuid())
+  user          User      @relation(fields: [userId], references: [id])
+  userId        String
+  amount        Float
+  currency      String
+  description   String?
+  expiresAt     DateTime?
+  createdAt     DateTime  @default(now())
+  isConsumed    Boolean   @default(false)
+}
+
+model OperatorTrustScore {
+  id                      String    @id @default(cuid())
+  operator                Operator  @relation(fields: [operatorId], references: [id])
+  operatorId              String    @unique
+  score                   Float
+  operationalReliability  Float
+  capacityIntegrity       Float
+  financialBehavior       Float
+  complianceSignals       Float
+  lastCalculatedAt        DateTime  @default(now())
+}
+
+model WarehouseQualityScore {
+  id                      String    @id @default(cuid())
+  warehouse               Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId             String    @unique
+  score                   Float
+  throughputPerformance   Float
+  damageReports           Int
+  dockAppointmentAdherence Float
+  customerComplaints      Int
+  lastCalculatedAt        DateTime  @default(now())
+}
+
+model Dispute {
+  id            String    @id @default(cuid())
+  customer      Customer  @relation("CustomerDisputes", fields: [customerId], references: [id])
+  customerId    String
+  operator      Operator  @relation("OperatorDisputes", fields: [operatorId], references: [id])
+  operatorId    String
+  warehouse     Warehouse @relation("WarehouseDisputes", fields: [warehouseId], references: [id])
+  warehouseId   String
+  type          DisputeType
+  status        DisputeStatus @default(OPEN)
+  description   String    @db.Text
+  evidence      Json?
+  resolution    String?   @db.Text
+  submittedAt   DateTime  @default(now())
+  resolvedAt    DateTime?
+  skids         SkidsOnDisputes[]
+}
+
+enum DisputeType {
+  DAMAGED_GOODS
+  MISSING_GOODS
+  INCORRECT_CHARGES
+  SLA_BREACHES
+  MISDECLARED_GOODS
+}
+
+enum DisputeStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  ESCALATED
+}
+
+model SkidsOnDisputes {
+  skid          Skid          @relation(fields: [skidId], references: [id])
+  skidId        String
+  dispute       Dispute       @relation(fields: [disputeId], references: [id])
+  disputeId     String
+
+  @@id([skidId, disputeId])
+}

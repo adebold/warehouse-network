@@ -1,0 +1,16 @@
+{
+  "name": "warehouse-network-monorepo",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Warehouse Management Platform",
+  "scripts": {
+    "dev": "pnpm --filter web dev",
+    "build": "pnpm --filter web build",
+    "start": "pnpm --filter web start",
+    "lint": "pnpm --filter web lint"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@8.6.1"
+}

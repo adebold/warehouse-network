@@ -1,0 +1,12 @@
+{
+  "name": "@warehouse-network/core",
+  "version": "1.0.0",
+  "description": "Core business logic for the warehouse network platform",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
