@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { stripe } from '@warehouse-network/integrations/src/stripe'
+import { stripe } from '../../../../../packages/integrations/src/stripe'
 import prisma from '../../../lib/prisma'
 import getRawBody from 'raw-body'
 import type { Stripe } from 'stripe'

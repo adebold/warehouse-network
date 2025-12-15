@@ -1,6 +1,6 @@
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../db/src/client'
 import { OperatorLedgerEntryType, PayoutStatus } from '@prisma/client'
-import { stripe } from '@warehouse-network/integrations/src/stripe'
+import { stripe } from '../../integrations/src/stripe'
 
 const PLATFORM_TAKE_RATE = 0.10 // 10%
 

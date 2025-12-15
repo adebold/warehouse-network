@@ -1,4 +1,4 @@
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../db/src/client'
 import { ChargeCategory, SkidStatus } from '@prisma/client'
 
 export async function runDailyAccrual() {

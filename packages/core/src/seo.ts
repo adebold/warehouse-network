@@ -1,4 +1,4 @@
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../db/src/client'
 import { UserRole } from '@prisma/client'
 
 const SYSTEM_USER_ID = 'clsys00000000000000000000' // A fixed ID for the system user

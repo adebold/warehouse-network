@@ -10,8 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@warehouse-network/db": "workspace:*",
-    "@warehouse-network/integrations": "workspace:*",
-    "@prisma/client": "^5.7.0"
+    "@prisma/client": "^5.7.0",
+    "stripe": "^14.7.0"
   }
 }

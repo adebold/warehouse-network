@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth/next'
 import { authOptions } from '../auth/[...nextauth]'
 import prisma from '../../../lib/prisma'
-import { stripe } from '@warehouse-network/integrations/src/stripe'
+import { stripe } from '../../../../../packages/integrations/src/stripe'
 import { z } from 'zod'
 
 const checkoutSessionSchema = z.object({

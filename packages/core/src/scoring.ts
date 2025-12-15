@@ -1,4 +1,4 @@
-import prisma from '@warehouse-network/db/src/client'
+import prisma from '../../db/src/client'
 
 export async function calculateOperatorTrustScore(operatorId: string) {
   // TODO: Implement actual scoring logic based on audit events, financial behavior, etc.
