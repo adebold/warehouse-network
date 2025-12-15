@@ -6,9 +6,13 @@ import type { ReceivingOrder, Skid } from '@prisma/client'
 import prisma from '../../../../lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../api/auth/[...nextauth]'
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import dynamic from 'next/dynamic'
+
+const SkidLabel = dynamic(() => import('../../../../components/SkidLabel'), { ssr: false })
 
 interface ReceivingOrderDetailsProps {
-  order: ReceivingOrder & { skids: Skid[] }
+  order: ReceivingOrder & { skids: Skid[], warehouse: { name: string }, customer: { name: string } }
 }
 
 const ReceivingOrderDetails: NextPage<ReceivingOrderDetailsProps> = ({ order }) => {
@@ -60,25 +64,6 @@ const ReceivingOrderDetails: NextPage<ReceivingOrderDetailsProps> = ({ order }) 
         />
         <button type="submit">Generate Skids</button>
       </form>
-
-      <h2>Generated Skids</h2>
-      import { PDFDownloadLink } from '@react-pdf/renderer'
-import dynamic from 'next/dynamic'
-
-const SkidLabel = dynamic(() => import('../../../../../components/SkidLabel'), { ssr: false })
-
-// ... (imports)
-
-interface ReceivingOrderDetailsProps {
-  order: ReceivingOrder & { skids: Skid[], warehouse: { name: string }, customer: { name: string } }
-}
-
-// ... (component)
-
-  return (
-    <div>
-      <h1>Receiving Order: {order.reference}</h1>
-      {/* ... (rest of the component) */}
 
       <h2>Generated Skids</h2>
       {skids.length > 0 && (
