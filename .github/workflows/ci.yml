@@ -103,7 +103,7 @@ jobs:
       - name: Run integration tests
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-          NEXTAUTH_SECRET: test-secret
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
           NEXTAUTH_URL: http://localhost:3000
         run: |
           cd apps/web
