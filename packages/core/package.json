@@ -8,5 +8,10 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "@warehouse-network/db": "workspace:*",
+    "@warehouse-network/integrations": "workspace:*",
+    "@prisma/client": "^5.7.0"
+  }
 }
