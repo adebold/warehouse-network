@@ -2,14 +2,18 @@ import type { NextPage, GetServerSideProps } from 'next'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
-import type { RFQ } from '@prisma/client'
+import type { RFQ, Customer } from '@prisma/client'
 import prisma from '../../lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../api/auth/[...nextauth]'
 import Link from 'next/link'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, FileText, Package, Calendar } from 'lucide-react'
 
 interface AdminRFQsProps {
-  rfqs: RFQ[]
+  rfqs: (RFQ & { customer: Customer })[]
 }
 
 const AdminRFQs: NextPage<AdminRFQsProps> = ({ rfqs }) => {
@@ -23,34 +27,86 @@ const AdminRFQs: NextPage<AdminRFQsProps> = ({ rfqs }) => {
   }, [session, status, router])
 
   if (status === 'loading' || !session || session.user.role !== 'SUPER_ADMIN') {
-    return <div>Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
   }
 
   return (
-    <div>
-      <h1>RFQs for Review</h1>
-      <table>
-        <thead>
-          <tr>
-            <th>Customer</th>
-            <th>Estimated Skids</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rfqs.map(rfq => (
-            <tr key={rfq.id}>
-              <td>{rfq.customerId}</td>
-              <td>{rfq.estimatedSkidCount}</td>
-              <td>{rfq.status}</td>
-              <td>
-                <Link href={`/admin/quotes/new?rfqId=${rfq.id}`}>Create Quote</Link>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Link href="/admin/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight">RFQs for Review</h1>
+          <p className="text-muted-foreground mt-2">
+            Review and create quotes for pending RFQs
+          </p>
+        </div>
+
+        {/* RFQs List */}
+        <div className="grid gap-6">
+          {rfqs.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-8">
+                <FileText className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No pending RFQs to review</p>
+              </CardContent>
+            </Card>
+          ) : (
+            rfqs.map((rfq) => (
+              <Card key={rfq.id} className="overflow-hidden">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <CardTitle className="text-xl">RFQ #{rfq.id.slice(-8)}</CardTitle>
+                      <CardDescription className="mt-1">
+                        Customer: {rfq.customer.name}
+                      </CardDescription>
+                    </div>
+                    <Badge variant={rfq.status === 'PENDING' ? 'secondary' : 'default'}>
+                      {rfq.status}
+                    </Badge>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <p className="font-medium text-gray-500 flex items-center">
+                        <Package className="h-4 w-4 mr-2" />
+                        Estimated Skids
+                      </p>
+                      <p className="mt-1 text-lg font-semibold">{rfq.estimatedSkidCount}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-500 flex items-center">
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Created Date
+                      </p>
+                      <p className="mt-1">{new Date(rfq.createdAt).toLocaleDateString()}</p>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-500">Status</p>
+                      <p className="mt-1 capitalize">{rfq.status.toLowerCase()}</p>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4 border-t">
+                    <Link href={`/admin/quotes/new?rfqId=${rfq.id}`} className="flex-1">
+                      <Button className="w-full">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Create Quote
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   )
 }
@@ -64,6 +120,10 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   const rfqs = await prisma.rFQ.findMany({
     where: { status: 'PENDING' },
+    include: {
+      customer: true,
+    },
+    orderBy: { createdAt: 'desc' },
   })
 
   return {

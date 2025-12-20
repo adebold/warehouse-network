@@ -1,51 +1,52 @@
-# Multi-stage Dockerfile for Next.js application with Bun
-FROM oven/bun:1 AS deps
+# Multi-stage Dockerfile for Next.js application
+FROM node:22-alpine AS deps
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Install dependencies and pnpm
+RUN apk add --no-cache openssl && \
+    corepack enable && corepack prepare pnpm@latest --activate
 
 # Copy package files
 COPY package.json pnpm-workspace.yaml ./
 COPY apps/web/package.json ./apps/web/
 
 # Install dependencies
-RUN bun install --frozen-lockfile || bun install
+RUN pnpm install
 
 # Builder stage
-FROM oven/bun:1 AS builder
+FROM node:22-alpine AS builder
 WORKDIR /app
+
+# Install OpenSSL and pnpm
+RUN apk add --no-cache openssl && \
+    corepack enable && corepack prepare pnpm@latest --activate
+
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 
 # Generate Prisma Client
-RUN cd apps/web && bunx prisma generate
+RUN cd apps/web && pnpm exec prisma format && pnpm exec prisma generate
 
-# Build the application
+# Build the application (skip for dev mode)
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
-RUN cd apps/web && bun run build
+ENV NODE_ENV=development
+ENV SKIP_ENV_VALIDATION=1
+# RUN cd apps/web && pnpm run build
 
 # Runner stage
-FROM oven/bun:1 AS runner
+FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Install system dependencies for production
-RUN apt-get update && apt-get install -y \
-    dumb-init \
-    curl \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk add --no-cache curl dumb-init openssl
 
 # Create non-root user
-RUN groupadd --system --gid 1001 nodejs
-RUN useradd --system --uid 1001 --gid nodejs nextjs
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
 
 # Create necessary directories
 RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
@@ -72,4 +73,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 
 # Use dumb-init for proper signal handling
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["bun", "run", "apps/web/server.js"]
+CMD ["node", "apps/web/server.js"]

@@ -1,0 +1,26 @@
+steps:
+  # Build the application
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '--platform=linux/amd64'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/warehouse-app:latest'
+      - '-f'
+      - 'Dockerfile.cloudrun'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+  # Push the image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/warehouse-app:latest']
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+
+images:
+  - 'gcr.io/$PROJECT_ID/warehouse-app:latest'
+
+timeout: 1800s

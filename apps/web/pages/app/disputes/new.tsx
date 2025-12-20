@@ -28,10 +28,15 @@ const NewDispute: NextPage<NewDisputeProps> = ({ skids }) => {
   }, [session, status, router])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type, checked } = e.target
+    const target = e.target
+    const name = target.name
+    const value = target instanceof HTMLInputElement && target.type === 'checkbox' 
+      ? target.checked 
+      : target.value
+    
     setFormData(prevState => ({
       ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: value,
     }))
   }
 

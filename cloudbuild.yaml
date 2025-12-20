@@ -1,0 +1,73 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args: 
+      - 'build'
+      - '-t'
+      - 'gcr.io/${PROJECT_ID}/warehouse-network-web:${COMMIT_SHA}'
+      - '-t'
+      - 'gcr.io/${PROJECT_ID}/warehouse-network-web:latest'
+      - '-f'
+      - 'apps/web/Dockerfile'
+      - '.'
+    timeout: '1200s'
+
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/${PROJECT_ID}/warehouse-network-web:${COMMIT_SHA}']
+    
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/${PROJECT_ID}/warehouse-network-web:latest']
+
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'warehouse-network-web'
+      - '--image'
+      - 'gcr.io/${PROJECT_ID}/warehouse-network-web:${COMMIT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '1Gi'
+      - '--cpu'
+      - '1'
+      - '--timeout'
+      - '300'
+      - '--max-instances'
+      - '10'
+      - '--min-instances'
+      - '0'
+      - '--port'
+      - '8080'
+      - '--service-account'
+      - 'warehouse-network-sa@${PROJECT_ID}.iam.gserviceaccount.com'
+      - '--add-cloudsql-instances'
+      - '${_CLOUD_SQL_CONNECTION_NAME}'
+      - '--set-env-vars'
+      - |
+        NODE_ENV=production,
+        DATABASE_URL=postgresql://${_DB_USER}:${_DB_PASS}@localhost:5432/${_DB_NAME}?host=/cloudsql/${_CLOUD_SQL_CONNECTION_NAME},
+        DIRECT_URL=postgresql://${_DB_USER}:${_DB_PASS}@localhost:5432/${_DB_NAME}?host=/cloudsql/${_CLOUD_SQL_CONNECTION_NAME},
+        NEXTAUTH_URL=https://${_SERVICE_URL},
+        REDIS_URL=redis://${_REDIS_HOST}:6379
+
+substitutions:
+  _REGION: us-central1
+  _SERVICE_URL: warehouse-network-web-<random>.a.run.app
+  _CLOUD_SQL_CONNECTION_NAME: ${PROJECT_ID}:${_REGION}:warehouse-network-db
+  _DB_USER: postgres
+  _DB_PASS: ${_DB_PASSWORD}
+  _DB_NAME: warehouse_network
+  _REDIS_HOST: redis-host
+
+options:
+  machineType: 'E2_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY
+
+timeout: '2400s'

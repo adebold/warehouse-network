@@ -79,7 +79,7 @@ services:
       - /app/apps/web/.next
     extra_hosts:
       - "host.docker.internal:host-gateway"
-    command: sh -c "cd apps/web && bunx prisma migrate dev && bun run dev"
+    command: sh -c "cd apps/web && bunx prisma@5.7.0 migrate dev && bun run dev"
 
   adminer:
     image: adminer:4-standalone

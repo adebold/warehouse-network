@@ -1,0 +1,14 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: 
+    - 'build'
+    - '--platform'
+    - 'linux/amd64'
+    - '-t'
+    - 'gcr.io/$PROJECT_ID/warehouse-network-web:latest'
+    - '-f'
+    - 'Dockerfile.simple'
+    - '.'
+images: 
+  - 'gcr.io/$PROJECT_ID/warehouse-network-web:latest'
+timeout: 1800s

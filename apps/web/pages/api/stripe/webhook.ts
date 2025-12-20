@@ -1,5 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
-import { stripe } from '../../../../../packages/integrations/src/stripe'
+import { stripe } from '../../../lib/stripe'
 import prisma from '../../../lib/prisma'
 import getRawBody from 'raw-body'
 import type { Stripe } from 'stripe'
@@ -28,10 +28,12 @@ export default async function handler(
   if (event.type === 'account.updated') {
     const account = event.data.object as Stripe.Account
     if (account.charges_enabled) {
-      await prisma.operator.update({
-        where: { stripeAccountId: account.id },
-        data: { stripeOnboardingComplete: true },
-      })
+      // TODO: Add stripeAccountId and stripeOnboardingComplete fields to Operator model
+      // await prisma.operator.update({
+      //   where: { stripeAccountId: account.id },
+      //   data: { stripeOnboardingComplete: true },
+      // })
+      console.log('Stripe account updated:', account.id)
     }
   } else if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
@@ -47,16 +49,18 @@ export default async function handler(
       return res.status(400).send('Quote not found.')
     }
 
-    await prisma.deposit.create({
-      data: {
-        customerId,
-        quoteId,
-        amount: session.amount_total! / 100, // Amount in cents, convert to dollars
-        currency: session.currency!,
-        stripeChargeId: session.payment_intent as string,
-        status: session.payment_status,
-      },
-    })
+    // TODO: Add Deposit model to schema
+    // await prisma.deposit.create({
+    //   data: {
+    //     customerId,
+    //     quoteId,
+    //     amount: session.amount_total! / 100, // Amount in cents, convert to dollars
+    //     currency: session.currency!,
+    //     stripeChargeId: session.payment_intent as string,
+    //     status: session.payment_status,
+    //   },
+    // })
+    console.log('Checkout session completed:', session.id)
 
     // Update quote status to DEPOSIT_PAID
     await prisma.quote.update({

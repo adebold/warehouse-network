@@ -21,7 +21,7 @@ export default async function handler(
         return res.status(400).json({ errors: validation.error.issues })
       }
 
-      const { rfqId, warehouseId, items, currency, assumptions, guaranteedCharges, depositAmount, accrualStartRule, expiryDate } = validation.data
+      const { rfqId, warehouseId, items, currency, assumptions, guaranteedCharges, depositAmount, accrualStartRule, expiryDate, paymentMethod, paymentTerms, poNumber } = validation.data
 
       const quote = await prisma.quote.create({
         data: {
@@ -33,6 +33,9 @@ export default async function handler(
           depositAmount,
           accrualStartRule,
           expiryDate: new Date(expiryDate),
+          paymentMethod,
+          paymentTerms,
+          poNumber,
           items: {
             create: items.map(item => ({
               chargeCategory: {

@@ -1,0 +1,27 @@
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy and install dependencies
+COPY package.json ./
+RUN npm install
+
+# Copy app files
+COPY . .
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Set environment variables to avoid telemetry and strict checks during build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV CI=true
+
+# Build the app - this must succeed for production
+RUN npm run build
+
+# Expose port
+ENV PORT 8080
+EXPOSE 8080
+
+# Run the app
+CMD ["npm", "start"]

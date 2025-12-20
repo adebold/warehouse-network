@@ -1,5 +1,5 @@
 import { PrismaClient, UserRole } from '@prisma/client'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
@@ -7,13 +7,17 @@ async function main() {
   console.log('Start seeding ...')
 
   // Create a default platform
-  const platform = await prisma.platform.upsert({
-    where: { name: 'Warehouse Network' },
-    update: {},
-    create: {
-      name: 'Warehouse Network',
-    },
+  let platform = await prisma.platform.findFirst({
+    where: { name: 'Warehouse Network' }
   })
+  
+  if (!platform) {
+    platform = await prisma.platform.create({
+      data: {
+        name: 'Warehouse Network',
+      },
+    })
+  }
   console.log(`Created platform with id: ${platform.id}`)
 
   // Create Super Admin User

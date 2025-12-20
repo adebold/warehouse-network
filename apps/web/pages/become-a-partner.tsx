@@ -1,27 +1,61 @@
 import type { NextPage } from 'next'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { useAnalytics } from '@/hooks/useAnalytics'
+import { trackConversion, logEvent } from '@/lib/analytics'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { 
+  Building2, 
+  TrendingUp, 
+  Shield, 
+  Zap, 
+  Check, 
+  ArrowRight, 
+  DollarSign,
+  Users,
+  BarChart3,
+  Clock,
+  Star,
+  ChevronRight
+} from 'lucide-react'
 
 const BecomeAPartner: NextPage = () => {
+  const router = useRouter()
+  const { trackCTA, formTracking } = useAnalytics()
   const [formData, setFormData] = useState({
     legalName: '',
     registrationDetails: '',
     primaryContact: '',
+    email: '',
+    phone: '',
     operatingRegions: '',
     warehouseCount: 0,
     goodsCategories: '',
     insurance: false,
   })
+  const [lastInteractedField, setLastInteractedField] = useState<string>('')
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target
-    setFormData(prevState => ({
-      ...prevState,
-      [name]: type === 'checkbox' ? checked : value,
-    }))
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const target = e.target
+    const value = target.type === 'checkbox' && 'checked' in target ? target.checked : target.value
+    setFormData(prev => ({ ...prev, [target.name]: value }))
+    
+    // Track field interaction
+    setLastInteractedField(target.name)
+    formTracking.field('partner_application', target.name)
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    
+    // Track form submission
+    formTracking.submit('partner_application')
+    trackConversion('partner_application_submit', {
+      warehouseCount: formData.warehouseCount,
+      regions: formData.operatingRegions
+    })
 
     try {
       const response = await fetch('/api/operator-applications', {
@@ -33,96 +67,494 @@ const BecomeAPartner: NextPage = () => {
       })
 
       if (response.ok) {
-        // Handle success
-        console.log('Application submitted successfully')
-        alert('Application submitted successfully')
+        // Track successful conversion
+        trackConversion('partner_signup_complete', {
+          value: calculateEstimatedRevenue(formData.warehouseCount),
+          warehouseCount: formData.warehouseCount
+        })
+        router.push('/operator/welcome')
       } else {
-        // Handle error
-        console.error('Failed to submit application')
-        alert('Failed to submit application')
+        formTracking.error('partner_application', 'submission_failed')
+        alert('Application submission failed. Please try again.')
       }
     } catch (error) {
       console.error('An error occurred:', error)
+      formTracking.error('partner_application', 'network_error')
       alert('An error occurred while submitting the application.')
     }
   }
+  
+  // Calculate estimated monthly revenue based on warehouse count
+  const calculateEstimatedRevenue = (count: number): number => {
+    const avgRevenuePerWarehouse = 18500
+    const countValue = typeof count === 'string' ? parseInt(count) : count
+    if (countValue === 1) return avgRevenuePerWarehouse
+    if (countValue <= 5) return avgRevenuePerWarehouse * 3
+    if (countValue <= 10) return avgRevenuePerWarehouse * 7
+    return avgRevenuePerWarehouse * 15
+  }
+  
+  // Track form starts
+  useEffect(() => {
+    formTracking.start('partner_application')
+    
+    // Track form abandonment on unmount
+    return () => {
+      if (lastInteractedField && !formData.email) {
+        formTracking.abandon('partner_application', lastInteractedField)
+      }
+    }
+  }, [])
 
   return (
-    <div>
-      <h1>Become a Warehouse Partner</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="legalName">Legal Business Name</label>
-          <input
-            type="text"
-            id="legalName"
-            name="legalName"
-            value={formData.legalName}
-            onChange={handleChange}
-          />
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/" className="flex items-center">
+              <Building2 className="h-8 w-8 text-primary" />
+              <span className="ml-2 text-xl font-bold">Warehouse Network</span>
+            </Link>
+            <nav className="flex items-center space-x-4">
+              <Link href="/login">
+                <Button variant="outline" size="sm">Sign In</Button>
+              </Link>
+            </nav>
+          </div>
         </div>
-        <div>
-          <label htmlFor="registrationDetails">Company Registration Details</label>
-          <input
-            type="text"
-            id="registrationDetails"
-            name="registrationDetails"
-            value={formData.registrationDetails}
-            onChange={handleChange}
+      </header>
+
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+            alt="Warehouse interior"
+            className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/70" />
         </div>
-        <div>
-          <label htmlFor="primaryContact">Primary Contact</label>
-          <input
-            type="text"
-            id="primaryContact"
-            name="primaryContact"
-            value={formData.primaryContact}
-            onChange={handleChange}
-          />
+        
+        <div className="relative container mx-auto px-4 py-24 sm:px-6 lg:px-8">
+          <div className="max-w-2xl">
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
+              Turn Your Empty Space Into
+              <span className="text-primary"> Steady Revenue</span>
+            </h1>
+            <p className="mt-6 text-xl text-muted-foreground">
+              Join Canada's fastest-growing warehouse marketplace. List your property in minutes 
+              and connect with pre-qualified businesses looking for space.
+            </p>
+            
+            {/* Value Props */}
+            <div className="mt-8 space-y-3">
+              <div className="flex items-center">
+                <Check className="h-5 w-5 text-green-600 mr-3" />
+                <span className="text-lg">Average 95% occupancy rate within 30 days</span>
+              </div>
+              <div className="flex items-center">
+                <Check className="h-5 w-5 text-green-600 mr-3" />
+                <span className="text-lg">Get 15-20% higher rates than traditional leasing</span>
+              </div>
+              <div className="flex items-center">
+                <Check className="h-5 w-5 text-green-600 mr-3" />
+                <span className="text-lg">Automated payments and tenant management</span>
+              </div>
+            </div>
+
+            <div className="mt-10 flex flex-col sm:flex-row gap-4">
+              <Button 
+                size="lg" 
+                className="text-lg px-8" 
+                onClick={() => {
+                  trackCTA('start_earning_now', 'hero')()
+                  document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' })
+                }}
+              >
+                Start Earning Now
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg px-8"
+                onClick={() => {
+                  trackCTA('calculate_revenue', 'hero')()
+                  logEvent('Calculator', 'open', 'partner_hero')
+                }}
+              >
+                Calculate Your Revenue
+              </Button>
+            </div>
+          </div>
         </div>
-        <div>
-          <label htmlFor="operatingRegions">Operating Regions</label>
-          <input
-            type="text"
-            id="operatingRegions"
-            name="operatingRegions"
-            value={formData.operatingRegions}
-            onChange={handleChange}
-          />
+      </section>
+
+      {/* Partner Success Story */}
+      <section className="py-16 bg-muted/50">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <Card className="overflow-hidden">
+            <div className="grid md:grid-cols-2">
+              <div className="relative h-64 md:h-auto">
+                <img 
+                  src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
+                  alt="Success story"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <CardContent className="p-8 md:p-12">
+                <div className="flex items-center mb-4">
+                  {[1,2,3,4,5].map(i => (
+                    <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                  ))}
+                </div>
+                <h3 className="text-2xl font-bold mb-4">
+                  "We went from 60% to 98% occupancy in just 6 weeks"
+                </h3>
+                <p className="text-lg text-muted-foreground mb-6">
+                  Warehouse Network transformed our underutilized 50,000 sq ft facility into a 
+                  profitable multi-tenant operation. The platform handles everything from tenant 
+                  screening to payments. We're now earning 40% more than with our previous single tenant.
+                </p>
+                <div className="flex items-center">
+                  <img 
+                    src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
+                    alt="Partner"
+                    className="w-12 h-12 rounded-full mr-4"
+                  />
+                  <div>
+                    <p className="font-semibold">Robert Mitchell</p>
+                    <p className="text-sm text-muted-foreground">Premium Logistics Properties, Toronto</p>
+                  </div>
+                </div>
+              </CardContent>
+            </div>
+          </Card>
         </div>
-        <div>
-          <label htmlFor="warehouseCount">Warehouse Count</label>
-          <input
-            type="number"
-            id="warehouseCount"
-            name="warehouseCount"
-            value={formData.warehouseCount}
-            onChange={handleChange}
-          />
+      </section>
+
+      {/* Benefits Grid */}
+      <section className="py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight">Why Partners Choose Us</h2>
+            <p className="mt-4 text-lg text-muted-foreground">
+              Everything you need to maximize your warehouse revenue
+            </p>
+          </div>
+
+          <div className="grid gap-8 md:grid-cols-3">
+            <Card className="relative overflow-hidden">
+              <CardHeader>
+                <DollarSign className="h-10 w-10 text-primary mb-4" />
+                <CardTitle>Higher Revenue</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Our dynamic pricing algorithm ensures you get 15-20% higher rates than traditional leasing.
+                </p>
+                <p className="text-2xl font-bold text-primary">+$2.50/sq ft</p>
+                <p className="text-sm text-muted-foreground">Average rate increase</p>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <CardHeader>
+                <Users className="h-10 w-10 text-primary mb-4" />
+                <CardTitle>Quality Tenants</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  All businesses are pre-screened with verified insurance and financial stability checks.
+                </p>
+                <p className="text-2xl font-bold text-primary">0.2%</p>
+                <p className="text-sm text-muted-foreground">Default rate</p>
+              </CardContent>
+            </Card>
+
+            <Card className="relative overflow-hidden">
+              <CardHeader>
+                <Zap className="h-10 w-10 text-primary mb-4" />
+                <CardTitle>Zero Hassle</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Automated contracts, payments, and tenant communications. You focus on your business.
+                </p>
+                <p className="text-2xl font-bold text-primary">2 hours</p>
+                <p className="text-sm text-muted-foreground">Saved per week</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <div>
-          <label htmlFor="goodsCategories">Goods Categories Supported</label>
-          <input
-            type="text"
-            id="goodsCategories"
-            name="goodsCategories"
-            value={formData.goodsCategories}
-            onChange={handleChange}
-          />
+      </section>
+
+      {/* Revenue Calculator */}
+      <section className="py-24 bg-gradient-to-br from-primary/10 to-transparent">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto">
+            <BarChart3 className="h-16 w-16 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl font-bold tracking-tight mb-4">
+              Your warehouse could be earning
+            </h2>
+            <p className="text-5xl font-bold text-primary mb-2">$18,500/month</p>
+            <p className="text-lg text-muted-foreground mb-8">
+              Based on 10,000 sq ft at average market rates
+            </p>
+            <Button 
+              size="lg" 
+              className="text-lg px-8"
+              onClick={() => {
+                trackCTA('custom_estimate', 'revenue_calculator')()
+                trackConversion('revenue_calculator_interest', { estimated_revenue: 18500 })
+              }}
+            >
+              Get Your Custom Estimate
+              <ChevronRight className="ml-2 h-5 w-5" />
+            </Button>
+          </div>
         </div>
-        <div>
-          <input
-            type="checkbox"
-            id="insurance"
-            name="insurance"
-            checked={formData.insurance}
-            onChange={handleChange}
-          />
-          <label htmlFor="insurance">I acknowledge that we carry appropriate insurance.</label>
+      </section>
+
+      {/* Application Form */}
+      <section id="application-form" className="py-24">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="max-w-3xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight">Start Your Application</h2>
+              <p className="mt-4 text-lg text-muted-foreground">
+                Takes less than 5 minutes. Get approved within 24 hours.
+              </p>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Business Information</CardTitle>
+                <CardDescription>
+                  Tell us about your warehouse operation
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div className="grid gap-6 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <label htmlFor="legalName" className="text-sm font-medium">
+                        Legal Business Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="legalName"
+                        name="legalName"
+                        required
+                        value={formData.legalName}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="ABC Logistics Inc."
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="registrationDetails" className="text-sm font-medium">
+                        Business Number
+                      </label>
+                      <input
+                        type="text"
+                        id="registrationDetails"
+                        name="registrationDetails"
+                        value={formData.registrationDetails}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="123456789"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="primaryContact" className="text-sm font-medium">
+                        Your Name *
+                      </label>
+                      <input
+                        type="text"
+                        id="primaryContact"
+                        name="primaryContact"
+                        required
+                        value={formData.primaryContact}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="John Smith"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium">
+                        Email Address *
+                      </label>
+                      <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        required
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="john@company.com"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="phone" className="text-sm font-medium">
+                        Phone Number *
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        name="phone"
+                        required
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        placeholder="+1 (416) 555-0123"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label htmlFor="warehouseCount" className="text-sm font-medium">
+                        Number of Properties *
+                      </label>
+                      <select
+                        id="warehouseCount"
+                        name="warehouseCount"
+                        required
+                        value={formData.warehouseCount}
+                        onChange={handleChange}
+                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      >
+                        <option value="">Select...</option>
+                        <option value="1">1 property</option>
+                        <option value="2">2-5 properties</option>
+                        <option value="6">6-10 properties</option>
+                        <option value="11">11+ properties</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="operatingRegions" className="text-sm font-medium">
+                      Operating Regions *
+                    </label>
+                    <input
+                      type="text"
+                      id="operatingRegions"
+                      name="operatingRegions"
+                      required
+                      value={formData.operatingRegions}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="Greater Toronto Area, Hamilton, Ottawa"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="goodsCategories" className="text-sm font-medium">
+                      Types of Goods You Can Store *
+                    </label>
+                    <input
+                      type="text"
+                      id="goodsCategories"
+                      name="goodsCategories"
+                      required
+                      value={formData.goodsCategories}
+                      onChange={handleChange}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      placeholder="General merchandise, Electronics, Food (dry), etc."
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-start">
+                      <input
+                        type="checkbox"
+                        id="insurance"
+                        name="insurance"
+                        checked={formData.insurance}
+                        onChange={handleChange}
+                        className="mt-1 mr-3"
+                        required
+                      />
+                      <label htmlFor="insurance" className="text-sm">
+                        I confirm that our facilities carry appropriate commercial insurance including 
+                        general liability coverage of at least $2 million
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-muted/50 p-4 rounded-lg">
+                    <div className="flex items-center mb-2">
+                      <Shield className="h-5 w-5 text-green-600 mr-2" />
+                      <span className="font-semibold">What happens next?</span>
+                    </div>
+                    <ul className="text-sm text-muted-foreground space-y-1 ml-7">
+                      <li>• We'll review your application within 24 hours</li>
+                      <li>• Complete a quick onboarding call (15 minutes)</li>
+                      <li>• List your properties and start earning</li>
+                    </ul>
+                  </div>
+
+                  <Button type="submit" size="lg" className="w-full text-lg">
+                    Submit Application
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
         </div>
-        <button type="submit">Submit Application</button>
-      </form>
+      </section>
+
+      {/* Trust Badges */}
+      <section className="py-16 border-t">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+            <div className="text-center">
+              <p className="text-2xl font-bold">500+</p>
+              <p className="text-sm">Active Partners</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">$12M+</p>
+              <p className="text-sm">Paid to Partners</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">98%</p>
+              <p className="text-sm">Partner Satisfaction</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">24hr</p>
+              <p className="text-sm">Approval Time</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t py-12">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center mb-4 md:mb-0">
+              <Building2 className="h-6 w-6 text-primary" />
+              <span className="ml-2 font-bold">Warehouse Network</span>
+            </div>
+            <nav className="flex gap-6 text-sm text-muted-foreground">
+              <Link href="/about" className="hover:text-foreground">About</Link>
+              <Link href="/contact" className="hover:text-foreground">Contact</Link>
+              <Link href="/terms" className="hover:text-foreground">Terms</Link>
+              <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            </nav>
+          </div>
+          <div className="mt-8 text-center text-sm text-muted-foreground">
+            © 2025 Warehouse Network. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

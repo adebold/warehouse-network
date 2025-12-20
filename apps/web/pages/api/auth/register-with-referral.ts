@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '../../../lib/prisma'
 import { registerWithReferralSchema } from '../../../lib/schemas'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import { ReferralType, UserRole } from '@prisma/client'
 
 export default async function handler(

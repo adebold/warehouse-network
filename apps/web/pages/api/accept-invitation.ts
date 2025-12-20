@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import prisma from '../../lib/prisma'
 import { acceptInvitationSchema } from '../../lib/schemas'
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 
 export default async function handler(
   req: NextApiRequest,

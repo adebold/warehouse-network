@@ -1,0 +1,9 @@
+node_modules/
+.next/
+.env*
+coverage/
+tests/
+*.test.js
+*.spec.js
+.git/
+test-deploy/

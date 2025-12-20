@@ -6,6 +6,15 @@ import type { CityPage } from '@prisma/client'
 import prisma from '../../../lib/prisma'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../../pages/api/auth/[...nextauth]'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Badge } from '@/components/ui/badge'
+import { ArrowLeft, Globe, Edit, Trash2, Plus } from 'lucide-react'
+import Link from 'next/link'
 
 interface CityPagesProps {
   cityPages: CityPage[]
@@ -63,93 +72,165 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
   }
 
   if (status === 'loading' || !session || session.user.role !== 'SUPER_ADMIN') {
-    return <div>Loading...</div>
+    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
   }
 
   return (
-    <div>
-      <h1>Manage City Pages</h1>
-      
-      <h2>Existing City Pages</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>City</th>
-            <th>Region</th>
-            <th>H1</th>
-            <th>Active</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {cityPages.map(page => (
-            <tr key={page.id}>
-              <td>{page.city}</td>
-              <td>{page.region}</td>
-              <td>{page.h1}</td>
-              <td>{page.isActive ? 'Yes' : 'No'}</td>
-              <td>
-                <button>Edit</button>
-                <button>Delete</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div className="min-h-screen bg-gray-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* Header */}
+        <div className="mb-8">
+          <Link href="/admin/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight">City Pages Management</h1>
+          <p className="text-muted-foreground mt-2">
+            Create and manage city-specific landing pages
+          </p>
+        </div>
 
-      <h2>Create New City Page</h2>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor="city">City</label>
-          <input
-            type="text"
-            id="city"
-            name="city"
-            value={formData.city}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="region">Region</label>
-          <input
-            type="text"
-            id="region"
-            name="region"
-            value={formData.region}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="h1">H1 Title</label>
-          <input
-            type="text"
-            id="h1"
-            name="h1"
-            value={formData.h1}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <label htmlFor="introContent">Intro Content</label>
-          <textarea
-            id="introContent"
-            name="introContent"
-            value={formData.introContent}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-          <input
-            type="checkbox"
-            id="isActive"
-            name="isActive"
-            checked={formData.isActive}
-            onChange={handleChange}
-          />
-          <label htmlFor="isActive">Active</label>
-        </div>
-        <button type="submit">Create City Page</button>
-      </form>
+        {/* Existing City Pages */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Existing City Pages</CardTitle>
+            <CardDescription>All city pages in the system</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {cityPages.length === 0 ? (
+              <div className="text-center py-8">
+                <Globe className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <p className="text-gray-600">No city pages created yet</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4">City</th>
+                      <th className="text-left py-3 px-4">Region</th>
+                      <th className="text-left py-3 px-4">H1 Title</th>
+                      <th className="text-center py-3 px-4">Status</th>
+                      <th className="text-right py-3 px-4">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cityPages.map(page => (
+                      <tr key={page.id} className="border-b hover:bg-gray-50">
+                        <td className="py-3 px-4 font-medium">{page.city}</td>
+                        <td className="py-3 px-4">{page.region}</td>
+                        <td className="py-3 px-4 text-gray-600">{page.h1}</td>
+                        <td className="py-3 px-4 text-center">
+                          <Badge variant={page.isActive ? 'default' : 'secondary'}>
+                            {page.isActive ? 'Active' : 'Inactive'}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex justify-end gap-2">
+                            <Button size="sm" variant="ghost">
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700">
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Create New City Page Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Create New City Page</CardTitle>
+            <CardDescription>Add a new city-specific landing page</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="city">City Name</Label>
+                  <Input
+                    type="text"
+                    id="city"
+                    name="city"
+                    value={formData.city}
+                    onChange={handleChange}
+                    placeholder="e.g., San Francisco"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="region">Region</Label>
+                  <Input
+                    type="text"
+                    id="region"
+                    name="region"
+                    value={formData.region}
+                    onChange={handleChange}
+                    placeholder="e.g., California"
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="h1">H1 Title</Label>
+                <Input
+                  type="text"
+                  id="h1"
+                  name="h1"
+                  value={formData.h1}
+                  onChange={handleChange}
+                  placeholder="e.g., Warehouse Storage Solutions in San Francisco"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="introContent">Introduction Content</Label>
+                <Textarea
+                  id="introContent"
+                  name="introContent"
+                  value={formData.introContent}
+                  onChange={handleChange}
+                  placeholder="Enter the introduction content for this city page..."
+                  rows={6}
+                  required
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="isActive"
+                  checked={formData.isActive}
+                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked as boolean }))}
+                />
+                <Label htmlFor="isActive" className="cursor-pointer">
+                  Make page active immediately
+                </Label>
+              </div>
+              <div className="flex justify-end gap-4">
+                <Button type="button" variant="outline" onClick={() => setFormData({
+                  city: '',
+                  region: '',
+                  h1: '',
+                  introContent: '',
+                  isActive: false,
+                })}>
+                  Clear Form
+                </Button>
+                <Button type="submit">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create City Page
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }

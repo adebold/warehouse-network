@@ -90,6 +90,7 @@ model User {
   credits       Credit[]
   referralsMade Referral[] @relation("UserReferralsMade")
   referralsReceived Referral[] @relation("UserReferralsReceived")
+  lockActionsPerformed AccountLockHistory[]
 }
 
 model Account {
@@ -267,12 +268,26 @@ enum SkidStatus {
 }
 
 model Customer {
-  id    String @id @default(cuid())
-  name  String
-  skids Skid[]
-  users User[]
+  id              String @id @default(cuid())
+  name            String
+  skids           Skid[]
+  users           User[]
   releaseRequests ReleaseRequest[]
   disputes        Dispute[] @relation("CustomerDisputes")
+  receivingOrders ReceivingOrder[]
+  rfqs            RFQ[]
+  deposits        Deposit[]
+  accountStatus   CustomerAccountStatus @default(ACTIVE)
+  paymentStatus   CustomerPaymentStatus @default(CURRENT)
+  lockReason      String?
+  lockedAt        DateTime?
+  lockedBy        String?
+  lockHistory     AccountLockHistory[]
+  paymentDueDate  DateTime?
+  overdueAmount   Float               @default(0)
+  totalOutstanding Float              @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
 }
 
 model OperatorLedgerEntry {
@@ -367,6 +382,9 @@ model Quote {
   expiryDate        DateTime
   version           Int             @default(1)
   status            QuoteStatus     @default(PENDING)
+  paymentMethod     PaymentMethod   @default(INVOICE)
+  paymentTerms      String?         // e.g., "NET30", "NET60", "Due on receipt"
+  poNumber          String?         // Purchase Order number for PO payment method
 }
 
 enum AccrualStartRule {
@@ -379,6 +397,14 @@ enum QuoteStatus {
   ACCEPTED
   REJECTED
   DEPOSIT_PAID
+}
+
+enum PaymentMethod {
+  INVOICE
+  CREDIT_CARD
+  ACH
+  WIRE
+  PO  // Purchase Order
 }
 
 model QuoteItem {
@@ -430,6 +456,8 @@ model Referral {
   status          ReferralStatus @default(PENDING)
   qualifiedAt     DateTime?
   createdAt       DateTime       @default(now())
+  operatorReferrer Operator?      @relation("OperatorReferralsMade", fields: [operatorReferrerId], references: [id])
+  operatorReferrerId String?
 }
 
 enum ReferralType {
@@ -520,4 +548,35 @@ model SkidsOnDisputes {
   disputeId     String
 
   @@id([skidId, disputeId])
+}
+
+enum CustomerAccountStatus {
+  ACTIVE
+  SUSPENDED
+  LOCKED
+}
+
+enum CustomerPaymentStatus {
+  CURRENT
+  OVERDUE
+  DELINQUENT
+}
+
+model AccountLockHistory {
+  id              String          @id @default(cuid())
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  customerId      String
+  action          LockAction
+  reason          String?
+  performedBy     User            @relation(fields: [performedById], references: [id])
+  performedById   String
+  timestamp       DateTime        @default(now())
+  overrideReason  String?
+  metadata        Json?
+}
+
+enum LockAction {
+  LOCKED
+  UNLOCKED
+  OVERRIDE
 }

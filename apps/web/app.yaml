@@ -1,0 +1,26 @@
+runtime: nodejs20
+
+instance_class: F2
+
+automatic_scaling:
+  min_instances: 0
+  max_instances: 10
+  target_cpu_utilization: 0.65
+
+env_variables:
+  NODE_ENV: "production"
+  NEXTAUTH_SECRET: "SYwZ24uJ90FwvrpVL4AL1Mc9yW/0JflewjR617CZR/E="
+  NEXTAUTH_URL: "https://warehouse-adebold-202512191452.uc.r.appspot.com"
+
+handlers:
+- url: /_next/static
+  static_dir: .next/static
+  secure: always
+
+- url: /static
+  static_dir: static
+  secure: always
+
+- url: /.*
+  script: auto
+  secure: always

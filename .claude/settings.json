@@ -107,9 +107,5 @@
     ]
   },
   "includeCoAuthoredBy": true,
-  "enabledMcpjsonServers": ["claude-flow", "ruv-swarm"],
-  "statusLine": {
-    "type": "command",
-    "command": ".claude/statusline-command.sh"
-  }
+  "enabledMcpjsonServers": ["claude-flow", "ruv-swarm"]
 }

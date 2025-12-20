@@ -1,0 +1,37 @@
+# Cloud Run Environment Variables Template
+# Copy this file and update with your actual values
+
+env_variables:
+  # Application
+  NODE_ENV: "production"
+  
+  # Database - Cloud SQL
+  DATABASE_URL: "postgresql://postgres:${DB_PASSWORD}@localhost:5432/warehouse_network?host=/cloudsql/${CLOUD_SQL_CONNECTION_NAME}"
+  DIRECT_URL: "postgresql://postgres:${DB_PASSWORD}@localhost:5432/warehouse_network?host=/cloudsql/${CLOUD_SQL_CONNECTION_NAME}"
+  
+  # NextAuth
+  NEXTAUTH_URL: "https://your-service-name.a.run.app"
+  NEXTAUTH_SECRET: "${NEXTAUTH_SECRET}"
+  
+  # Redis
+  REDIS_URL: "redis://${REDIS_HOST}:6379"
+  
+  # Stripe (Optional)
+  STRIPE_SECRET_KEY: "${STRIPE_SECRET_KEY}"
+  STRIPE_WEBHOOK_SECRET: "${STRIPE_WEBHOOK_SECRET}"
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: "pk_test_..."
+  
+  # SendGrid (Optional)
+  SENDGRID_API_KEY: "${SENDGRID_API_KEY}"
+  
+  # Google Analytics (Optional)
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: "G-..."
+
+# Cloud Run Configuration
+service_config:
+  cpu: "1"
+  memory: "1Gi"
+  min_instances: 0
+  max_instances: 10
+  timeout: 300
+  concurrency: 80

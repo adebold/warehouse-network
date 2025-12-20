@@ -1,0 +1,145 @@
+// This is your test Prisma schema file
+// It extends the main schema with test-specific configurations
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client-test"
+  previewFeatures = ["fullTextSearch", "postgresqlExtensions"]
+}
+
+// Include all models from main schema
+// (In practice, you'd copy your main schema here)
+// For now, using the same models as production
+
+model Platform {
+  id        String      @id @default(cuid())
+  name      String
+  operators Operator[]
+}
+
+model Operator {
+  id                    String      @id @default(cuid())
+  legalName             String
+  platform              Platform    @relation(fields: [platformId], references: [id])
+  platformId            String
+  warehouses            Warehouse[]
+  users                 OperatorUser[]
+  ledger                OperatorLedgerEntry[]
+  payouts               Payout[]
+  status                OperatorStatus @default(APPLIED)
+  registrationDetails   String
+  primaryContact        String
+  operatingRegions      String
+  warehouseCount        Int
+  goodsCategories       String
+  insuranceAcknowledged Boolean
+  termsAccepted         Boolean   @default(false)
+  termsAcceptedAt       DateTime?
+  invitations           Invitation[]
+  stripeAccountId       String?   @unique
+  stripeOnboardingComplete Boolean @default(false)
+  referralsMade         Referral[] @relation("OperatorReferralsMade")
+  trustScore            OperatorTrustScore?
+  disputes              Dispute[] @relation("OperatorDisputes")
+}
+
+model Customer {
+  id              String @id @default(cuid())
+  name            String
+  skids           Skid[]
+  users           User[]
+  releaseRequests ReleaseRequest[]
+  disputes        Dispute[] @relation("CustomerDisputes")
+  receivingOrders ReceivingOrder[]
+  rfqs            RFQ[]
+  deposits        Deposit[]
+  accountStatus   CustomerAccountStatus @default(ACTIVE)
+  paymentStatus   CustomerPaymentStatus @default(CURRENT)
+  lockReason      String?
+  lockedAt        DateTime?
+  lockedBy        String?
+  lockHistory     AccountLockHistory[]
+  paymentDueDate  DateTime?
+  overdueAmount   Float               @default(0)
+  totalOutstanding Float              @default(0)
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  // Test-specific fields
+  isTestData      Boolean             @default(false)
+  testScenario    String?             // e.g., "overdue_30_days", "locked_account"
+}
+
+model AccountLockHistory {
+  id              String          @id @default(cuid())
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  customerId      String
+  action          LockAction
+  reason          String?
+  performedBy     User            @relation(fields: [performedById], references: [id])
+  performedById   String
+  timestamp       DateTime        @default(now())
+  overrideReason  String?
+  metadata        Json?
+}
+
+model User {
+  id                    String   @id @default(cuid())
+  email                 String   @unique
+  emailVerified         DateTime?
+  name                  String?
+  image                 String?
+  password              String?
+  role                  UserRole @default(CUSTOMER_USER)
+  customerId            String?
+  customer              Customer? @relation(fields: [customerId], references: [id])
+  accounts              Account[]
+  sessions              Session[]
+  releaseRequestsCreated ReleaseRequest[] @relation("ReleaseRequestCreatedBy")
+  releaseRequestsApproved ReleaseRequest[] @relation("ReleaseRequestApprovedBy")
+  receivingOrders       ReceivingOrder[]
+  lockHistoryActions    AccountLockHistory[]
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  // Test-specific fields
+  isTestUser            Boolean  @default(false)
+}
+
+// Include all other models...
+// (Warehouse, Skid, ReleaseRequest, etc.)
+
+// Enums
+enum CustomerAccountStatus {
+  ACTIVE
+  SUSPENDED
+  LOCKED
+}
+
+enum CustomerPaymentStatus {
+  CURRENT
+  OVERDUE
+  DELINQUENT
+}
+
+enum LockAction {
+  LOCKED
+  UNLOCKED
+}
+
+enum UserRole {
+  ADMIN
+  OPERATOR
+  CUSTOMER_ADMIN
+  CUSTOMER_USER
+}
+
+enum OperatorStatus {
+  APPLIED
+  ACTIVE
+  SUSPENDED
+}
