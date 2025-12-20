@@ -1,0 +1,61 @@
+name: Deploy to Google Cloud Run
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  SERVICE_NAME: warehouse-frontend
+  REGION: us-central1
+
+jobs:
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        working-directory: ./apps/web
+        run: npm ci
+        
+      - name: Build Next.js app
+        working-directory: ./apps/web
+        run: npm run build
+        
+      - name: Setup Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+        
+      - name: Build and Deploy to Cloud Run
+        working-directory: ./apps/web
+        run: |
+          # Deploy using Cloud Build (handles linux/amd64 platform correctly)
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source . \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 2Gi \
+            --cpu 2 \
+            --timeout 900 \
+            --set-env-vars "NODE_ENV=production,NEXTAUTH_URL=https://${{ env.SERVICE_NAME }}-${{ env.PROJECT_ID }}.us-central1.run.app"
+            
+      - name: Display Service URL
+        run: |
+          echo "Service deployed to:"
+          gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)'
