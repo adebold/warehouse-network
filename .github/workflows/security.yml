@@ -115,7 +115,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Run Grype vulnerability scanner
-        uses: anchore/scan-action@v3
+        uses: anchore/scan-action@v7
         id: grype
         with:
           image: warehouse-network/web:scanning
