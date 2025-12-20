@@ -25,12 +25,20 @@ jobs:
           
       - name: Install dependencies
         working-directory: ./apps/web
-        run: npm ci
+        run: |
+          # Use npm install instead of ci to handle lock file issues
+          npm install --legacy-peer-deps
         
       - name: Build Next.js app
         working-directory: ./apps/web
         run: npm run build
         
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/${{ env.PROJECT_ID }}/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-actions@${{ env.PROJECT_ID }}.iam.gserviceaccount.com'
+          
       - name: Setup Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:

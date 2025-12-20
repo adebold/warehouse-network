@@ -1,0 +1,14 @@
+{
+  "name": "warehouse-network-live",
+  "version": "1.0.0",
+  "main": "app-simple.js",
+  "scripts": {
+    "start": "node app-simple.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

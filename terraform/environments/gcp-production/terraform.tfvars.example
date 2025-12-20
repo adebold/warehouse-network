@@ -1,0 +1,9 @@
+# GCP Configuration
+project_id = "easyreno-demo-20251219144606"
+region     = "us-central1"
+environment = "production"
+
+# Database Configuration
+# Leave empty to auto-generate secure passwords
+db_password = ""
+nextauth_secret = ""

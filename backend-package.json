@@ -1,0 +1,12 @@
+{
+  "name": "warehouse-backend",
+  "version": "1.0.0",
+  "main": "quick-backend.js",
+  "scripts": {
+    "start": "node quick-backend.js"
+  },
+  "dependencies": {
+    "express": "^4.18.0",
+    "cors": "^2.8.5"
+  }
+}

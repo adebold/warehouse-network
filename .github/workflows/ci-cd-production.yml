@@ -1,0 +1,330 @@
+name: Production CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, production]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'apps/web/**'
+      - 'packages/**'
+
+env:
+  PROJECT_ID: easyreno-demo-20251219144606
+  REGION: us-central1
+  SERVICE_NAME: warehouse-network-app
+  REGISTRY: gcr.io
+
+jobs:
+  # Security and Quality Gates
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # Code Quality and Testing
+  test:
+    name: Test Suite
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test123
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+      
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: |
+          npm ci
+          cd apps/web && npm ci
+      
+      - name: Setup test environment
+        run: |
+          cd apps/web
+          cp .env.test .env.local
+          npx prisma generate
+          npx prisma db push
+        env:
+          DATABASE_URL: postgresql://test:test123@localhost:5432/test_db
+      
+      - name: Run unit tests
+        run: cd apps/web && npm test
+        env:
+          DATABASE_URL: postgresql://test:test123@localhost:5432/test_db
+      
+      - name: Run integration tests
+        run: cd apps/web && npm run test:integration
+        env:
+          DATABASE_URL: postgresql://test:test123@localhost:5432/test_db
+          REDIS_URL: redis://localhost:6379
+      
+      - name: Build application
+        run: cd apps/web && npm run build
+        env:
+          DATABASE_URL: postgresql://test:test123@localhost:5432/test_db
+      
+      - name: Upload test coverage
+        uses: codecov/codecov-action@v3
+        with:
+          directory: ./apps/web/coverage
+
+  # Build and Push Docker Image
+  build:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    needs: [test, security-scan]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+    outputs:
+      image-digest: ${{ steps.build.outputs.digest }}
+      image-tag: ${{ steps.meta.outputs.tags }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker gcr.io --quiet
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+      
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./apps/web/Dockerfile.production
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+      
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+
+  # Infrastructure Provisioning
+  infrastructure:
+    name: Provision Infrastructure
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/production'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.6.0"
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Terraform Init
+        run: |
+          cd terraform/environments/gcp-production
+          terraform init
+      
+      - name: Terraform Plan
+        run: |
+          cd terraform/environments/gcp-production
+          terraform plan \
+            -var="project_id=${{ env.PROJECT_ID }}" \
+            -var="region=${{ env.REGION }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="nextauth_secret=${{ secrets.NEXTAUTH_SECRET }}"
+      
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: |
+          cd terraform/environments/gcp-production
+          terraform apply -auto-approve \
+            -var="project_id=${{ env.PROJECT_ID }}" \
+            -var="region=${{ env.REGION }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            -var="nextauth_secret=${{ secrets.NEXTAUTH_SECRET }}"
+
+  # Production Deployment
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, infrastructure]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:latest
+          region: ${{ env.REGION }}
+          flags: |
+            --allow-unauthenticated
+            --port=8080
+            --memory=2Gi
+            --cpu=2
+            --timeout=300
+            --concurrency=80
+            --min-instances=1
+            --max-instances=100
+          env_vars: |
+            NODE_ENV=production
+            NEXT_TELEMETRY_DISABLED=1
+          secrets: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+            STRIPE_SECRET_KEY=${{ secrets.STRIPE_SECRET_KEY }}
+            STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}
+      
+      - name: Update traffic allocation
+        run: |
+          gcloud run services update-traffic ${{ env.SERVICE_NAME }} \
+            --region=${{ env.REGION }} \
+            --to-latest
+      
+      - name: Post-deployment tests
+        run: |
+          sleep 30
+          curl -f "${{ steps.deploy.outputs.url }}/api/health" || exit 1
+          echo "Health check passed!"
+      
+      - name: Notify deployment status
+        uses: 8398a7/action-slack@v3
+        if: always()
+        with:
+          status: ${{ job.status }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          message: |
+            Production deployment ${{ job.status }}!
+            Service URL: ${{ steps.deploy.outputs.url }}
+            Commit: ${{ github.sha }}
+
+  # Staging Deployment (for PRs)
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: github.event_name == 'pull_request'
+    environment:
+      name: staging
+      url: ${{ steps.deploy.outputs.url }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Deploy to Cloud Run (Staging)
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}-staging-pr-${{ github.event.number }}
+          image: ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/${{ env.SERVICE_NAME }}:pr-${{ github.event.number }}
+          region: ${{ env.REGION }}
+          flags: |
+            --allow-unauthenticated
+            --port=8080
+            --memory=1Gi
+            --cpu=1
+            --timeout=300
+            --concurrency=80
+            --min-instances=0
+            --max-instances=10
+          env_vars: |
+            NODE_ENV=staging
+            NEXT_TELEMETRY_DISABLED=1
+          secrets: |
+            DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }}
+            NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+      
+      - name: Comment PR with staging URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Staging deployment ready!\n\n**Preview URL:** ${{ steps.deploy.outputs.url }}\n\n**Health Check:** ${{ steps.deploy.outputs.url }}/api/health`
+            })
