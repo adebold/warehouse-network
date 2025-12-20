@@ -1,0 +1,199 @@
+name: Emergency Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      version:
+        description: 'Version to rollback to (leave empty for previous version)'
+        required: false
+      reason:
+        description: 'Reason for rollback'
+        required: true
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  validate:
+    name: Validate Rollback Request
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.validate.outputs.proceed }}
+      target_version: ${{ steps.validate.outputs.target_version }}
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Validate rollback parameters
+        id: validate
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          CLUSTER="warehouse-network-${ENVIRONMENT}"
+          NAMESPACE="warehouse-${ENVIRONMENT}"
+          
+          # Update kubeconfig
+          aws eks update-kubeconfig --name $CLUSTER --region ${{ env.AWS_REGION }}
+          
+          # Get current version
+          CURRENT_VERSION=$(kubectl get deployment web-app -n $NAMESPACE -o jsonpath='{.spec.template.spec.containers[0].image}' | cut -d':' -f2)
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Determine target version
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            TARGET_VERSION="${{ github.event.inputs.version }}"
+          else
+            # Get previous version from deployment history
+            TARGET_VERSION=$(kubectl rollout history deployment/web-app -n $NAMESPACE | tail -3 | head -1 | awk '{print $1}')
+          fi
+          
+          echo "Target version: $TARGET_VERSION"
+          echo "target_version=$TARGET_VERSION" >> $GITHUB_OUTPUT
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
+  approval:
+    name: Rollback Approval
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment }}-rollback
+    steps:
+      - name: Request approval
+        run: |
+          echo "Rollback request for ${{ github.event.inputs.environment }}"
+          echo "Target version: ${{ needs.validate.outputs.target_version }}"
+          echo "Reason: ${{ github.event.inputs.reason }}"
+
+  rollback:
+    name: Execute Rollback
+    needs: [validate, approval]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Update kubeconfig
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          CLUSTER="warehouse-network-${ENVIRONMENT}"
+          aws eks update-kubeconfig --name $CLUSTER --region ${{ env.AWS_REGION }}
+
+      - name: Create rollback checkpoint
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          NAMESPACE="warehouse-${ENVIRONMENT}"
+          
+          # Save current state
+          kubectl get all -n $NAMESPACE -o yaml > rollback-checkpoint-$(date +%Y%m%d-%H%M%S).yaml
+          aws s3 cp rollback-checkpoint-*.yaml s3://warehouse-network-backups/rollback-checkpoints/
+
+      - name: Execute rollback
+        id: rollback
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          NAMESPACE="warehouse-${ENVIRONMENT}"
+          TARGET_VERSION="${{ needs.validate.outputs.target_version }}"
+          
+          if [ "$ENVIRONMENT" = "production" ]; then
+            # Production uses blue-green deployment
+            # Determine which color is currently active
+            ACTIVE_COLOR=$(kubectl get service web-app -n $NAMESPACE -o jsonpath='{.spec.selector.version}')
+            INACTIVE_COLOR=$([ "$ACTIVE_COLOR" = "blue" ] && echo "green" || echo "blue")
+            
+            # Deploy to inactive color
+            kubectl set image deployment/web-app-$INACTIVE_COLOR web-app=${{ steps.login-ecr.outputs.registry }}/warehouse-network/web:$TARGET_VERSION -n $NAMESPACE
+            kubectl rollout status deployment/web-app-$INACTIVE_COLOR -n $NAMESPACE
+            
+            # Switch traffic
+            kubectl patch service web-app -n $NAMESPACE -p "{\"spec\":{\"selector\":{\"version\":\"$INACTIVE_COLOR\"}}}"
+            
+            # Scale down previous active
+            kubectl scale deployment web-app-$ACTIVE_COLOR --replicas=0 -n $NAMESPACE
+          else
+            # Staging uses standard rollback
+            kubectl set image deployment/web-app web-app=${{ steps.login-ecr.outputs.registry }}/warehouse-network/web:$TARGET_VERSION -n $NAMESPACE
+            kubectl rollout status deployment/web-app -n $NAMESPACE
+          fi
+          
+          echo "rollback_complete=true" >> $GITHUB_OUTPUT
+
+      - name: Verify rollback
+        run: |
+          ENVIRONMENT="${{ github.event.inputs.environment }}"
+          
+          # Check health endpoint
+          if [ "$ENVIRONMENT" = "production" ]; then
+            URL="https://warehouse-network.com/api/health"
+          else
+            URL="https://staging.warehouse-network.com/api/health"
+          fi
+          
+          for i in {1..5}; do
+            if curl -f $URL; then
+              echo "Health check passed"
+              break
+            fi
+            echo "Health check attempt $i failed, retrying..."
+            sleep 10
+          done
+
+      - name: Create incident report
+        if: always()
+        run: |
+          cat > incident-report-$(date +%Y%m%d-%H%M%S).md << EOF
+          # Rollback Incident Report
+          
+          **Date**: $(date)
+          **Environment**: ${{ github.event.inputs.environment }}
+          **Initiated by**: ${{ github.actor }}
+          **Target Version**: ${{ needs.validate.outputs.target_version }}
+          **Reason**: ${{ github.event.inputs.reason }}
+          **Status**: ${{ steps.rollback.outputs.rollback_complete && 'Success' || 'Failed' }}
+          
+          ## Actions Taken
+          1. Validated rollback parameters
+          2. Created backup checkpoint
+          3. Executed rollback procedure
+          4. Verified service health
+          
+          ## Next Steps
+          - [ ] Root cause analysis
+          - [ ] Update runbook
+          - [ ] Schedule post-mortem
+          EOF
+          
+          aws s3 cp incident-report-*.md s3://warehouse-network-backups/incident-reports/
+
+      - name: Notify stakeholders
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Emergency Rollback ${{ job.status }}
+            Environment: ${{ github.event.inputs.environment }}
+            Target Version: ${{ needs.validate.outputs.target_version }}
+            Reason: ${{ github.event.inputs.reason }}
+            Initiated by: ${{ github.actor }}
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+          fields: repo,message,commit,author,action,took

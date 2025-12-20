@@ -1,0 +1,31 @@
+# Default owners for everything in the repo
+* @warehouse-network/engineering
+
+# Frontend
+/apps/web/pages/ @warehouse-network/frontend
+/apps/web/components/ @warehouse-network/frontend
+/apps/web/styles/ @warehouse-network/frontend
+
+# Backend/API
+/apps/web/pages/api/ @warehouse-network/backend
+/apps/web/lib/ @warehouse-network/backend
+
+# Database
+/apps/web/prisma/ @warehouse-network/backend @warehouse-network/dba
+*.sql @warehouse-network/dba
+
+# Infrastructure
+/terraform/ @warehouse-network/devops
+/k8s/ @warehouse-network/devops
+/.github/workflows/ @warehouse-network/devops
+/scripts/ @warehouse-network/devops
+/monitoring/ @warehouse-network/devops
+
+# Security
+/apps/web/pages/api/auth/ @warehouse-network/security
+*secret* @warehouse-network/security
+*password* @warehouse-network/security
+
+# Documentation
+*.md @warehouse-network/docs
+/docs/ @warehouse-network/docs

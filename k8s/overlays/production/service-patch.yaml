@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-app
+spec:
+  selector:
+    version: blue

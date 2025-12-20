@@ -1,0 +1,196 @@
+name: CD - Production Deployment
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy'
+        required: true
+      skip-approval:
+        description: 'Skip manual approval'
+        required: false
+        default: 'false'
+
+env:
+  ENVIRONMENT: production
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: warehouse-network-prod
+  NAMESPACE: warehouse-prod
+
+jobs:
+  pre-deployment-checks:
+    name: Pre-deployment Checks
+    runs-on: ubuntu-latest
+    outputs:
+      proceed: ${{ steps.checks.outputs.proceed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate deployment version
+        id: validate
+        run: |
+          VERSION="${{ github.event.inputs.version || github.event.release.tag_name }}"
+          echo "Validating version: $VERSION"
+          
+          # Check if version exists in container registry
+          aws ecr describe-images --repository-name warehouse-network/web --image-ids imageTag=$VERSION || exit 1
+          
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Check staging deployment status
+        run: |
+          # Ensure staging is healthy before production deployment
+          kubectl get deployment web-app -n warehouse-staging -o jsonpath='{.status.conditions[?(@.type=="Available")].status}' | grep True
+
+      - name: Run pre-deployment tests
+        id: checks
+        run: |
+          # Run critical tests against staging
+          npm install -g newman
+          newman run tests/postman/critical-paths.json \
+            --env-var "BASE_URL=https://staging-api.warehouse-network.com" \
+            --bail
+          
+          echo "proceed=true" >> $GITHUB_OUTPUT
+
+  approval:
+    name: Manual Approval
+    needs: pre-deployment-checks
+    runs-on: ubuntu-latest
+    environment:
+      name: production-approval
+    if: github.event.inputs.skip-approval != 'true'
+    steps:
+      - name: Request approval
+        run: echo "Waiting for manual approval..."
+
+  deploy:
+    name: Deploy to Production
+    needs: [pre-deployment-checks, approval]
+    if: always() && (needs.approval.result == 'success' || needs.approval.result == 'skipped')
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://warehouse-network.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create deployment backup
+        run: |
+          # Backup current deployment state
+          kubectl get all -n ${{ env.NAMESPACE }} -o yaml > backup-$(date +%Y%m%d-%H%M%S).yaml
+          aws s3 cp backup-*.yaml s3://warehouse-network-backups/deployments/
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+
+      - name: Blue-Green Deployment
+        id: deploy
+        run: |
+          VERSION="${{ github.event.inputs.version || github.event.release.tag_name }}"
+          
+          # Deploy green environment
+          kubectl apply -f k8s/overlays/production/deployment-green.yaml
+          kubectl set image deployment/web-app-green web-app=${{ steps.login-ecr.outputs.registry }}/warehouse-network/web:$VERSION -n ${{ env.NAMESPACE }}
+          
+          # Wait for green deployment to be ready
+          kubectl wait --for=condition=available --timeout=600s deployment/web-app-green -n ${{ env.NAMESPACE }}
+          
+          # Run health checks on green deployment
+          GREEN_POD=$(kubectl get pod -l app=web-app-green -n ${{ env.NAMESPACE }} -o jsonpath="{.items[0].metadata.name}")
+          kubectl exec $GREEN_POD -n ${{ env.NAMESPACE }} -- wget -O- http://localhost:8080/api/health || exit 1
+          
+          # Switch traffic to green
+          kubectl patch service web-app -n ${{ env.NAMESPACE }} -p '{"spec":{"selector":{"version":"green"}}}'
+          
+          # Scale down blue deployment
+          kubectl scale deployment web-app-blue --replicas=0 -n ${{ env.NAMESPACE }}
+          
+          echo "deployment_version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Verify deployment
+        run: |
+          # Wait for service to stabilize
+          sleep 30
+          
+          # Check production health
+          curl -f https://warehouse-network.com/api/health || exit 1
+
+      - name: Create rollback plan
+        run: |
+          cat > rollback-${{ steps.deploy.outputs.deployment_version }}.sh << 'EOF'
+          #!/bin/bash
+          kubectl patch service web-app -n ${{ env.NAMESPACE }} -p '{"spec":{"selector":{"version":"blue"}}}'
+          kubectl scale deployment web-app-blue --replicas=3 -n ${{ env.NAMESPACE }}
+          kubectl scale deployment web-app-green --replicas=0 -n ${{ env.NAMESPACE }}
+          EOF
+          
+          aws s3 cp rollback-*.sh s3://warehouse-network-backups/rollback-scripts/
+
+      - name: Update monitoring dashboards
+        run: |
+          # Update Grafana annotations
+          curl -X POST https://grafana.warehouse-network.com/api/annotations \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "dashboardId": 1,
+              "text": "Deployment: ${{ steps.deploy.outputs.deployment_version }}",
+              "tags": ["deployment", "production"]
+            }'
+
+      - name: Notify stakeholders
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Production Deployment ${{ job.status }}
+            Version: ${{ steps.deploy.outputs.deployment_version }}
+            Actor: ${{ github.actor }}
+            URL: https://warehouse-network.com
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  post-deployment:
+    name: Post-deployment Tasks
+    needs: deploy
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - name: Run smoke tests
+        run: |
+          npm install -g newman
+          newman run tests/postman/smoke-tests.json \
+            --env-var "BASE_URL=https://api.warehouse-network.com" \
+            --reporters cli,json
+
+      - name: Update status page
+        run: |
+          curl -X POST https://status.warehouse-network.com/api/incidents \
+            -H "Authorization: Bearer ${{ secrets.STATUS_PAGE_TOKEN }}" \
+            -d '{
+              "incident": {
+                "name": "Deployment Complete",
+                "status": "resolved",
+                "message": "Successfully deployed version ${{ github.event.release.tag_name }}"
+              }
+            }'
+
+      - name: Trigger performance baseline
+        run: |
+          curl -X POST https://api.warehouse-network.com/internal/performance/baseline \
+            -H "Authorization: Bearer ${{ secrets.INTERNAL_API_TOKEN }}"

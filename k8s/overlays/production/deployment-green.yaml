@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app-green
+  namespace: warehouse-prod
+  labels:
+    app: web-app-green
+    version: green
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: web-app-green
+      version: green
+  template:
+    metadata:
+      labels:
+        app: web-app-green
+        version: green
+    spec:
+      serviceAccountName: web-app
+      containers:
+      - name: web-app
+        image: ghcr.io/warehouse-network/web:production
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DEPLOYMENT_COLOR
+          value: "green"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"

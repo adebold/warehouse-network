@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: web-app-config
+  namespace: warehouse-network
+data:
+  nextauth-url: "https://warehouse-network.com"
+  api-timeout: "30000"
+  max-upload-size: "10485760"

@@ -1,0 +1,110 @@
+name: CD - Staging Deployment
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to deploy (leave empty for latest)'
+        required: false
+
+env:
+  ENVIRONMENT: staging
+  AWS_REGION: us-east-1
+  EKS_CLUSTER: warehouse-network-staging
+  NAMESPACE: warehouse-staging
+
+jobs:
+  deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://staging.warehouse-network.com
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Set image tag
+        id: set-tag
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            echo "TAG=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "TAG=${{ github.sha }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ env.EKS_CLUSTER }} --region ${{ env.AWS_REGION }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -k k8s/overlays/staging/
+          kubectl set image deployment/web-app web-app=${{ steps.login-ecr.outputs.registry }}/warehouse-network/web:${{ steps.set-tag.outputs.TAG }} -n ${{ env.NAMESPACE }}
+          kubectl rollout status deployment/web-app -n ${{ env.NAMESPACE }}
+
+      - name: Run smoke tests
+        run: |
+          npm install -g newman
+          newman run tests/postman/smoke-tests.json \
+            --env-var "BASE_URL=https://staging-api.warehouse-network.com" \
+            --reporters cli,json \
+            --reporter-json-export newman-results.json
+
+      - name: Update deployment record
+        run: |
+          echo "Deployment completed at $(date)" >> deployment.log
+          echo "Version: ${{ steps.set-tag.outputs.TAG }}" >> deployment.log
+          echo "Environment: ${{ env.ENVIRONMENT }}" >> deployment.log
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: |
+            Staging Deployment ${{ job.status }}
+            Version: ${{ steps.set-tag.outputs.TAG }}
+            Actor: ${{ github.actor }}
+            URL: https://staging.warehouse-network.com
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  integration-tests:
+    name: Run Integration Tests
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          cd apps/web
+          npm ci
+
+      - name: Run integration tests against staging
+        run: |
+          cd apps/web
+          STAGING_URL=https://staging.warehouse-network.com npm run test:integration:staging
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: apps/web/test-results/

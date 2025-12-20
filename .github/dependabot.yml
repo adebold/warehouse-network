@@ -1,0 +1,59 @@
+version: 2
+updates:
+  # JavaScript dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "05:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "warehouse-network/security"
+    labels:
+      - "dependencies"
+      - "javascript"
+    groups:
+      production-dependencies:
+        dependency-type: "production"
+      development-dependencies:
+        dependency-type: "development"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "05:00"
+    reviewers:
+      - "warehouse-network/devops"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "05:00"
+    reviewers:
+      - "warehouse-network/devops"
+    labels:
+      - "dependencies"
+      - "docker"
+
+  # Terraform
+  - package-ecosystem: "terraform"
+    directory: "/terraform"
+    schedule:
+      interval: "weekly"
+      day: "sunday"
+      time: "05:00"
+    reviewers:
+      - "warehouse-network/devops"
+    labels:
+      - "dependencies"
+      - "terraform"

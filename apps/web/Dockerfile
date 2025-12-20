@@ -3,9 +3,9 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Copy package files
-COPY package.json package-lock.json* ./
+COPY package*.json ./
 
-# Install all dependencies
+# Install all dependencies (including bcryptjs and date-fns)
 RUN npm install
 
 # Copy application files

@@ -1,0 +1,26 @@
+# Simple Dockerfile for Cloud Run that works
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy all files
+COPY . .
+
+# Install ALL dependencies (including dev)
+RUN npm install
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build the app
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN npm run build
+
+# Production environment
+ENV NODE_ENV production
+ENV PORT 8080
+
+EXPOSE 8080
+
+# Start the application
+CMD ["npm", "start"]

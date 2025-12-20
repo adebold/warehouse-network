@@ -1,0 +1,6 @@
+FROM node:18-alpine
+WORKDIR /app
+COPY minimal-app.js package*.json ./
+RUN npm install express
+EXPOSE 8080
+CMD ["node", "minimal-app.js"]
