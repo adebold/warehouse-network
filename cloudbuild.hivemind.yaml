@@ -1,0 +1,104 @@
+# HiveMind Cloud Build Configuration
+# Production-optimized build pipeline for warehouse-frontend
+
+steps:
+  # Step 1: Build the Docker image with caching
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'build'
+      - '--cache-from'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:latest'
+      - '--build-arg'
+      - 'BUILDKIT_INLINE_CACHE=1'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$BUILD_ID'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+  # Step 2: Push the image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-image'
+    args:
+      - 'push'
+      - '--all-tags'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME'
+
+  # Step 3: Run security vulnerability scan
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'vulnerability-scan'
+    args:
+      - 'beta'
+      - 'container'
+      - 'images'
+      - 'scan'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$BUILD_ID'
+    waitFor: ['push-image']
+
+  # Step 4: Create a lightweight version for faster cold starts
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'optimize-image'
+    args:
+      - 'build'
+      - '--target'
+      - 'runner'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:optimized'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+
+  # Step 5: Push optimized image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-optimized'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:optimized'
+    waitFor: ['optimize-image']
+
+# Build configuration options
+options:
+  # Use high-performance machine for faster builds
+  machineType: 'E2_HIGHCPU_8'
+  
+  # Enable Docker layer caching
+  volumes:
+    - name: 'docker-cache'
+      path: '/var/lib/docker'
+  
+  # Increase disk size for large builds
+  diskSizeGb: 100
+  
+  # Enable build logs streaming
+  logging: CLOUD_LOGGING_ONLY
+  
+  # Build substitution defaults
+  substitutions:
+    _SERVICE_NAME: 'warehouse-frontend'
+    _REGION: 'us-central1'
+  
+  # Dynamic substitutions
+  dynamic_substitutions: true
+
+# Build timeout (20 minutes)
+timeout: '1200s'
+
+# Store build artifacts
+artifacts:
+  images:
+    - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:$BUILD_ID'
+    - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:latest'
+    - 'gcr.io/$PROJECT_ID/$_SERVICE_NAME:optimized'
+
+# Tags for organizing builds
+tags:
+  - 'hivemind'
+  - 'production'
+  - 'warehouse-frontend'

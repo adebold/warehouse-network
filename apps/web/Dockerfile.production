@@ -1,42 +1,77 @@
-FROM node:20-alpine AS deps
+# Multi-stage production Dockerfile for AI Industries Warehouse
+# Optimized for Mac ARM64 to Linux AMD64 cross-compilation
+
+# Stage 1: Dependencies (Platform-specific)
+FROM --platform=linux/amd64 node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY package.json package-lock.json* ./
-RUN npm ci || npm install
 
-FROM node:20-alpine AS builder
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install production dependencies only
+RUN npm ci --only=production
+
+# Stage 2: Build Stage (Platform-specific)
+FROM --platform=linux/amd64 node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+
+# Copy package files
+COPY package*.json ./
+COPY prisma ./prisma/
+
+# Install all dependencies (including dev)
+RUN npm ci
+
+# Copy source code
 COPY . .
 
+# Generate Prisma client
+RUN npx prisma generate
+
+# Build Next.js application
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
+RUN npm run build
 
-# Generate Prisma Client
-RUN npx prisma generate || echo "Prisma generate skipped"
-
-# Build Next.js
-RUN npm run build || echo "Build completed with warnings"
-
-FROM node:20-alpine AS runner
+# Stage 3: Production Image
+FROM --platform=linux/amd64 node:20-alpine AS runner
 WORKDIR /app
 
+# Set production environment
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
+# Install production runtime dependencies
+RUN apk add --no-cache libc6-compat
+
+# Create non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy public assets
-COPY --from=builder /app/public ./public
+# Copy production dependencies
+COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 
-# Copy standalone output
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# Copy built application
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+# Copy Prisma schema and client
+COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+# Switch to non-root user
 USER nextjs
 
+# Expose port
 EXPOSE 8080
 ENV PORT 8080
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:8080/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+
+# Start the application
 CMD ["node", "server.js"]

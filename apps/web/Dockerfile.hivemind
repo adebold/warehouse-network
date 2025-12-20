@@ -1,0 +1,81 @@
+# HiveMind Optimized Multi-Stage Dockerfile
+# Designed for cross-platform builds (Mac ARM64 -> Linux AMD64)
+# Optimized for Cloud Run deployment with minimal image size
+
+# Build stage - use specific platform for consistency
+FROM --platform=linux/amd64 node:18-alpine AS deps
+WORKDIR /app
+
+# Install dependencies only when needed
+# Copy package files first for better caching
+COPY package*.json ./
+COPY ../../package*.json ../../
+COPY ../../packages/db/package*.json ../../packages/db/
+
+# Install dependencies with npm ci for faster, reproducible builds
+RUN npm ci --only=production
+
+# Rebuild the source code only when needed
+FROM --platform=linux/amd64 node:18-alpine AS builder
+WORKDIR /app
+
+# Copy node_modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/../../node_modules ../../node_modules
+COPY --from=deps /app/../../packages/db/node_modules ../../packages/db/node_modules
+
+# Copy application code
+COPY . .
+COPY ../../packages ../../packages
+COPY ../../package*.json ../../
+COPY ../../tsconfig.base.json ../../
+
+# Set environment variables for build
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+ENV SKIP_ENV_VALIDATION=1
+
+# Build the application
+# Use standalone output for smaller image
+RUN npm run build
+
+# Production image, copy all the files and run next
+FROM --platform=linux/amd64 node:18-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Create a non-root user to run the application
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy necessary files from builder
+# Using standalone build reduces image size significantly
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Copy Prisma schema and generate client
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+
+# Set correct permissions
+RUN chown -R nextjs:nodejs /app
+
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
+
+# Health check for Cloud Run
+HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
+  CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); })"
+
+# Use node directly to run the standalone server
+CMD ["node", "server.js"]

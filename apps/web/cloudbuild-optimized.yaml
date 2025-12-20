@@ -1,0 +1,123 @@
+# Optimized Cloud Build configuration for AI Industries Warehouse
+# Solves Mac ARM64 to Linux AMD64 cross-compilation issues
+
+substitutions:
+  _SERVICE_NAME: warehouse-frontend
+  _REGION: us-central1
+  _IMAGE_NAME: warehouse-frontend
+  _PROJECT_ID: aindustries-warehouse
+
+steps:
+  # Step 0: Setup Docker Buildx for multi-platform builds
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'setup-buildx'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Create and bootstrap buildx builder
+        docker buildx create --name multi-arch-builder --driver docker-container --use
+        docker buildx inspect --bootstrap
+        
+        # Verify platform support
+        docker buildx ls
+
+  # Step 1: Build with caching and platform targeting
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-image'
+    args:
+      - 'buildx'
+      - 'build'
+      - '--platform=linux/amd64'
+      - '--cache-from=type=registry,ref=gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:buildcache'
+      - '--cache-to=type=registry,ref=gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:buildcache,mode=max'
+      - '-t'
+      - 'gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:${COMMIT_SHA}'
+      - '-t'
+      - 'gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:latest'
+      - '--build-arg'
+      - 'BUILDKIT_INLINE_CACHE=1'
+      - '--push'
+      - '-f'
+      - 'Dockerfile.production'
+      - '.'
+    dir: 'apps/web'
+    env:
+      - 'DOCKER_BUILDKIT=1'
+    waitFor: ['setup-buildx']
+
+  # Step 2: Deploy to Cloud Run with optimized settings
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy'
+    entrypoint: 'gcloud'
+    args:
+      - 'run'
+      - 'deploy'
+      - '${_SERVICE_NAME}'
+      - '--image'
+      - 'gcr.io/${_PROJECT_ID}/${_IMAGE_NAME}:${COMMIT_SHA}'
+      - '--region'
+      - '${_REGION}'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--min-instances'
+      - '0'
+      - '--max-instances'
+      - '100'
+      - '--port'
+      - '8080'
+      - '--set-env-vars'
+      - 'NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1'
+      - '--timeout'
+      - '300'
+      - '--concurrency'
+      - '250'
+      - '--cpu-throttling'
+      - '--execution-environment'
+      - 'gen2'
+    waitFor: ['build-image']
+
+  # Step 3: Warm up the service
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'warmup'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Get the service URL
+        SERVICE_URL=$(gcloud run services describe ${_SERVICE_NAME} \
+          --region=${_REGION} \
+          --format='value(status.url)')
+        
+        echo "Warming up service at: $SERVICE_URL"
+        
+        # Make a few requests to warm up the service
+        for i in {1..3}; do
+          curl -s -o /dev/null -w "Response time: %{time_total}s\n" "$SERVICE_URL/api/health" || true
+          sleep 2
+        done
+    waitFor: ['deploy']
+
+# Optimized build settings
+timeout: '2400s'  # 40 minutes timeout
+queueTtl: '3600s'  # 1 hour queue time
+
+options:
+  # Use high-CPU machine for faster builds
+  machineType: 'E2_HIGHCPU_32'
+  diskSizeGb: 200
+  
+  # Enable build logs
+  logging: CLOUD_LOGGING_ONLY
+  
+  # Dynamic substitutions
+  dynamic_substitutions: true
+  
+  # Pool for better resource allocation
+  pool:
+    name: 'projects/${_PROJECT_ID}/locations/${_REGION}/workerPools/build-pool'
