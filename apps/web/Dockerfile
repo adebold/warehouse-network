@@ -1,30 +1,22 @@
-# Simple Dockerfile for Cloud Run
+# Simple working Dockerfile for Next.js
 FROM node:18-alpine
 
 WORKDIR /app
 
-# Copy package.json
-COPY package.json ./
-
-# Install production dependencies
-RUN npm install --production
-
-# Copy the rest of the application
+# Copy all files
 COPY . .
 
-# Install all dependencies for build
+# Install dependencies
 RUN npm install
 
-# Generate Prisma client
-RUN npx prisma generate || true
-
 # Build Next.js
-RUN npm run build || echo "Build step skipped"
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN npm run build
 
-EXPOSE 8080
+# Expose port
+EXPOSE 3000
 
-# Update the start script in package.json if needed
-RUN node -e "const p = require('./package.json'); p.scripts.start = 'NODE_ENV=production node server.js'; require('fs').writeFileSync('./package.json', JSON.stringify(p, null, 2));"
-
-# Start with custom server
+# Start production server
+ENV NODE_ENV production
+ENV PORT 3000
 CMD ["npm", "start"]

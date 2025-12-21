@@ -1,0 +1,28 @@
+# Working Dockerfile that avoids npm ci issues
+FROM node:18-alpine
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Use npm install instead of npm ci to avoid lock file issues
+RUN npm install
+
+# Copy application files
+COPY . .
+
+# Generate Prisma client if needed
+RUN npx prisma generate || true
+
+# Build the Next.js application
+ENV NEXT_TELEMETRY_DISABLED 1
+RUN npm run build
+
+# Expose port
+EXPOSE 3000
+
+# Start the application
+ENV PORT 3000
+ENV NODE_ENV production
+CMD ["npm", "start"]
