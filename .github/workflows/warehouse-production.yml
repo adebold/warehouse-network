@@ -19,7 +19,7 @@ on:
           - production
 
 env:
-  PROJECT_ID: warehouse-network-20251220
+  PROJECT_ID: aindustries-warehouse
   SERVICE_NAME: warehouse-frontend
   REGION: us-central1
   REGISTRY: us-central1-docker.pkg.dev
