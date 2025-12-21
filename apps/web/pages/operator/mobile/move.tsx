@@ -2,7 +2,7 @@ import type { NextPage } from 'next';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import { QrScanner } from '@yudiel/react-qr-scanner';
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 type MoveState = 'SCAN_SKID' | 'SCAN_LOCATION' | 'CONFIRM';
 
@@ -74,7 +74,11 @@ const Move: NextPage = () => {
       {moveState === 'SCAN_SKID' && <p>Scan a Skid QR Code</p>}
       {moveState === 'SCAN_LOCATION' && <p>Scan a Location QR Code</p>}
 
-      <QrScanner onDecode={handleScan} onError={error => console.log(error?.message)} />
+      <Scanner onScan={(detectedCodes) => {
+        if (detectedCodes && detectedCodes.length > 0) {
+          handleScan(detectedCodes[0].rawValue);
+        }
+      }} onError={error => console.log(error?.message)} />
 
       {moveState === 'CONFIRM' && (
         <div>
