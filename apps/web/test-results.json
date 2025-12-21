@@ -1,0 +1,259 @@
+{
+  "config": {
+    "configFile": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/playwright.config.ts",
+    "rootDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+    "forbidOnly": false,
+    "fullyParallel": true,
+    "globalSetup": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/auth.setup.ts",
+    "globalTeardown": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/integration/setup.ts",
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {},
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "html",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "test-results.json"
+        }
+      ],
+      [
+        "junit",
+        {
+          "outputFile": "junit.xml"
+        }
+      ],
+      [
+        "list",
+        null
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "setup",
+        "name": "setup",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.setup\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "super-admin",
+        "name": "super-admin",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "operator-admin",
+        "name": "operator-admin",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "warehouse-staff",
+        "name": "warehouse-staff",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "customer-admin",
+        "name": "customer-admin",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "customer-user",
+        "name": "customer-user",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "visual-regression",
+        "name": "visual-regression",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.visual\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "mobile-chrome",
+        "name": "mobile-chrome",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.mobile\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "mobile-safari",
+        "name": "mobile-safari",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.mobile\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "accessibility",
+        "name": "accessibility",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.(a11y|accessibility)\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "performance",
+        "name": "performance",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*\\.perf\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "html-css-audit",
+        "name": "html-css-audit",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*html-css-audit\\.ts/"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {},
+        "id": "integration",
+        "name": "integration",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests",
+        "testIgnore": [],
+        "testMatch": [
+          "/.*integration.*\\.spec\\.ts/"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 5,
+    "webServer": {
+      "command": "bash scripts/test-db.sh setup && npm run dev",
+      "url": "http://localhost:3000",
+      "reuseExistingServer": true,
+      "timeout": 120000,
+      "env": {
+        "DATABASE_URL": "postgresql://postgres:postgres@localhost:5433/warehouse_test",
+        "REDIS_URL": "redis://localhost:6380",
+        "NODE_ENV": "test"
+      }
+    }
+  },
+  "suites": [],
+  "errors": [
+    {
+      "message": "Error: Process from config.webServer was not able to start. Exit code: 125",
+      "stack": "Error: Process from config.webServer was not able to start. Exit code: 125"
+    }
+  ],
+  "stats": {
+    "startTime": "2025-12-21T15:52:44.192Z",
+    "duration": 1300.638,
+    "expected": 0,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}
