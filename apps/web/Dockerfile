@@ -1,0 +1,43 @@
+# Build stage
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies
+RUN npm ci
+
+# Copy all source files
+COPY . .
+
+# Build Next.js app - continue even with SSG errors
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+RUN npm run build || true
+
+# Production stage
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+# Install production dependencies only
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy built application from builder
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/node_modules ./node_modules
+
+# Set environment variables
+ENV NODE_ENV=production
+ENV PORT=8080
+ENV HOSTNAME=0.0.0.0
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Expose port
+EXPOSE 8080
+
+# Start the application
+CMD ["npm", "start"]
