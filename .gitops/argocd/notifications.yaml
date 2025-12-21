@@ -1,0 +1,66 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  service.slack: |
+    token: $slack-token
+  template.app-deployed: |
+    email:
+      subject: Application {{.app.metadata.name}} has been deployed
+    message: |
+      Application {{.app.metadata.name}} has been successfully deployed to {{.app.spec.destination.namespace}}.
+      Sync Status: {{.app.status.sync.status}}
+      Health Status: {{.app.status.health.status}}
+    slack:
+      attachments: |
+        [{
+          "color": "{{ if eq .app.status.health.status "Healthy" }}"good"{{ else }}"danger"{{ end }}",
+          "title": "{{ .app.metadata.name }}",
+          "fields": [
+            {
+              "title": "Sync Status",
+              "value": "{{ .app.status.sync.status }}",
+              "short": true
+            },
+            {
+              "title": "Health Status",
+              "value": "{{ .app.status.health.status }}",
+              "short": true
+            },
+            {
+              "title": "Environment",
+              "value": "{{ .app.spec.destination.namespace }}",
+              "short": true
+            }
+          ]
+        }]
+  template.app-sync-failed: |
+    email:
+      subject: Application {{.app.metadata.name}} sync has failed
+    message: |
+      Application {{.app.metadata.name}} sync has failed.
+      Error: {{.app.status.operationState.message}}
+    slack:
+      attachments: |
+        [{
+          "color": "danger",
+          "title": "{{ .app.metadata.name }}",
+          "text": "Sync Failed",
+          "fields": [
+            {
+              "title": "Error",
+              "value": "{{ .app.status.operationState.message }}"
+            }
+          ]
+        }]
+  trigger.sync-operation-status: |
+    - when: app.status.operationState.phase in ['Succeeded']
+      send: [app-deployed]
+    - when: app.status.operationState.phase in ['Failed', 'Error']
+      send: [app-sync-failed]
+  subscriptions: |
+    - recipients:
+      - slack:warehouse-deployments
+      selector: app.kubernetes.io/name=warehouse

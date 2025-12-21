@@ -1,0 +1,22 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [staging]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run integration tests
+        run: npm run test:integration
+        
+      - name: Deploy to staging
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: warehouse-staging
+          image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-staging:${{ github.sha }}

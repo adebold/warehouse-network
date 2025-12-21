@@ -1,83 +1,83 @@
-version: '3.9'
+version: '3.8'
 
-# Production uses Kubernetes - this is for local production testing only
 services:
   app:
+    build:
+      context: ../../apps/web
+      dockerfile: ../../docker/prod/Dockerfile
+    ports:
+      - "3000:3000"
     environment:
-      NODE_ENV: production
-      NEXTAUTH_URL: https://warehouse-network.com
+      - NODE_ENV=production
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - REDIS_URL=${REDIS_URL}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (res) => process.exit(res.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     deploy:
-      replicas: 3
-      restart_policy:
-        condition: any
-        delay: 5s
-        max_attempts: 5
+      replicas: 2
       resources:
         limits:
-          cpus: '2'
-          memory: 2G
+          memory: 512M
         reservations:
-          cpus: '1'
-          memory: 1G
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
+          memory: 256M
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   nginx:
     image: nginx:alpine
-    restart: always
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
-      - nginx_cache:/var/cache/nginx
     depends_on:
       - app
-    deploy:
-      replicas: 2
-    networks:
-      - warehouse-network
-
-  postgres:
-    deploy:
-      placement:
-        constraints:
-          - node.role == manager
-    volumes:
-      - postgres_data_prod:/var/lib/postgresql/data
-    environment:
-      POSTGRES_REPLICATION_MODE: master
-      POSTGRES_REPLICATION_USER: replicator
-      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
-
-  postgres-replica:
-    image: postgres:15-alpine
     restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  db:
+    image: postgres:15-alpine
     environment:
-      POSTGRES_REPLICATION_MODE: slave
-      POSTGRES_MASTER_HOST: postgres
-      POSTGRES_REPLICATION_USER: replicator
-      POSTGRES_REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
-    depends_on:
-      - postgres
-    deploy:
-      replicas: 2
-    networks:
-      - warehouse-network
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backup:/backup
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
 volumes:
-  postgres_data_prod:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: /data/postgres
-  nginx_cache:
-
-networks:
-  warehouse-network:
-    driver: overlay
-    attachable: true
+  postgres_data:
+  redis_data:

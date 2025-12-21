@@ -1,0 +1,37 @@
+# Development Environment Values
+environment: development
+namespace: warehouse-dev
+
+image:
+  repository: gcr.io/PROJECT_ID/warehouse-frontend
+  tag: dev-latest
+  pullPolicy: Always
+
+replicas: 1
+
+resources:
+  requests:
+    memory: "128Mi"
+    cpu: "50m"
+  limits:
+    memory: "256Mi"
+    cpu: "200m"
+
+ingress:
+  enabled: true
+  host: dev.warehouse.example.com
+  tls:
+    enabled: false
+    secretName: warehouse-dev-tls
+
+autoscaling:
+  enabled: false
+
+monitoring:
+  enabled: true
+  debug: true
+
+config:
+  logLevel: debug
+  enableProfiling: true
+  cacheEnabled: false

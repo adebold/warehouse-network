@@ -1,0 +1,136 @@
+name: Setup GitOps Repository
+
+on:
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Create GitOps repository structure
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Clone or create GitOps repository
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/adebold/warehouse-gitops || {
+            gh repo create adebold/warehouse-gitops --private --description "GitOps configuration for Warehouse Network"
+            git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/adebold/warehouse-gitops
+          }
+          
+          cd warehouse-gitops
+          
+          # Create directory structure
+          mkdir -p base overlays/{dev,staging,prod} apps
+          
+          # Create base kustomization
+          cat > base/kustomization.yaml << 'EOF'
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          
+          resources:
+            - deployment.yaml
+            - service.yaml
+            - configmap.yaml
+          EOF
+          
+          # Create base deployment
+          cat > base/deployment.yaml << 'EOF'
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: warehouse
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: warehouse
+            template:
+              metadata:
+                labels:
+                  app: warehouse
+              spec:
+                containers:
+                - name: warehouse
+                  image: gcr.io/PROJECT_ID/warehouse:latest
+                  ports:
+                  - containerPort: 3000
+                  env:
+                  - name: NODE_ENV
+                    valueFrom:
+                      configMapKeyRef:
+                        name: warehouse-config
+                        key: NODE_ENV
+          EOF
+          
+          # Create environment overlays
+          for env in dev staging prod; do
+            cat > overlays/$env/kustomization.yaml << EOF
+          apiVersion: kustomize.config.k8s.io/v1beta1
+          kind: Kustomization
+          
+          namePrefix: $env-
+          namespace: warehouse-$env
+          
+          bases:
+            - ../../base
+          
+          patchesStrategicMerge:
+            - deployment.yaml
+          
+          configMapGenerator:
+            - name: warehouse-config
+              literals:
+                - NODE_ENV=$env
+          EOF
+          
+            cat > overlays/$env/deployment.yaml << EOF
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: warehouse
+          spec:
+            replicas: $([ "$env" == "prod" ] && echo "3" || echo "1")
+            template:
+              spec:
+                containers:
+                - name: warehouse
+                  image: gcr.io/\$PROJECT_ID/warehouse-$env:latest
+                  resources:
+                    requests:
+                      memory: "$([ "$env" == "prod" ] && echo "512Mi" || echo "256Mi")"
+                      cpu: "$([ "$env" == "prod" ] && echo "500m" || echo "250m")"
+                    limits:
+                      memory: "$([ "$env" == "prod" ] && echo "1Gi" || echo "512Mi")"
+                      cpu: "$([ "$env" == "prod" ] && echo "1000m" || echo "500m")"
+          EOF
+          done
+          
+          # Create ArgoCD applications
+          cat > apps/dev-app.yaml << 'EOF'
+          apiVersion: argoproj.io/v1alpha1
+          kind: Application
+          metadata:
+            name: warehouse-dev
+            namespace: argocd
+          spec:
+            project: default
+            source:
+              repoURL: https://github.com/adebold/warehouse-gitops
+              targetRevision: main
+              path: overlays/dev
+            destination:
+              server: https://kubernetes.default.svc
+              namespace: warehouse-dev
+            syncPolicy:
+              automated:
+                prune: true
+                selfHeal: true
+          EOF
+          
+          # Commit and push
+          git config user.email "ci@ai-industries.com"
+          git config user.name "CI Bot"
+          git add .
+          git commit -m "Initialize GitOps repository structure"
+          git push

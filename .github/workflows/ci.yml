@@ -7,145 +7,42 @@ on:
     branches: [main, develop]
 
 env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  REGISTRY: gcr.io
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
 
 jobs:
-  lint:
-    name: Lint Code
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - uses: actions/setup-node@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '18'
           cache: 'npm'
-          cache-dependency-path: 'apps/web/package-lock.json'
           
       - name: Install dependencies
-        run: |
-          cd apps/web
-          npm ci
+        run: npm ci
         
-      - name: Run ESLint
-        run: |
-          cd apps/web
-          npm run lint
+      - name: Run linting
+        run: npm run lint
         
-      - name: Check TypeScript
-        run: |
-          cd apps/web
-          npx tsc --noEmit
-
-  test-unit:
-    name: Unit Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'apps/web/package-lock.json'
-          
-      - name: Install dependencies
-        run: |
-          cd apps/web
-          npm ci
+      - name: Run type check
+        run: npm run typecheck
         
-      - name: Run unit tests
-        run: |
-          cd apps/web
-          npm test
-
-  test-integration:
-    name: Integration Tests
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: test
-          POSTGRES_PASSWORD: test
-          POSTGRES_DB: test_db
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-          
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'apps/web/package-lock.json'
-          
-      - name: Install dependencies
-        run: |
-          cd apps/web
-          npm ci
+      - name: Run tests
+        run: npm run test:ci
         
-      - name: Setup database
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-        run: |
-          cd apps/web
-          npx prisma migrate deploy
-          npx prisma db seed
-          
-      - name: Run integration tests
-        env:
-          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
-          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL: http://localhost:3000
-        run: |
-          cd apps/web
-          npm run test:integration
-
-  test-e2e:
-    name: E2E Tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: 'apps/web/package-lock.json'
-          
-      - name: Install dependencies
-        run: |
-          cd apps/web
-          npm ci
-        
-      - name: Install Playwright browsers
-        run: cd apps/web && npx playwright install --with-deps
-        
-      - name: Run E2E tests
-        run: cd apps/web && npm run test-e2e
-        
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: playwright-report
-          path: apps/web/playwright-report/
-          retention-days: 30
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
 
   security-scan:
-    name: Security Scan
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       
-      - name: Run Trivy vulnerability scanner
+      - name: Run Trivy security scan
         uses: aquasecurity/trivy-action@master
         with:
           scan-type: 'fs'
@@ -153,51 +50,40 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+      - name: Upload Trivy results
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: 'trivy-results.sarif'
 
   build:
-    name: Build Docker Image
+    needs: [test, security-scan]
     runs-on: ubuntu-latest
-    needs: [lint, test-unit]
-    permissions:
-      contents: read
-      packages: write
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    
     steps:
       - uses: actions/checkout@v4
       
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-        
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix={{branch}}-
-            
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+      
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+      
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./apps/web
+          file: ./docker/${{ matrix.environment }}/Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-${{ matrix.environment }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-${{ matrix.environment }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          platforms: linux/amd64,linux/arm64

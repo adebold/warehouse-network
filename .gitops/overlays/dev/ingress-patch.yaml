@@ -1,0 +1,22 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: warehouse-frontend
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  tls:
+  - hosts:
+    - dev.warehouse.example.com
+    secretName: warehouse-dev-tls
+  rules:
+  - host: dev.warehouse.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: warehouse-frontend
+            port:
+              number: 80

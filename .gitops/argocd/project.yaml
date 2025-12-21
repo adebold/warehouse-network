@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: warehouse
+  namespace: argocd
+spec:
+  description: Warehouse Application Project
+  
+  sourceRepos:
+  - 'https://github.com/adebold/warehouse-network'
+  
+  destinations:
+  - namespace: 'warehouse-*'
+    server: https://kubernetes.default.svc
+  - namespace: warehouse
+    server: https://kubernetes.default.svc
+  
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  
+  roles:
+  - name: admin
+    policies:
+    - p, proj:warehouse:admin, applications, *, warehouse/*, allow
+    - p, proj:warehouse:admin, repositories, *, *, allow
+    groups:
+    - warehouse:admins
+  
+  - name: developer
+    policies:
+    - p, proj:warehouse:developer, applications, get, warehouse/*, allow
+    - p, proj:warehouse:developer, applications, sync, warehouse/warehouse-dev, allow
+    groups:
+    - warehouse:developers

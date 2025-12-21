@@ -1,0 +1,42 @@
+# Staging Environment Values
+environment: staging
+namespace: warehouse-staging
+
+image:
+  repository: gcr.io/PROJECT_ID/warehouse-frontend
+  tag: staging-latest
+  pullPolicy: Always
+
+replicas: 2
+
+resources:
+  requests:
+    memory: "256Mi"
+    cpu: "100m"
+  limits:
+    memory: "512Mi"
+    cpu: "400m"
+
+ingress:
+  enabled: true
+  host: staging.warehouse.example.com
+  tls:
+    enabled: true
+    secretName: warehouse-staging-tls
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPU: 75
+  targetMemory: 80
+
+monitoring:
+  enabled: true
+  debug: false
+  
+config:
+  logLevel: warn
+  enableMetrics: true
+  cacheEnabled: true
+  cacheTTL: 1800

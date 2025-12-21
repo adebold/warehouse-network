@@ -1,27 +1,29 @@
-version: '3.9'
+version: '3.8'
 
 services:
   app:
+    build:
+      context: ../../apps/web
+      dockerfile: ../../docker/staging/Dockerfile
+    ports:
+      - "3000:3000"
     environment:
-      NODE_ENV: staging
-      NEXTAUTH_URL: https://staging.warehouse-network.com
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
-      resources:
-        limits:
-          cpus: '1'
-          memory: 1G
-        reservations:
-          cpus: '0.5'
-          memory: 512M
+      - NODE_ENV=staging
+      - DATABASE_URL=${DATABASE_URL}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      - db
+      - redis
 
   nginx:
     image: nginx:alpine
-    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
@@ -30,43 +32,24 @@ services:
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - app
-    networks:
-      - warehouse-network
-
-  prometheus:
-    image: prom/prometheus:latest
     restart: unless-stopped
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-    networks:
-      - warehouse-network
 
-  grafana:
-    image: grafana/grafana:latest
-    restart: unless-stopped
-    ports:
-      - "3001:3000"
+  db:
+    image: postgres:15-alpine
     environment:
-      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
-      GF_USERS_ALLOW_SIGN_UP: "false"
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
     volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/provisioning:/etc/grafana/provisioning:ro
-    depends_on:
-      - prometheus
-    networks:
-      - warehouse-network
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
 
 volumes:
-  prometheus_data:
-  grafana_data:
-
-networks:
-  warehouse-network:
-    external: true
+  postgres_data:
+  redis_data:

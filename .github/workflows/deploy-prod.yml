@@ -1,0 +1,32 @@
+name: Deploy to Production
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://warehouse.ai-industries.com
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Deploy to production
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: warehouse-prod
+          image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-prod:${{ github.sha }}
+          
+      - name: Update GitOps repository
+        run: |
+          git config --global user.email "ci@ai-industries.com"
+          git config --global user.name "CI Bot"
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/adebold/warehouse-gitops
+          cd warehouse-gitops
+          yq -i '.spec.template.spec.containers[0].image = "gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-prod:${{ github.sha }}"' overlays/prod/deployment.yaml
+          git add .
+          git commit -m "Deploy ${{ github.sha }} to production"
+          git push

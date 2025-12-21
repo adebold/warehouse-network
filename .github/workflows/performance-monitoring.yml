@@ -1,0 +1,65 @@
+name: Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        environment: [dev, staging, prod]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Get service URL
+        id: service-url
+        run: |
+          if [ "${{ matrix.environment }}" == "prod" ]; then
+            echo "url=https://warehouse.ai-industries.com" >> $GITHUB_OUTPUT
+          else
+            URL=$(gcloud run services describe warehouse-${{ matrix.environment }} \
+              --region=us-central1 \
+              --format='value(status.url)')
+            echo "url=$URL" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            ${{ steps.service-url.outputs.url }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          
+      - name: Upload results to Cloud Storage
+        run: |
+          gsutil cp lighthouse-results.json \
+            gs://ai-industries-metrics/lighthouse/${{ matrix.environment }}/$(date +%Y%m%d%H%M%S).json
+            
+  load-test:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup k6
+        run: |
+          sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo "deb https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update
+          sudo apt-get install k6
+          
+      - name: Run load tests
+        run: |
+          k6 run --out json=load-test-results.json tests/load/basic.js
+          
+      - name: Upload load test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-results
+          path: load-test-results.json

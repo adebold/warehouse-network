@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  labels:
+    app: warehouse
+data:
+  API_URL: "https://api.warehouse.com"
+  LOG_LEVEL: "info"
+  ENABLE_METRICS: "true"
+  CACHE_TTL: "3600"

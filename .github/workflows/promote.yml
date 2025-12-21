@@ -1,0 +1,68 @@
+name: Promote Environment
+
+on:
+  workflow_dispatch:
+    inputs:
+      source:
+        description: 'Source environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+      target:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - prod
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.target }}
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+          
+      - name: Get source image tag
+        id: source-tag
+        run: |
+          SOURCE_TAG=$(gcloud run services describe warehouse-${{ github.event.inputs.source }} \
+            --region=us-central1 \
+            --format='value(spec.template.spec.containers[0].image)' | \
+            awk -F':' '{print $NF}')
+          echo "tag=$SOURCE_TAG" >> $GITHUB_OUTPUT
+          
+      - name: Tag image for target environment
+        run: |
+          gcloud container images add-tag \
+            gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-${{ github.event.inputs.source }}:${{ steps.source-tag.outputs.tag }} \
+            gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-${{ github.event.inputs.target }}:${{ steps.source-tag.outputs.tag }}
+            
+      - name: Deploy to target environment
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: warehouse-${{ github.event.inputs.target }}
+          image: gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-${{ github.event.inputs.target }}:${{ steps.source-tag.outputs.tag }}
+          region: us-central1
+          
+      - name: Update GitOps repository
+        if: github.event.inputs.target == 'prod'
+        run: |
+          git config --global user.email "ci@ai-industries.com"
+          git config --global user.name "CI Bot"
+          git clone https://${{ secrets.GITHUB_TOKEN }}@github.com/adebold/warehouse-gitops
+          cd warehouse-gitops
+          yq -i '.spec.template.spec.containers[0].image = "gcr.io/${{ secrets.GCP_PROJECT_ID }}/warehouse-prod:${{ steps.source-tag.outputs.tag }}"' overlays/prod/deployment.yaml
+          git add .
+          git commit -m "Promote ${{ steps.source-tag.outputs.tag }} from ${{ github.event.inputs.source }} to ${{ github.event.inputs.target }}"
+          git push

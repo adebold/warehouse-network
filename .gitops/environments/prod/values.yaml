@@ -1,0 +1,74 @@
+# Production Environment Values
+environment: production
+namespace: warehouse-prod
+
+image:
+  repository: gcr.io/PROJECT_ID/warehouse-frontend
+  tag: prod-latest
+  pullPolicy: IfNotPresent
+
+replicas: 3
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"
+
+ingress:
+  enabled: true
+  hosts:
+    - warehouse.com
+    - www.warehouse.com
+  tls:
+    enabled: true
+    secretName: warehouse-prod-tls
+  annotations:
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/limit-connections: "50"
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 20
+  targetCPU: 60
+  targetMemory: 70
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+
+monitoring:
+  enabled: true
+  alerts: true
+  
+config:
+  logLevel: error
+  enableMetrics: true
+  enableTracing: true
+  cacheEnabled: true
+  cacheTTL: 3600
+  
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app
+            operator: In
+            values:
+            - warehouse
+        topologyKey: kubernetes.io/hostname

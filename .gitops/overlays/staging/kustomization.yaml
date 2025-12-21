@@ -1,0 +1,33 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: warehouse-staging
+
+bases:
+- ../../base
+
+namePrefix: staging-
+
+commonLabels:
+  environment: staging
+  
+patchesStrategicMerge:
+- deployment-patch.yaml
+- ingress-patch.yaml
+
+configMapGenerator:
+- name: app-config
+  behavior: merge
+  literals:
+  - NODE_ENV=staging
+  - LOG_LEVEL=warn
+  - API_URL=https://api-staging.warehouse.com
+  - ENABLE_MONITORING=true
+
+replicas:
+- name: warehouse-frontend
+  count: 2
+
+images:
+- name: gcr.io/PROJECT_ID/warehouse-frontend
+  newTag: staging-latest
