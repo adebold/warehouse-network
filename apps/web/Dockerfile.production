@@ -11,7 +11,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm install --only=production --ignore-scripts
 
 # Stage 2: Build Stage (Platform-specific)
 FROM --platform=linux/amd64 node:20-alpine AS builder
@@ -23,7 +23,7 @@ COPY package*.json ./
 COPY prisma ./prisma/
 
 # Install all dependencies (including dev)
-RUN npm ci
+RUN npm install --ignore-scripts
 
 # Copy source code
 COPY . .
