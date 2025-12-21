@@ -139,9 +139,9 @@ export default function PaymentDashboard() {
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'PAID':
-        return <Badge variant="success">Paid</Badge>;
+        return <Badge variant="default">Paid</Badge>;
       case 'PENDING':
-        return <Badge variant="warning">Pending</Badge>;
+        return <Badge variant="default">Pending</Badge>;
       case 'OVERDUE':
         return <Badge variant="destructive">Overdue</Badge>;
       default:
@@ -208,7 +208,7 @@ export default function PaymentDashboard() {
       accessorKey: 'status',
       header: 'Status',
       cell: ({ row }: any) => (
-        <Badge variant="success">
+        <Badge variant="default">
           <CheckCircle className="mr-1 h-3 w-3" />
           Completed
         </Badge>

@@ -315,3 +315,15 @@ export function Sidebar({
     </aside>
   );
 }
+
+export interface NavItem {
+  href: string
+  label: string
+}
+
+export interface TabItem {
+  value: string
+  label: string
+}
+
+export { BreadcrumbItem } from "./navigation"

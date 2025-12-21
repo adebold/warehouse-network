@@ -210,7 +210,7 @@ export default function ReleaseRequestPage() {
                         {skid.weight} kg • Location: {skid.location.name}
                       </p>
                     </div>
-                    <Badge variant="success">Available</Badge>
+                    <Badge variant="default">Available</Badge>
                   </div>
                 ))}
               </div>

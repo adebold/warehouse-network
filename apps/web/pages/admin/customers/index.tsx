@@ -156,9 +156,9 @@ export default function CustomersPage() {
   const getAccountStatusBadge = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge variant="success">Active</Badge>;
+        return <Badge variant="default">Active</Badge>;
       case 'SUSPENDED':
-        return <Badge variant="warning">Suspended</Badge>;
+        return <Badge variant="default">Suspended</Badge>;
       case 'LOCKED':
         return <Badge variant="destructive">Locked</Badge>;
       default:
@@ -169,9 +169,9 @@ export default function CustomersPage() {
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'CURRENT':
-        return <Badge variant="success">Current</Badge>;
+        return <Badge variant="default">Current</Badge>;
       case 'OVERDUE':
-        return <Badge variant="warning">Overdue</Badge>;
+        return <Badge variant="default">Overdue</Badge>;
       case 'DELINQUENT':
         return <Badge variant="destructive">Delinquent</Badge>;
       default:

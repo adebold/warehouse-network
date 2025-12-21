@@ -222,7 +222,7 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
             <div className="flex gap-2 border-t pt-4">
               {customer.accountStatus === 'LOCKED' ? (
                 <Button
-                  variant="success"
+                  variant="default"
                   onClick={() => handleAction('unlock')}
                   disabled={loading || !canOverride}
                   className="flex-1"

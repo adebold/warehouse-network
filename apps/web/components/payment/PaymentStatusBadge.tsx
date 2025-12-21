@@ -14,15 +14,15 @@ export function PaymentStatusBadge({ accountStatus, paymentStatus }: PaymentStat
   }
 
   if (accountStatus === 'SUSPENDED') {
-    return <Badge variant="warning">Account Suspended</Badge>;
+    return <Badge variant="default">Account Suspended</Badge>;
   }
 
   // Show payment status
   switch (paymentStatus) {
     case 'CURRENT':
-      return <Badge variant="success">Current</Badge>;
+      return <Badge variant="default">Current</Badge>;
     case 'OVERDUE':
-      return <Badge variant="warning">Overdue</Badge>;
+      return <Badge variant="default">Overdue</Badge>;
     case 'DELINQUENT':
       return <Badge variant="destructive">Delinquent</Badge>;
     default:
