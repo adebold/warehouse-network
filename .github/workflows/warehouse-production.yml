@@ -141,7 +141,7 @@ jobs:
             --port 3000 \
             --set-env-vars "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PROJECT_ID=${{ env.PROJECT_ID }}" \
             --labels "environment=production,app=warehouse,owner=ai-industries" \
-            --tag "prod-${{ github.sha }}"
+            --tag "prod-$(echo ${{ github.sha }} | cut -c1-8)"
 
       - name: Verify Deployment
         run: |
