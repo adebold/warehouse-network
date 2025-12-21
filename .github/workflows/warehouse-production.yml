@@ -49,6 +49,10 @@ jobs:
 
       - name: Build packages
         run: npm run build:packages
+      
+      - name: Generate Prisma Client
+        working-directory: apps/web
+        run: npx prisma generate
 
       # Temporarily skip type check to deploy
       # - name: Run type check
