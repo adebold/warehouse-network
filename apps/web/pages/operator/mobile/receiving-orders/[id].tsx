@@ -7,10 +7,10 @@ import type { ReceivingOrder, Skid } from '@prisma/client';
 import prisma from '../../../../lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../../../api/auth/[...nextauth]';
-import { PDFDownloadLink } from '@react-pdf/renderer';
+// import { PDFDownloadLink } from '@react-pdf/renderer';
 import dynamic from 'next/dynamic';
 
-const SkidLabel = dynamic(() => import('../../../../components/SkidLabel'), { ssr: false });
+// const SkidLabel = dynamic(() => import('../../../../components/SkidLabel'), { ssr: false });
 
 interface ReceivingOrderDetailsProps {
   order: ReceivingOrder & {
