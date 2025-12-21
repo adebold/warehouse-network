@@ -1,5 +1,4 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
@@ -15,14 +14,11 @@
     "jsx": "preserve",
     "incremental": true,
     "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./*"],
-      "@warehouse/*": ["../../packages/*/src"],
-      "@warehouse/types": ["../../packages/types/src"],
-      "@warehouse/auth": ["../../packages/auth/src"],
-      "@warehouse/security": ["../../packages/security/src"],
-      "@warehouse/ui": ["../../packages/ui/src"],
-      "@warehouse/config": ["../../packages/config/src"]
+      "@/*": ["./*"]
     },
     "plugins": [
       {
