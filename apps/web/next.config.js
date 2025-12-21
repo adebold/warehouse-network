@@ -60,6 +60,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Skip static generation for SSR pages to avoid React version conflicts
+  experimental: {
+    isrMemoryCacheSize: 0,
+  },
   images: {
     domains: ['images.unsplash.com', 'source.unsplash.com'],
   },
