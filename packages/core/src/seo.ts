@@ -1,12 +1,12 @@
-import prisma from '../../db/src/client'
-import { UserRole } from '@prisma/client'
+import prisma from '../../db/src/client';
+import { UserRole } from '@prisma/client';
 
-const SYSTEM_USER_ID = 'clsys00000000000000000000' // A fixed ID for the system user
+const SYSTEM_USER_ID = 'clsys00000000000000000000'; // A fixed ID for the system user
 
 export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
   let systemUser = await prisma.user.findUnique({
     where: { id: SYSTEM_USER_ID },
-  })
+  });
 
   if (!systemUser) {
     systemUser = await prisma.user.create({
@@ -17,7 +17,7 @@ export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
         role: UserRole.SUPER_ADMIN,
         // No password needed for a system user that doesn't log in
       },
-    })
+    });
   }
 
   const warehouse = await prisma.warehouse.findUnique({
@@ -32,28 +32,28 @@ export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
         },
       },
     },
-  })
+  });
 
   if (!warehouse) {
-    console.error(`Warehouse with ID ${warehouseId} not found.`)
-    return
+    console.error(`Warehouse with ID ${warehouseId} not found.`);
+    return;
   }
 
   // Extract city and region from the address (simplistic for now)
-  const addressParts = warehouse.address.split(',').map(s => s.trim())
-  const city = addressParts[addressParts.length - 2] // Assuming city is second to last
-  const region = addressParts[addressParts.length - 1] // Assuming region is last
+  const addressParts = warehouse.address.split(',').map(s => s.trim());
+  const city = addressParts[addressParts.length - 2]; // Assuming city is second to last
+  const region = addressParts[addressParts.length - 1]; // Assuming region is last
 
   if (!city) {
-    console.warn(`Could not extract city from warehouse address: ${warehouse.address}`)
-    return
+    console.warn(`Could not extract city from warehouse address: ${warehouse.address}`);
+    return;
   }
 
-  const slug = `warehouse-space-${city.toLowerCase().replace(/ /g, '-')}`
-  
+  const slug = `warehouse-space-${city.toLowerCase().replace(/ /g, '-')}`;
+
   let cityPage = await prisma.cityPage.findUnique({
     where: { slug },
-  })
+  });
 
   if (!cityPage) {
     // Create new city page with default content
@@ -67,17 +67,17 @@ export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
         isActive: true,
         authorId: systemUser.id,
       },
-    })
+    });
   } else {
     // Update existing page if needed (e.g., re-activate if inactive)
     if (!cityPage.isActive) {
       await prisma.cityPage.update({
         where: { id: cityPage.id },
         data: { isActive: true },
-      })
+      });
     }
   }
 
   // Ensure the warehouse is listed on the page (logic to be implemented client-side)
-  console.log(`City page ${cityPage.slug} processed for warehouse ${warehouse.name}.`)
+  console.log(`City page ${cityPage.slug} processed for warehouse ${warehouse.name}.`);
 }

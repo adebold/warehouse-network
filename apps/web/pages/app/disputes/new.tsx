@@ -1,56 +1,59 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { Skid, DisputeType } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { Skid, DisputeType } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface NewDisputeProps {
-  skids: Skid[]
+  skids: Skid[];
 }
 
 const NewDispute: NextPage<NewDisputeProps> = ({ skids }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     type: 'DAMAGED_GOODS' as DisputeType,
     description: '',
     skidIds: [] as string[],
     evidence: '', // For now, a simple text input for URLs or description of evidence
-  })
+  });
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'CUSTOMER_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'CUSTOMER_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const target = e.target
-    const name = target.name
-    const value = target instanceof HTMLInputElement && target.type === 'checkbox' 
-      ? target.checked 
-      : target.value
-    
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const target = e.target;
+    const name = target.name;
+    const value =
+      target instanceof HTMLInputElement && target.type === 'checkbox'
+        ? target.checked
+        : target.value;
+
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSkidSelection = (skidId: string) => {
     setFormData(prevState => {
       const skidIds = prevState.skidIds.includes(skidId)
         ? prevState.skidIds.filter(id => id !== skidId)
-        : [...prevState.skidIds, skidId]
-      return { ...prevState, skidIds }
-    })
-  }
+        : [...prevState.skidIds, skidId];
+      return { ...prevState, skidIds };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/app/disputes', {
@@ -59,23 +62,23 @@ const NewDispute: NextPage<NewDisputeProps> = ({ skids }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        router.push('/app/disputes')
+        router.push('/app/disputes');
       } else {
-        const errorData = await response.json()
-        console.error('Failed to submit dispute', errorData)
-        alert('Failed to submit dispute')
+        const errorData = await response.json();
+        console.error('Failed to submit dispute', errorData);
+        alert('Failed to submit dispute');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while submitting the dispute.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while submitting the dispute.');
     }
-  }
+  };
 
   if (status === 'loading' || !session) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -127,30 +130,30 @@ const NewDispute: NextPage<NewDisputeProps> = ({ skids }) => {
         <button type="submit">Submit Dispute</button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session || session.user?.role !== 'CUSTOMER_ADMIN') {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
-  
+
   if (!session.user.customerId) {
-    return { props: { skids: [] } }
+    return { props: { skids: [] } };
   }
 
   const skids = await prisma.skid.findMany({
     where: { customerId: session.user.customerId },
     select: { id: true, skidCode: true },
-  })
+  });
 
   return {
     props: {
       skids: JSON.parse(JSON.stringify(skids)),
     },
-  }
-}
+  };
+};
 
-export default NewDispute
+export default NewDispute;

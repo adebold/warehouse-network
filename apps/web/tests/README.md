@@ -25,11 +25,13 @@ tests/
 ## Running Tests
 
 ### All Tests
+
 ```bash
 npm run test:all
 ```
 
 ### Unit Tests
+
 ```bash
 npm run test              # Run once
 npm run test:watch        # Watch mode
@@ -37,11 +39,13 @@ npm run test:coverage     # With coverage
 ```
 
 ### Integration Tests
+
 ```bash
 npm run test:integration
 ```
 
 ### E2E Tests
+
 ```bash
 npm run test:e2e         # Headless
 npm run test:e2e:ui      # With UI
@@ -115,6 +119,7 @@ npm run test:e2e:ui      # With UI
 ## Test Data
 
 Test data is managed through:
+
 - Mock factories for consistent test data
 - Database seeding for integration tests
 - Test user accounts for E2E tests
@@ -129,6 +134,7 @@ Test data is managed through:
 ## CI/CD Integration
 
 Tests run automatically on:
+
 - Pull requests (unit + integration)
 - Pre-deployment (full suite)
 - Nightly builds (E2E suite)

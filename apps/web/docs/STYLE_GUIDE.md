@@ -7,6 +7,7 @@ This style guide documents the design system implementation for the Warehouse Ne
 ## Design System Architecture
 
 ### Core Files
+
 - **Design Tokens**: `/lib/design-system/tokens.ts`
 - **Theme System**: `/lib/design-system/theme.ts`
 - **Global Styles**: `/styles/globals.css`
@@ -16,6 +17,7 @@ This style guide documents the design system implementation for the Warehouse Ne
 ## Color System
 
 ### Brand Colors
+
 ```typescript
 primary: {
   50: '#E0F2FE',   // Lightest blue
@@ -32,28 +34,33 @@ primary: {
 ```
 
 ### Semantic Colors
+
 - **Success**: Green tones for positive actions/states
 - **Warning**: Amber tones for cautionary states
 - **Error**: Red tones for errors/destructive actions
 - **Info**: Blue tones for informational content
 
 ### Theme Variables
+
 All colors are defined as HSL values in CSS variables for easy theme switching:
+
 ```css
---background: 0 0% 100%;          /* White in light mode */
---foreground: 220 90% 10%;        /* Near black text */
---card: 0 0% 100%;               /* White cards */
---muted: 210 40% 96%;            /* Light gray backgrounds */
---primary: 200 98% 39%;          /* Brand blue */
+--background: 0 0% 100%; /* White in light mode */
+--foreground: 220 90% 10%; /* Near black text */
+--card: 0 0% 100%; /* White cards */
+--muted: 210 40% 96%; /* Light gray backgrounds */
+--primary: 200 98% 39%; /* Brand blue */
 ```
 
 ## Typography
 
 ### Font Families
+
 - **Primary**: Inter (sans-serif) - Used for all UI text
 - **Monospace**: JetBrains Mono - Used for code and data
 
 ### Font Sizes
+
 ```typescript
 text-xs: 0.75rem;     // 12px
 text-sm: 0.875rem;    // 14px
@@ -66,6 +73,7 @@ text-4xl: 2.25rem;    // 36px
 ```
 
 ### Font Weights
+
 - **Regular**: 400 - Body text
 - **Medium**: 500 - Emphasized text
 - **Semibold**: 600 - Headings
@@ -74,6 +82,7 @@ text-4xl: 2.25rem;    // 36px
 ## Spacing System
 
 Based on a 4px grid system:
+
 ```typescript
 0: 0
 1: 0.25rem  // 4px
@@ -89,6 +98,7 @@ Based on a 4px grid system:
 ## Component Guidelines
 
 ### Buttons
+
 ```tsx
 // Primary action
 <Button>Save Changes</Button>
@@ -116,19 +126,21 @@ Based on a 4px grid system:
 ### Forms
 
 #### Input Fields
+
 ```tsx
 <div className="space-y-2">
   <Label htmlFor="email">Email</Label>
-  <Input 
-    id="email" 
-    type="email" 
+  <Input
+    id="email"
+    type="email"
     placeholder="john@example.com"
-    startIcon={<Mail className="w-4 h-4" />}
+    startIcon={<Mail className="h-4 w-4" />}
   />
 </div>
 ```
 
 #### Select Dropdowns
+
 ```tsx
 <Select value={value} onValueChange={setValue}>
   <SelectTrigger>
@@ -142,15 +154,14 @@ Based on a 4px grid system:
 ```
 
 ### Cards
+
 ```tsx
 <Card>
   <CardHeader>
     <CardTitle>Card Title</CardTitle>
     <CardDescription>Brief description</CardDescription>
   </CardHeader>
-  <CardContent>
-    {/* Card content */}
-  </CardContent>
+  <CardContent>{/* Card content */}</CardContent>
   <CardFooter>
     <Button>Action</Button>
   </CardFooter>
@@ -158,16 +169,13 @@ Based on a 4px grid system:
 ```
 
 ### Tables
+
 ```tsx
-<DataTable
-  columns={columns}
-  data={data}
-  searchKey="name"
-  filters={filters}
-/>
+<DataTable columns={columns} data={data} searchKey="name" filters={filters} />
 ```
 
 ### Dialogs/Modals
+
 ```tsx
 <Dialog open={open} onOpenChange={setOpen}>
   <DialogTrigger asChild>
@@ -176,9 +184,7 @@ Based on a 4px grid system:
   <DialogContent>
     <DialogHeader>
       <DialogTitle>Dialog Title</DialogTitle>
-      <DialogDescription>
-        Dialog description text
-      </DialogDescription>
+      <DialogDescription>Dialog description text</DialogDescription>
     </DialogHeader>
     {/* Dialog content */}
     <DialogFooter>
@@ -191,29 +197,25 @@ Based on a 4px grid system:
 ## Layout Components
 
 ### AppLayout (Customer Pages)
+
 ```tsx
 <AppLayout>
-  <div className="space-y-6">
-    {/* Page content */}
-  </div>
+  <div className="space-y-6">{/* Page content */}</div>
 </AppLayout>
 ```
 
 ### DashboardLayout (Admin Pages)
+
 ```tsx
 <DashboardLayout>
-  <div className="space-y-6">
-    {/* Admin content */}
-  </div>
+  <div className="space-y-6">{/* Admin content */}</div>
 </DashboardLayout>
 ```
 
 ### AuthLayout (Login/Register)
+
 ```tsx
-<AuthLayout
-  title="Welcome back"
-  subtitle="Sign in to your account"
->
+<AuthLayout title="Welcome back" subtitle="Sign in to your account">
   {/* Auth form */}
 </AuthLayout>
 ```
@@ -223,6 +225,7 @@ Based on a 4px grid system:
 The application supports automatic dark mode based on system preferences and manual toggle:
 
 ### Using Dark Mode Classes
+
 ```tsx
 // Text that changes color
 <p className="text-foreground">Adapts to theme</p>
@@ -235,16 +238,19 @@ The application supports automatic dark mode based on system preferences and man
 ```
 
 ### Theme Toggle Component
-The theme toggle is automatically included in all layouts. For custom implementations:
-```tsx
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 
-<ThemeToggle />
+The theme toggle is automatically included in all layouts. For custom implementations:
+
+```tsx
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+
+<ThemeToggle />;
 ```
 
 ## Responsive Design
 
 ### Breakpoints
+
 ```typescript
 sm: 640px   // Mobile landscape
 md: 768px   // Tablet
@@ -254,6 +260,7 @@ xl: 1280px  // Large desktop
 ```
 
 ### Responsive Utilities
+
 ```tsx
 // Hide on mobile
 <div className="hidden md:block">Desktop only</div>
@@ -271,6 +278,7 @@ xl: 1280px  // Large desktop
 ## Loading States
 
 ### Skeleton Components
+
 ```tsx
 // Card skeleton
 <SkeletonCard />
@@ -283,6 +291,7 @@ xl: 1280px  // Large desktop
 ```
 
 ### Spinner
+
 ```tsx
 // Default spinner
 <Spinner />
@@ -298,16 +307,20 @@ xl: 1280px  // Large desktop
 ## Accessibility
 
 ### Focus States
+
 All interactive elements have visible focus states:
+
 ```css
-focus:outline-none 
-focus:ring-2 
-focus:ring-ring 
+focus:outline-none
+focus:ring-2
+focus:ring-ring
 focus:ring-offset-2
 ```
 
 ### ARIA Labels
+
 Always provide proper ARIA labels:
+
 ```tsx
 <Button aria-label="Close dialog">
   <X className="h-4 w-4" />
@@ -315,6 +328,7 @@ Always provide proper ARIA labels:
 ```
 
 ### Keyboard Navigation
+
 - All components support keyboard navigation
 - Tab order follows visual hierarchy
 - Escape key closes modals/dropdowns
@@ -322,6 +336,7 @@ Always provide proper ARIA labels:
 ## Best Practices
 
 ### 1. Use Semantic Colors
+
 ```tsx
 // ✅ Good
 <div className="bg-destructive text-destructive-foreground">
@@ -331,6 +346,7 @@ Always provide proper ARIA labels:
 ```
 
 ### 2. Consistent Spacing
+
 ```tsx
 // ✅ Good - uses spacing scale
 <div className="p-4 space-y-4">
@@ -340,6 +356,7 @@ Always provide proper ARIA labels:
 ```
 
 ### 3. Component Composition
+
 ```tsx
 // ✅ Good - composed with existing components
 <Card>
@@ -361,6 +378,7 @@ Always provide proper ARIA labels:
 ```
 
 ### 4. Responsive First
+
 ```tsx
 // ✅ Good - mobile first
 <div className="text-sm md:text-base lg:text-lg">
@@ -372,6 +390,7 @@ Always provide proper ARIA labels:
 ## Migration Guide
 
 ### Replacing Hard-coded Colors
+
 ```tsx
 // Before
 <div className="bg-gray-50 text-gray-900">
@@ -383,6 +402,7 @@ Always provide proper ARIA labels:
 ```
 
 ### Updating Buttons
+
 ```tsx
 // Before
 <button className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
@@ -392,6 +412,7 @@ Always provide proper ARIA labels:
 ```
 
 ### Using Layouts
+
 ```tsx
 // Before
 export default function AdminPage() {
@@ -400,16 +421,12 @@ export default function AdminPage() {
       <nav>{/* Custom nav */}</nav>
       <main>{/* Content */}</main>
     </div>
-  )
+  );
 }
 
 // After
 export default function AdminPage() {
-  return (
-    <DashboardLayout>
-      {/* Content */}
-    </DashboardLayout>
-  )
+  return <DashboardLayout>{/* Content */}</DashboardLayout>;
 }
 ```
 
@@ -427,6 +444,7 @@ export default function AdminPage() {
 ## Support
 
 For questions or issues with the design system:
+
 1. Check the component documentation in `/docs/DESIGN_SYSTEM.md`
 2. Review the example implementations in existing pages
 3. Refer to the design tokens in `/lib/design-system/tokens.ts`

@@ -12,6 +12,7 @@ A modern B2B marketplace platform connecting businesses with warehouse storage s
 ## 🌟 Key Features
 
 ### For Warehouse Operators
+
 - **Multi-warehouse Management** - Manage multiple facilities from a single dashboard
 - **Dynamic Pricing** - Set flexible pricing rules by storage type and duration
 - **Real-time Inventory** - QR code-based tracking with mobile apps
@@ -19,6 +20,7 @@ A modern B2B marketplace platform connecting businesses with warehouse storage s
 - **Performance Analytics** - Track utilization, revenue, and customer satisfaction
 
 ### For Businesses (Customers)
+
 - **Instant Quotes** - Get competitive quotes from multiple warehouses
 - **Inventory Visibility** - Real-time tracking of stored goods
 - **Release Management** - Schedule pickups and deliveries
@@ -26,6 +28,7 @@ A modern B2B marketplace platform connecting businesses with warehouse storage s
 - **Cost Optimization** - Compare pricing across locations
 
 ### Platform Features
+
 - **🔐 Enterprise Security** - Bcrypt password hashing, JWT auth, comprehensive security headers
 - **📱 Mobile-First** - Dedicated mobile interfaces for warehouse operations
 - **💳 Payment Processing** - Stripe Connect with automated payouts
@@ -36,6 +39,7 @@ A modern B2B marketplace platform connecting businesses with warehouse storage s
 ## 🛠️ Tech Stack
 
 ### Core Technologies
+
 - **Frontend**: Next.js 13.4, React 18.2, TypeScript 5.2
 - **Backend**: Next.js API Routes, Prisma ORM
 - **Database**: PostgreSQL 15 with Redis caching
@@ -45,6 +49,7 @@ A modern B2B marketplace platform connecting businesses with warehouse storage s
 - **DevOps**: Docker, Kubernetes, GitHub Actions
 
 ### Infrastructure
+
 - **Container Orchestration**: Kubernetes (production), Docker Compose (dev/staging)
 - **CI/CD**: GitHub Actions with automated testing and deployment
 - **Monitoring**: Prometheus + Grafana stack
@@ -53,6 +58,7 @@ A modern B2B marketplace platform connecting businesses with warehouse storage s
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Docker Desktop installed
 - Node.js 18+ (for local development)
 - Git
@@ -69,17 +75,20 @@ make quick-start
 ```
 
 This will:
+
 1. Start all services (app, database, Redis, email)
 2. Run database migrations
 3. Seed test data
 4. Launch the application
 
 ### Access Points
+
 - 🌐 **Application**: http://localhost:3000
 - 🗄️ **PgAdmin**: http://localhost:5050 (admin@warehouse.local / admin123)
 - 📧 **MailHog**: http://localhost:8025
 
 ### Default Credentials
+
 ```
 Super Admin: superadmin@example.com / password
 Operator Admin: operatoradmin@example.com / password
@@ -94,22 +103,22 @@ graph TB
         A[Next.js App] --> B[React Components]
         B --> C[TypeScript]
     end
-    
+
     subgraph "API Layer"
         D[Next.js API Routes] --> E[Authentication]
         D --> F[Business Logic]
     end
-    
+
     subgraph "Data Layer"
         G[Prisma ORM] --> H[(PostgreSQL)]
         G --> I[(Redis Cache)]
     end
-    
+
     subgraph "External Services"
         J[Stripe API]
         K[Email Service]
     end
-    
+
     A --> D
     F --> G
     F --> J
@@ -117,6 +126,7 @@ graph TB
 ```
 
 ### Project Structure
+
 ```
 warehouse-network/
 ├── apps/
@@ -134,6 +144,7 @@ warehouse-network/
 ## 🔒 Security Features
 
 ### Implemented Security Measures
+
 - ✅ **Password Security**: Bcrypt hashing with salt rounds
 - ✅ **Authentication**: JWT tokens with secure session management
 - ✅ **Security Headers**: CSP, HSTS, X-Frame-Options, etc.
@@ -143,6 +154,7 @@ warehouse-network/
 - ✅ **HTTPS Enforcement**: HSTS header with preload
 
 ### Compliance
+
 - GDPR-ready data handling
 - PCI DSS considerations for payment processing
 - SOC 2 compatible logging and auditing
@@ -150,14 +162,16 @@ warehouse-network/
 ## 📚 API Documentation
 
 ### Authentication
+
 ```typescript
-POST /api/auth/signin
-POST /api/auth/signup
-POST /api/auth/signout
-GET  /api/auth/session
+POST / api / auth / signin;
+POST / api / auth / signup;
+POST / api / auth / signout;
+GET / api / auth / session;
 ```
 
 ### Warehouse Operations
+
 ```typescript
 GET    /api/operator/warehouses
 POST   /api/operator/warehouses
@@ -167,14 +181,16 @@ DELETE /api/operator/warehouses/:id
 ```
 
 ### Inventory Management
+
 ```typescript
-POST   /api/operator/receiving-orders
-POST   /api/operator/move-skid
-GET    /api/app/inventory
-POST   /api/app/releases
+POST / api / operator / receiving - orders;
+POST / api / operator / move - skid;
+GET / api / app / inventory;
+POST / api / app / releases;
 ```
 
 ### RFQ & Quotes
+
 ```typescript
 POST   /api/app/rfqs
 GET    /api/app/quotes
@@ -186,12 +202,14 @@ POST   /api/app/quotes/:id/accept
 ## 🧪 Testing Strategy
 
 ### Test Coverage
+
 - **Unit Tests**: Business logic and utilities
 - **Integration Tests**: API endpoints and database
 - **E2E Tests**: Complete user workflows with Playwright
 - **Security Tests**: Vulnerability scanning with Trivy
 
 ### Running Tests
+
 ```bash
 # All tests
 make test
@@ -209,22 +227,27 @@ docker run --rm -v $(pwd):/app aquasec/trivy fs /app
 ## 🚢 Deployment
 
 ### Development
+
 ```bash
 make dev
 ```
+
 - Hot reloading enabled
 - All services exposed for debugging
 - Test email capture with MailHog
 
 ### Staging
+
 ```bash
 make staging
 ```
+
 - Production-like environment
 - SSL termination with Nginx
 - Monitoring stack included
 
 ### Production
+
 ```bash
 # Kubernetes deployment
 kubectl apply -k k8s/overlays/prod
@@ -238,6 +261,7 @@ git tag v1.0.0 && git push --tags
 We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
 
 ### Development Setup
+
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feat/amazing-feature`)
 3. Install dependencies (`pnpm install`)
@@ -248,6 +272,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 8. Open a Pull Request
 
 ### Code Style
+
 - We use ESLint and Prettier
 - Follow TypeScript best practices
 - Write tests for new features
@@ -256,6 +281,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ## 📊 Performance
 
 ### Benchmarks
+
 - **API Response Time**: < 200ms (p95)
 - **Page Load Time**: < 1.5s
 - **Database Queries**: Optimized with indexes
@@ -263,6 +289,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 - **Storage Scalability**: Millions of SKUs
 
 ### Optimization Features
+
 - Redis caching for frequent queries
 - Database connection pooling
 - Optimized Docker images (< 100MB)

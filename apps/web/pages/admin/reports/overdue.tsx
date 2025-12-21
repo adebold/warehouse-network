@@ -1,25 +1,19 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { DashboardLayout } from '@/components/layouts/DashboardLayout'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/table'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/ui/table';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Skeleton } from '@/components/ui/skeleton'
+} from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   ArrowLeft,
   Download,
@@ -31,76 +25,84 @@ import {
   Users,
   Mail,
   Lock,
-} from 'lucide-react'
-import { formatDistanceToNow, addDays } from 'date-fns'
+} from 'lucide-react';
+import { formatDistanceToNow, addDays } from 'date-fns';
 
 interface OverdueCustomer {
-  id: string
-  name: string
-  accountStatus: string
-  paymentStatus: string
-  overdueAmount: number
-  totalOutstanding: number
-  paymentDueDate: string | null
-  daysOverdue: number
-  lastPaymentDate: string | null
+  id: string;
+  name: string;
+  accountStatus: string;
+  paymentStatus: string;
+  overdueAmount: number;
+  totalOutstanding: number;
+  paymentDueDate: string | null;
+  daysOverdue: number;
+  lastPaymentDate: string | null;
   _count: {
-    skids: number
-  }
+    skids: number;
+  };
   users: Array<{
-    email: string
-  }>
+    email: string;
+  }>;
 }
 
 interface OverdueStats {
-  totalOverdue: number
-  totalAmount: number
-  averageDaysOverdue: number
+  totalOverdue: number;
+  totalAmount: number;
+  averageDaysOverdue: number;
   byAgeGroup: {
-    '0-30': number
-    '31-60': number
-    '61-90': number
-    '90+': number
-  }
+    '0-30': number;
+    '31-60': number;
+    '61-90': number;
+    '90+': number;
+  };
   byStatus: {
-    overdue: number
-    delinquent: number
-    locked: number
-  }
+    overdue: number;
+    delinquent: number;
+    locked: number;
+  };
 }
 
 export default function OverdueReportPage() {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [customers, setCustomers] = useState<OverdueCustomer[]>([])
-  const [stats, setStats] = useState<OverdueStats | null>(null)
-  const [ageFilter, setAgeFilter] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<string>('amount')
-  const [sendingReminders, setSendingReminders] = useState(false)
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [customers, setCustomers] = useState<OverdueCustomer[]>([]);
+  const [stats, setStats] = useState<OverdueStats | null>(null);
+  const [ageFilter, setAgeFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<string>('amount');
+  const [sendingReminders, setSendingReminders] = useState(false);
 
   useEffect(() => {
-    fetchOverdueData()
-  }, [])
+    fetchOverdueData();
+  }, []);
 
   const fetchOverdueData = async () => {
     try {
-      const response = await fetch('/api/admin/reports/overdue')
+      const response = await fetch('/api/admin/reports/overdue');
       if (response.ok) {
-        const data = await response.json()
-        setCustomers(data.customers)
-        setStats(data.stats)
+        const data = await response.json();
+        setCustomers(data.customers);
+        setStats(data.stats);
       }
     } catch (error) {
-      console.error('Error fetching overdue report:', error)
+      console.error('Error fetching overdue report:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleExport = () => {
     const csv = [
-      ['Customer Name', 'Status', 'Overdue Amount', 'Total Outstanding', 'Days Overdue', 'Due Date', 'Active Skids'],
+      [
+        'Customer Name',
+        'Status',
+        'Overdue Amount',
+        'Total Outstanding',
+        'Days Overdue',
+        'Due Date',
+        'Active Skids',
+      ],
       ...filteredCustomers.map(c => [
         c.name,
         c.accountStatus,
@@ -108,56 +110,58 @@ export default function OverdueReportPage() {
         c.totalOutstanding.toFixed(2),
         c.daysOverdue,
         c.paymentDueDate ? new Date(c.paymentDueDate).toLocaleDateString() : '',
-        c._count.skids
-      ])
-    ].map(row => row.join(',')).join('\n')
+        c._count.skids,
+      ]),
+    ]
+      .map(row => row.join(','))
+      .join('\n');
 
-    const blob = new Blob([csv], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `overdue-report-${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-  }
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `overdue-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
 
   const handleSendReminders = async () => {
-    setSendingReminders(true)
+    setSendingReminders(true);
     try {
       const response = await fetch('/api/admin/reports/send-reminders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerIds: filteredCustomers.map(c => c.id)
-        })
-      })
-      
+          customerIds: filteredCustomers.map(c => c.id),
+        }),
+      });
+
       if (response.ok) {
-        alert('Payment reminders sent successfully')
+        alert('Payment reminders sent successfully');
       }
     } catch (error) {
-      console.error('Error sending reminders:', error)
+      console.error('Error sending reminders:', error);
     } finally {
-      setSendingReminders(false)
+      setSendingReminders(false);
     }
-  }
+  };
 
   const getAgeGroup = (days: number): string => {
-    if (days <= 30) return '0-30'
-    if (days <= 60) return '31-60'
-    if (days <= 90) return '61-90'
-    return '90+'
-  }
+    if (days <= 30) return '0-30';
+    if (days <= 60) return '31-60';
+    if (days <= 90) return '61-90';
+    return '90+';
+  };
 
   const filteredCustomers = customers
     .filter(c => {
-      if (ageFilter === 'all') return true
-      return getAgeGroup(c.daysOverdue) === ageFilter
+      if (ageFilter === 'all') return true;
+      return getAgeGroup(c.daysOverdue) === ageFilter;
     })
     .sort((a, b) => {
-      if (sortBy === 'amount') return b.overdueAmount - a.overdueAmount
-      if (sortBy === 'days') return b.daysOverdue - a.daysOverdue
-      return a.name.localeCompare(b.name)
-    })
+      if (sortBy === 'amount') return b.overdueAmount - a.overdueAmount;
+      if (sortBy === 'days') return b.daysOverdue - a.daysOverdue;
+      return a.name.localeCompare(b.name);
+    });
 
   const columns = [
     {
@@ -166,7 +170,7 @@ export default function OverdueReportPage() {
       cell: ({ row }: any) => (
         <div>
           <p className="font-medium">{row.original.name}</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {row.original.users[0]?.email || 'No email'}
           </p>
         </div>
@@ -179,15 +183,16 @@ export default function OverdueReportPage() {
         <div className="flex items-center space-x-2">
           <Badge
             variant={
-              row.original.accountStatus === 'LOCKED' ? 'destructive' :
-              row.original.paymentStatus === 'DELINQUENT' ? 'warning' : 'default'
+              row.original.accountStatus === 'LOCKED'
+                ? 'destructive'
+                : row.original.paymentStatus === 'DELINQUENT'
+                  ? 'warning'
+                  : 'default'
             }
           >
             {row.original.accountStatus}
           </Badge>
-          {row.original.accountStatus === 'LOCKED' && (
-            <Lock className="h-3 w-3 text-destructive" />
-          )}
+          {row.original.accountStatus === 'LOCKED' && <Lock className="text-destructive h-3 w-3" />}
         </div>
       ),
     },
@@ -195,9 +200,7 @@ export default function OverdueReportPage() {
       accessorKey: 'overdueAmount',
       header: 'Overdue',
       cell: ({ row }: any) => (
-        <div className="text-destructive font-medium">
-          ${row.original.overdueAmount.toFixed(2)}
-        </div>
+        <div className="text-destructive font-medium">${row.original.overdueAmount.toFixed(2)}</div>
       ),
     },
     {
@@ -210,24 +213,28 @@ export default function OverdueReportPage() {
       header: 'Days Overdue',
       cell: ({ row }: any) => (
         <div className="flex items-center space-x-2">
-          <span className={
-            row.original.daysOverdue > 60 ? 'text-destructive font-medium' :
-            row.original.daysOverdue > 30 ? 'text-warning' : ''
-          }>
+          <span
+            className={
+              row.original.daysOverdue > 60
+                ? 'text-destructive font-medium'
+                : row.original.daysOverdue > 30
+                  ? 'text-warning'
+                  : ''
+            }
+          >
             {row.original.daysOverdue} days
           </span>
-          {row.original.daysOverdue > 60 && (
-            <AlertTriangle className="h-3 w-3 text-destructive" />
-          )}
+          {row.original.daysOverdue > 60 && <AlertTriangle className="text-destructive h-3 w-3" />}
         </div>
       ),
     },
     {
       accessorKey: 'paymentDueDate',
       header: 'Due Date',
-      cell: ({ row }: any) => row.original.paymentDueDate
-        ? new Date(row.original.paymentDueDate).toLocaleDateString()
-        : '-',
+      cell: ({ row }: any) =>
+        row.original.paymentDueDate
+          ? new Date(row.original.paymentDueDate).toLocaleDateString()
+          : '-',
     },
     {
       accessorKey: '_count.skids',
@@ -248,14 +255,16 @@ export default function OverdueReportPage() {
           <Button
             size="sm"
             variant="outline"
-            onClick={() => {/* Send individual reminder */}}
+            onClick={() => {
+              /* Send individual reminder */
+            }}
           >
             <Mail className="h-3 w-3" />
           </Button>
         </div>
       ),
     },
-  ]
+  ];
 
   if (loading) {
     return (
@@ -284,7 +293,7 @@ export default function OverdueReportPage() {
           </Card>
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   return (
@@ -306,17 +315,11 @@ export default function OverdueReportPage() {
             </p>
           </div>
           <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              onClick={handleExport}
-            >
+            <Button variant="outline" onClick={handleExport}>
               <Download className="mr-2 h-4 w-4" />
               Export CSV
             </Button>
-            <Button
-              onClick={handleSendReminders}
-              disabled={sendingReminders}
-            >
+            <Button onClick={handleSendReminders} disabled={sendingReminders}>
               <Mail className="mr-2 h-4 w-4" />
               {sendingReminders ? 'Sending...' : 'Send Reminders'}
             </Button>
@@ -330,54 +333,46 @@ export default function OverdueReportPage() {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Overdue</CardTitle>
-                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <Users className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalOverdue}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Customers with overdue payments
-                  </p>
+                  <p className="text-muted-foreground text-xs">Customers with overdue payments</p>
                 </CardContent>
               </Card>
-              
+
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Amount</CardTitle>
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <DollarSign className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-destructive">
+                  <div className="text-destructive text-2xl font-bold">
                     ${stats.totalAmount.toFixed(2)}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Total overdue amount
-                  </p>
+                  <p className="text-muted-foreground text-xs">Total overdue amount</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Average Days</CardTitle>
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <Calendar className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
                   <div className="text-2xl font-bold">{Math.round(stats.averageDaysOverdue)}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Average days overdue
-                  </p>
+                  <p className="text-muted-foreground text-xs">Average days overdue</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Locked Accounts</CardTitle>
-                  <Lock className="h-4 w-4 text-muted-foreground" />
+                  <Lock className="text-muted-foreground h-4 w-4" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-destructive">{stats.byStatus.locked}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Accounts locked for non-payment
-                  </p>
+                  <div className="text-destructive text-2xl font-bold">{stats.byStatus.locked}</div>
+                  <p className="text-muted-foreground text-xs">Accounts locked for non-payment</p>
                 </CardContent>
               </Card>
             </div>
@@ -391,24 +386,40 @@ export default function OverdueReportPage() {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-4">
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">0-30 Days</p>
+                    <p className="text-muted-foreground text-sm">0-30 Days</p>
                     <p className="text-2xl font-bold">{stats.byAgeGroup['0-30']}</p>
-                    <div className="h-2 bg-yellow-500 rounded" style={{ width: `${(stats.byAgeGroup['0-30'] / stats.totalOverdue) * 100}%` }} />
+                    <div
+                      className="h-2 rounded bg-yellow-500"
+                      style={{ width: `${(stats.byAgeGroup['0-30'] / stats.totalOverdue) * 100}%` }}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">31-60 Days</p>
+                    <p className="text-muted-foreground text-sm">31-60 Days</p>
                     <p className="text-2xl font-bold">{stats.byAgeGroup['31-60']}</p>
-                    <div className="h-2 bg-orange-500 rounded" style={{ width: `${(stats.byAgeGroup['31-60'] / stats.totalOverdue) * 100}%` }} />
+                    <div
+                      className="h-2 rounded bg-orange-500"
+                      style={{
+                        width: `${(stats.byAgeGroup['31-60'] / stats.totalOverdue) * 100}%`,
+                      }}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">61-90 Days</p>
+                    <p className="text-muted-foreground text-sm">61-90 Days</p>
                     <p className="text-2xl font-bold">{stats.byAgeGroup['61-90']}</p>
-                    <div className="h-2 bg-red-500 rounded" style={{ width: `${(stats.byAgeGroup['61-90'] / stats.totalOverdue) * 100}%` }} />
+                    <div
+                      className="h-2 rounded bg-red-500"
+                      style={{
+                        width: `${(stats.byAgeGroup['61-90'] / stats.totalOverdue) * 100}%`,
+                      }}
+                    />
                   </div>
                   <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">90+ Days</p>
+                    <p className="text-muted-foreground text-sm">90+ Days</p>
                     <p className="text-2xl font-bold">{stats.byAgeGroup['90+']}</p>
-                    <div className="h-2 bg-red-700 rounded" style={{ width: `${(stats.byAgeGroup['90+'] / stats.totalOverdue) * 100}%` }} />
+                    <div
+                      className="h-2 rounded bg-red-700"
+                      style={{ width: `${(stats.byAgeGroup['90+'] / stats.totalOverdue) * 100}%` }}
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -451,14 +462,10 @@ export default function OverdueReportPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <DataTable
-              columns={columns}
-              data={filteredCustomers}
-              searchKey="name"
-            />
+            <DataTable columns={columns} data={filteredCustomers} searchKey="name" />
           </CardContent>
         </Card>
       </div>
     </DashboardLayout>
-  )
+  );
 }

@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Customer Admin Persona', () => {
-  test('should view inventory, submit RFQ, accept quote, pay deposit, and submit dispute', async ({ page }) => {
+  test('should view inventory, submit RFQ, accept quote, pay deposit, and submit dispute', async ({
+    page,
+  }) => {
     // Navigate to inventory
     await page.goto('/app/inventory');
     await expect(page.locator('h1')).toHaveText('Your Inventory');
@@ -15,14 +17,14 @@ test.describe('Customer Admin Persona', () => {
     // Assuming a test warehouse exists and is READY_FOR_MARKETPLACE
     // Select a preferred warehouse (the one created by operator-admin test)
     await page.locator('input[type="checkbox"]').first().check();
-    
+
     await page.getByLabel('Estimated Skid Count').fill('5');
     await page.selectOption('select[name="footprintType"]', 'STANDARD');
     await page.getByLabel('Expected Inbound Date').fill('2026-01-01');
     await page.getByLabel('Expected Duration').fill('6 months');
     await page.getByLabel('Special Handling Notes').fill('Handle with care.');
     await page.getByRole('button', { name: 'Submit RFQ' }).click();
-    
+
     await page.waitForURL('/app/quotes');
     await expect(page.locator('text=PENDING').first()).toBeVisible(); // RFQ status is PENDING
 
@@ -56,7 +58,11 @@ test.describe('Customer Admin Persona', () => {
     await expect(page.locator('text=DAMAGED_GOODS').first()).toBeVisible();
 
     // Navigate to view dispute details
-    await page.locator('tr', { hasText: 'DAMAGED_GOODS' }).getByRole('link', { name: 'View Details' }).first().click();
+    await page
+      .locator('tr', { hasText: 'DAMAGED_GOODS' })
+      .getByRole('link', { name: 'View Details' })
+      .first()
+      .click();
     await expect(page.locator('h1')).toContainText('Dispute Details:');
   });
 

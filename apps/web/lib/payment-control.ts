@@ -136,20 +136,20 @@ export async function withPaymentCheck(
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     const session = await getServerSession(req, res, authOptions);
-    
+
     if (!session?.user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
     const customerId = req.body.customerId || req.query.customerId;
-    
+
     if (customerId) {
       const paymentStatus = await checkCustomerPaymentStatus(customerId as string);
-      
+
       if (!paymentStatus.allowed) {
         // Check if user can override
         const canOverride = await canUserOverrideLock(session.user.role);
-        
+
         if (req.body.overridePaymentLock && canOverride) {
           // Log the override
           await prisma.accountLockHistory.create({

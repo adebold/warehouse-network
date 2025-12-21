@@ -45,10 +45,7 @@ describe('NotificationService', () => {
       });
       (sgMail.send as jest.Mock).mockResolvedValue([{ statusCode: 202 }]);
 
-      await notificationService.sendAccountLockNotification(
-        mockUser.id,
-        'Overdue payment'
-      );
+      await notificationService.sendAccountLockNotification(mockUser.id, 'Overdue payment');
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: mockUser.id },
@@ -81,14 +78,9 @@ describe('NotificationService', () => {
 
     it('should handle email sending failure gracefully', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
-      (sgMail.send as jest.Mock).mockRejectedValue(
-        new Error('Email service unavailable')
-      );
+      (sgMail.send as jest.Mock).mockRejectedValue(new Error('Email service unavailable'));
 
-      await notificationService.sendAccountLockNotification(
-        mockUser.id,
-        'Overdue payment'
-      );
+      await notificationService.sendAccountLockNotification(mockUser.id, 'Overdue payment');
 
       // Should still create notification record
       expect(prisma.notification.create).toHaveBeenCalled();
@@ -98,10 +90,7 @@ describe('NotificationService', () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
       await expect(
-        notificationService.sendAccountLockNotification(
-          'nonexistent',
-          'Overdue payment'
-        )
+        notificationService.sendAccountLockNotification('nonexistent', 'Overdue payment')
       ).rejects.toThrow('User not found');
     });
   });
@@ -156,11 +145,7 @@ describe('NotificationService', () => {
       });
       (sgMail.send as jest.Mock).mockResolvedValue([{ statusCode: 202 }]);
 
-      await notificationService.sendPaymentReminderNotification(
-        mockUser.id,
-        5,
-        250.50
-      );
+      await notificationService.sendPaymentReminderNotification(mockUser.id, 5, 250.5);
 
       expect(sgMail.send).toHaveBeenCalledWith({
         to: mockUser.email,
@@ -177,7 +162,7 @@ describe('NotificationService', () => {
           message: expect.stringContaining('5 days'),
           metadata: {
             daysOverdue: 5,
-            amount: 250.50,
+            amount: 250.5,
           },
         },
       });
@@ -188,11 +173,7 @@ describe('NotificationService', () => {
       (sgMail.send as jest.Mock).mockResolvedValue([{ statusCode: 202 }]);
 
       // Test 30+ days (urgent)
-      await notificationService.sendPaymentReminderNotification(
-        mockUser.id,
-        35,
-        1000
-      );
+      await notificationService.sendPaymentReminderNotification(mockUser.id, 35, 1000);
 
       expect(sgMail.send).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -215,13 +196,10 @@ describe('NotificationService', () => {
         count: 3,
       });
 
-      const result = await notificationService.sendBulkNotifications(
-        userIds,
-        notification
-      );
+      const result = await notificationService.sendBulkNotifications(userIds, notification);
 
       expect(prisma.notification.createMany).toHaveBeenCalledWith({
-        data: userIds.map((userId) => ({
+        data: userIds.map(userId => ({
           userId,
           ...notification,
         })),
@@ -257,15 +235,13 @@ describe('NotificationService', () => {
         },
       ];
 
-      (prisma.notification.findMany as jest.Mock).mockResolvedValue(
-        mockNotifications
-      );
+      (prisma.notification.findMany as jest.Mock).mockResolvedValue(mockNotifications);
       (prisma.notification.count as jest.Mock).mockResolvedValue(5);
 
-      const result = await notificationService.getUserNotifications(
-        'user123',
-        { page: 1, limit: 2 }
-      );
+      const result = await notificationService.getUserNotifications('user123', {
+        page: 1,
+        limit: 2,
+      });
 
       expect(prisma.notification.findMany).toHaveBeenCalledWith({
         where: { userId: 'user123' },
@@ -312,13 +288,9 @@ describe('NotificationService', () => {
         readAt: new Date(),
       };
 
-      (prisma.notification.update as jest.Mock).mockResolvedValue(
-        mockNotification
-      );
+      (prisma.notification.update as jest.Mock).mockResolvedValue(mockNotification);
 
-      const result = await notificationService.markNotificationAsRead(
-        'notif123'
-      );
+      const result = await notificationService.markNotificationAsRead('notif123');
 
       expect(prisma.notification.update).toHaveBeenCalledWith({
         where: { id: 'notif123' },

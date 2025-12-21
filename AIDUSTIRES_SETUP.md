@@ -1,6 +1,7 @@
 # AI Dustires Warehouse Network Setup
 
 ## Account Details
+
 - **Email**: alex@aidustires.co
 - **Domain**: aidustires.co
 - **Purpose**: Production deployment of Warehouse Network
@@ -8,6 +9,7 @@
 ## Setup Steps
 
 ### 1. Configure gcloud with new account
+
 ```bash
 # Add the new account
 gcloud auth login alex@aidustires.co
@@ -18,6 +20,7 @@ gcloud config set account alex@aidustires.co
 ```
 
 ### 2. Create GCP Project
+
 ```bash
 # Set project name
 export PROJECT_ID="aidustires-warehouse"
@@ -33,6 +36,7 @@ gcloud config set project $PROJECT_ID
 ```
 
 ### 3. Enable Required APIs
+
 ```bash
 gcloud services enable run.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
@@ -41,6 +45,7 @@ gcloud services enable secretmanager.googleapis.com
 ```
 
 ### 4. Create Service Account for GitHub Actions
+
 ```bash
 # Create service account
 gcloud iam service-accounts create github-actions \
@@ -66,6 +71,7 @@ gcloud iam service-accounts keys create github-actions-key.json \
 ```
 
 ### 5. Configure GitHub Secrets
+
 ```bash
 # Add GCP credentials
 gh secret set GCP_SA_KEY < github-actions-key.json
@@ -77,6 +83,7 @@ gh secret set NEXTAUTH_URL --body "https://warehouse.aidustires.co"
 ```
 
 ### 6. Deploy Application
+
 ```bash
 cd apps/web
 gcloud run deploy warehouse-frontend \
@@ -87,12 +94,15 @@ gcloud run deploy warehouse-frontend \
 ```
 
 ### 7. Configure Custom Domain
+
 After deployment, set up custom domain:
+
 1. Go to Cloud Run console
 2. Click "Manage Custom Domains"
 3. Add domain: warehouse.aidustires.co
 4. Update DNS records as instructed
 
 ## Production URLs
+
 - **Application**: https://warehouse.aidustires.co
 - **Cloud Run**: https://warehouse-frontend-[hash].us-central1.run.app

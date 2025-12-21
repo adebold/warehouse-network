@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { AppLayout } from '@/components/layouts/AppLayout'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { AppLayout } from '@/components/layouts/AppLayout';
 import {
   Card,
   CardContent,
@@ -9,13 +9,13 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AccountLockWarning } from '@/components/ui/account-lock-warning'
-import { Skeleton } from '@/components/ui/skeleton'
-import { DataTable } from '@/components/ui/table'
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AccountLockWarning } from '@/components/ui/account-lock-warning';
+import { Skeleton } from '@/components/ui/skeleton';
+import { DataTable } from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -24,16 +24,16 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from '@/components/ui/select';
 import {
   DollarSign,
   Calendar,
@@ -46,70 +46,70 @@ import {
   TrendingUp,
   Lock,
   XCircle,
-} from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface PaymentData {
   customer: {
-    id: string
-    name: string
-    accountStatus: string
-    paymentStatus: string
-    lockReason?: string
-    overdueAmount: number
-    totalOutstanding: number
-    paymentDueDate?: string
-  }
+    id: string;
+    name: string;
+    accountStatus: string;
+    paymentStatus: string;
+    lockReason?: string;
+    overdueAmount: number;
+    totalOutstanding: number;
+    paymentDueDate?: string;
+  };
   recentPayments: Array<{
-    id: string
-    amount: number
-    paymentDate: string
-    paymentMethod: string
-    reference: string
-    status: string
-  }>
+    id: string;
+    amount: number;
+    paymentDate: string;
+    paymentMethod: string;
+    reference: string;
+    status: string;
+  }>;
   invoices: Array<{
-    id: string
-    invoiceNumber: string
-    amount: number
-    dueDate: string
-    status: 'PAID' | 'PENDING' | 'OVERDUE'
-    createdAt: string
-  }>
+    id: string;
+    invoiceNumber: string;
+    amount: number;
+    dueDate: string;
+    status: 'PAID' | 'PENDING' | 'OVERDUE';
+    createdAt: string;
+  }>;
 }
 
 export default function PaymentDashboard() {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const [paymentData, setPaymentData] = useState<PaymentData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [showPaymentDialog, setShowPaymentDialog] = useState(false)
-  const [paymentAmount, setPaymentAmount] = useState('')
-  const [paymentMethod, setPaymentMethod] = useState<string>('CREDIT_CARD')
-  const [processingPayment, setProcessingPayment] = useState(false)
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [paymentData, setPaymentData] = useState<PaymentData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [paymentAmount, setPaymentAmount] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<string>('CREDIT_CARD');
+  const [processingPayment, setProcessingPayment] = useState(false);
 
   useEffect(() => {
     if (session?.user?.customerId) {
-      fetchPaymentData()
+      fetchPaymentData();
     }
-  }, [session])
+  }, [session]);
 
   const fetchPaymentData = async () => {
     try {
-      const response = await fetch('/api/customer/payment-dashboard')
+      const response = await fetch('/api/customer/payment-dashboard');
       if (response.ok) {
-        const data = await response.json()
-        setPaymentData(data)
+        const data = await response.json();
+        setPaymentData(data);
       }
     } catch (error) {
-      console.error('Error fetching payment data:', error)
+      console.error('Error fetching payment data:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleMakePayment = async () => {
-    setProcessingPayment(true)
+    setProcessingPayment(true);
     try {
       const response = await fetch('/api/customer/payments', {
         method: 'POST',
@@ -117,46 +117,44 @@ export default function PaymentDashboard() {
         body: JSON.stringify({
           amount: parseFloat(paymentAmount),
           paymentMethod,
-          customerId: session?.user?.customerId
-        })
-      })
+          customerId: session?.user?.customerId,
+        }),
+      });
 
       if (response.ok) {
-        setShowPaymentDialog(false)
-        setPaymentAmount('')
-        fetchPaymentData()
-        alert('Payment processed successfully!')
+        setShowPaymentDialog(false);
+        setPaymentAmount('');
+        fetchPaymentData();
+        alert('Payment processed successfully!');
       } else {
-        alert('Payment processing failed. Please try again.')
+        alert('Payment processing failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error processing payment:', error)
-      alert('An error occurred. Please try again.')
+      console.error('Error processing payment:', error);
+      alert('An error occurred. Please try again.');
     } finally {
-      setProcessingPayment(false)
+      setProcessingPayment(false);
     }
-  }
+  };
 
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'PAID':
-        return <Badge variant="success">Paid</Badge>
+        return <Badge variant="success">Paid</Badge>;
       case 'PENDING':
-        return <Badge variant="warning">Pending</Badge>
+        return <Badge variant="warning">Pending</Badge>;
       case 'OVERDUE':
-        return <Badge variant="destructive">Overdue</Badge>
+        return <Badge variant="destructive">Overdue</Badge>;
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   const invoiceColumns = [
     {
       accessorKey: 'invoiceNumber',
       header: 'Invoice #',
-      cell: ({ row }: any) => (
-        <span className="font-medium">{row.original.invoiceNumber}</span>
-      ),
+      cell: ({ row }: any) => <span className="font-medium">{row.original.invoiceNumber}</span>,
     },
     {
       accessorKey: 'amount',
@@ -183,7 +181,7 @@ export default function PaymentDashboard() {
         </Button>
       ),
     },
-  ]
+  ];
 
   const paymentColumns = [
     {
@@ -195,9 +193,7 @@ export default function PaymentDashboard() {
       accessorKey: 'amount',
       header: 'Amount',
       cell: ({ row }: any) => (
-        <span className="text-success font-medium">
-          ${row.original.amount.toFixed(2)}
-        </span>
+        <span className="text-success font-medium">${row.original.amount.toFixed(2)}</span>
       ),
     },
     {
@@ -219,7 +215,7 @@ export default function PaymentDashboard() {
         </Badge>
       ),
     },
-  ]
+  ];
 
   if (loading) {
     return (
@@ -248,7 +244,7 @@ export default function PaymentDashboard() {
           </Card>
         </div>
       </AppLayout>
-    )
+    );
   }
 
   if (!paymentData) {
@@ -260,10 +256,10 @@ export default function PaymentDashboard() {
           <AlertDescription>Failed to load payment information</AlertDescription>
         </Alert>
       </AppLayout>
-    )
+    );
   }
 
-  const { customer, invoices, recentPayments } = paymentData
+  const { customer, invoices, recentPayments } = paymentData;
 
   return (
     <AppLayout>
@@ -301,7 +297,7 @@ export default function PaymentDashboard() {
                     type="number"
                     step="0.01"
                     value={paymentAmount}
-                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    onChange={e => setPaymentAmount(e.target.value)}
                     placeholder="0.00"
                   />
                 </div>
@@ -349,19 +345,21 @@ export default function PaymentDashboard() {
           <Card className={customer.totalOutstanding > 0 ? 'border-destructive' : ''}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Outstanding</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${customer.totalOutstanding > 0 ? 'text-destructive' : 'text-success'}`}>
+              <div
+                className={`text-2xl font-bold ${customer.totalOutstanding > 0 ? 'text-destructive' : 'text-success'}`}
+              >
                 ${customer.totalOutstanding.toFixed(2)}
               </div>
               {customer.totalOutstanding === 0 ? (
-                <p className="text-xs text-success flex items-center mt-1">
+                <p className="text-success mt-1 flex items-center text-xs">
                   <CheckCircle className="mr-1 h-3 w-3" />
                   Account current
                 </p>
               ) : (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {customer.overdueAmount > 0 && `$${customer.overdueAmount.toFixed(2)} overdue`}
                 </p>
               )}
@@ -372,25 +370,28 @@ export default function PaymentDashboard() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Payment Status</CardTitle>
               {customer.paymentStatus === 'CURRENT' ? (
-                <CheckCircle className="h-4 w-4 text-success" />
+                <CheckCircle className="text-success h-4 w-4" />
               ) : customer.paymentStatus === 'OVERDUE' ? (
-                <Clock className="h-4 w-4 text-warning" />
+                <Clock className="text-warning h-4 w-4" />
               ) : (
-                <XCircle className="h-4 w-4 text-destructive" />
+                <XCircle className="text-destructive h-4 w-4" />
               )}
             </CardHeader>
             <CardContent>
               <Badge
                 variant={
-                  customer.paymentStatus === 'CURRENT' ? 'success' :
-                  customer.paymentStatus === 'OVERDUE' ? 'warning' : 'destructive'
+                  customer.paymentStatus === 'CURRENT'
+                    ? 'success'
+                    : customer.paymentStatus === 'OVERDUE'
+                      ? 'warning'
+                      : 'destructive'
                 }
                 className="text-sm"
               >
                 {customer.paymentStatus}
               </Badge>
               {customer.paymentDueDate && (
-                <p className="text-xs text-muted-foreground mt-1">
+                <p className="text-muted-foreground mt-1 text-xs">
                   Due: {new Date(customer.paymentDueDate).toLocaleDateString()}
                 </p>
               )}
@@ -400,24 +401,23 @@ export default function PaymentDashboard() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Account Status</CardTitle>
-              {customer.accountStatus === 'LOCKED' && (
-                <Lock className="h-4 w-4 text-destructive" />
-              )}
+              {customer.accountStatus === 'LOCKED' && <Lock className="text-destructive h-4 w-4" />}
             </CardHeader>
             <CardContent>
               <Badge
                 variant={
-                  customer.accountStatus === 'ACTIVE' ? 'success' :
-                  customer.accountStatus === 'SUSPENDED' ? 'warning' : 'destructive'
+                  customer.accountStatus === 'ACTIVE'
+                    ? 'success'
+                    : customer.accountStatus === 'SUSPENDED'
+                      ? 'warning'
+                      : 'destructive'
                 }
                 className="text-sm"
               >
                 {customer.accountStatus}
               </Badge>
               {customer.lockReason && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {customer.lockReason}
-                </p>
+                <p className="text-muted-foreground mt-1 text-xs">{customer.lockReason}</p>
               )}
             </CardContent>
           </Card>
@@ -439,17 +439,11 @@ export default function PaymentDashboard() {
           </CardHeader>
           <CardContent>
             {invoices.length > 0 ? (
-              <DataTable
-                columns={invoiceColumns}
-                data={invoices}
-                searchKey="invoiceNumber"
-              />
+              <DataTable columns={invoiceColumns} data={invoices} searchKey="invoiceNumber" />
             ) : (
-              <div className="text-center py-8">
-                <FileText className="mx-auto h-12 w-12 text-muted-foreground" />
-                <p className="mt-4 text-sm text-muted-foreground">
-                  No invoices found
-                </p>
+              <div className="py-8 text-center">
+                <FileText className="text-muted-foreground mx-auto h-12 w-12" />
+                <p className="text-muted-foreground mt-4 text-sm">No invoices found</p>
               </div>
             )}
           </CardContent>
@@ -463,22 +457,16 @@ export default function PaymentDashboard() {
           </CardHeader>
           <CardContent>
             {recentPayments.length > 0 ? (
-              <DataTable
-                columns={paymentColumns}
-                data={recentPayments}
-                searchKey="reference"
-              />
+              <DataTable columns={paymentColumns} data={recentPayments} searchKey="reference" />
             ) : (
-              <div className="text-center py-8">
-                <CreditCard className="mx-auto h-12 w-12 text-muted-foreground" />
-                <p className="mt-4 text-sm text-muted-foreground">
-                  No payment history found
-                </p>
+              <div className="py-8 text-center">
+                <CreditCard className="text-muted-foreground mx-auto h-12 w-12" />
+                <p className="text-muted-foreground mt-4 text-sm">No payment history found</p>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
     </AppLayout>
-  )
+  );
 }

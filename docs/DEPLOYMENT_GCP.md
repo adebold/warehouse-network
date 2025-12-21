@@ -122,7 +122,7 @@ gcloud run services describe warehouse-network-web --region=${GCP_REGION}
 
 ## Cost Optimization
 
-1. **Cloud Run**: 
+1. **Cloud Run**:
    - Set min instances to 0 for scale-to-zero
    - Use CPU allocation only during request processing
    - Set appropriate memory limits (1Gi is usually sufficient)
@@ -184,11 +184,13 @@ gcloud run services update warehouse-network-web \
 ## Backup and Disaster Recovery
 
 1. **Database Backups**:
+
    ```bash
    gcloud sql backups create --instance=warehouse-network-db
    ```
 
 2. **Export Data**:
+
    ```bash
    gcloud sql export sql warehouse-network-db \
        gs://your-backup-bucket/backup.sql \

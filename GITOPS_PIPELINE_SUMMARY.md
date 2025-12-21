@@ -3,47 +3,55 @@
 ## Created Workflows
 
 ### Core CI/CD Workflows
+
 1. **`ci.yml`** - Main CI pipeline with testing, security scanning, and multi-environment builds
 2. **`deploy-dev.yml`** - Automatic deployment to development environment
 3. **`deploy-staging.yml`** - Staging deployment with integration tests
 4. **`deploy-prod.yml`** - Production deployment with GitOps updates and approval gates
 
 ### Operational Workflows
+
 5. **`rollback.yml`** - Manual rollback capability for any environment
 6. **`promote.yml`** - Promote builds between environments (dev→staging→prod)
 7. **`gitops-sync.yml`** - Scheduled ArgoCD synchronization and health checks
 8. **`setup-gitops-repo.yml`** - Initialize GitOps repository structure
 
 ### Maintenance Workflows
+
 9. **`dependabot-auto-merge.yml`** - Automated dependency updates
 10. **`performance-monitoring.yml`** - Lighthouse CI and load testing
 
 ## Pipeline Features
 
 ### Security & Compliance
+
 - Trivy security scanning on every build
 - SARIF report upload for GitHub Security tab
 - Automated dependency updates with Dependabot
 - Environment-specific approval requirements
 
 ### Build Optimization
+
 - Docker layer caching with GitHub Actions cache
 - Multi-stage builds for all environments
 - Parallel build matrix for dev/staging/prod
 
 ### GitOps Integration
+
 - Automatic GitOps repository updates
 - ArgoCD application synchronization
 - Declarative Kubernetes manifests with Kustomize
 - Environment-specific overlays
 
 ### Monitoring & Observability
+
 - Lighthouse performance monitoring
 - k6 load testing capabilities
 - Health check validation after deployments
 - Metrics storage in Google Cloud Storage
 
 ### Deployment Strategies
+
 - Branch-based deployments (develop→dev, staging→staging)
 - Release-based production deployments
 - Manual promotion between environments
@@ -76,16 +84,16 @@ ARGOCD_PASSWORD: # ArgoCD admin password
 
 ## Workflow Triggers
 
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| CI Pipeline | Push to main/develop, PRs | Build, test, scan |
-| Deploy Dev | Push to develop | Auto-deploy to dev |
-| Deploy Staging | Push to staging | Deploy with tests |
-| Deploy Prod | Release published | Production deploy |
-| Rollback | Manual dispatch | Emergency rollback |
-| Promote | Manual dispatch | Environment promotion |
-| GitOps Sync | Schedule/manual | ArgoCD sync |
-| Performance | Schedule/manual | Monitor performance |
+| Workflow       | Trigger                   | Purpose               |
+| -------------- | ------------------------- | --------------------- |
+| CI Pipeline    | Push to main/develop, PRs | Build, test, scan     |
+| Deploy Dev     | Push to develop           | Auto-deploy to dev    |
+| Deploy Staging | Push to staging           | Deploy with tests     |
+| Deploy Prod    | Release published         | Production deploy     |
+| Rollback       | Manual dispatch           | Emergency rollback    |
+| Promote        | Manual dispatch           | Environment promotion |
+| GitOps Sync    | Schedule/manual           | ArgoCD sync           |
+| Performance    | Schedule/manual           | Monitor performance   |
 
 ## Support Documentation
 

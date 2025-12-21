@@ -1,26 +1,26 @@
-import { PrismaClient, UserRole, WarehouseStatus, SkidStatus, PayoutStatus } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient, UserRole, WarehouseStatus, SkidStatus, PayoutStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Starting simple demo seed...')
+  console.log('🌱 Starting simple demo seed...');
 
   // Create platform
   let platform = await prisma.platform.findFirst({
-    where: { name: 'Warehouse Network Ontario' }
-  })
-  
+    where: { name: 'Warehouse Network Ontario' },
+  });
+
   if (!platform) {
     platform = await prisma.platform.create({
       data: {
         name: 'Warehouse Network Ontario',
       },
-    })
+    });
   }
 
   // Create users with hashed passwords
-  const hashedPassword = await bcrypt.hash('demo123', 10)
+  const hashedPassword = await bcrypt.hash('demo123', 10);
 
   // Super Admin
   const superAdmin = await prisma.user.upsert({
@@ -32,19 +32,19 @@ async function main() {
       password: hashedPassword,
       role: UserRole.SUPER_ADMIN,
     },
-  })
+  });
 
   // Create a test customer
   let customer = await prisma.customer.findFirst({
-    where: { name: 'Test Customer' }
-  })
-  
+    where: { name: 'Test Customer' },
+  });
+
   if (!customer) {
     customer = await prisma.customer.create({
       data: {
         name: 'Test Customer',
       },
-    })
+    });
   }
 
   // Create customer user
@@ -58,7 +58,7 @@ async function main() {
       role: UserRole.CUSTOMER_ADMIN,
       customerId: customer.id,
     },
-  })
+  });
 
   // Create an operator
   const operator = await prisma.operator.create({
@@ -76,7 +76,7 @@ async function main() {
       stripeAccountId: `acct_test`,
       stripeOnboardingComplete: true,
     },
-  })
+  });
 
   // Create operator user
   await prisma.user.upsert({
@@ -93,7 +93,7 @@ async function main() {
         },
       },
     },
-  })
+  });
 
   // Create a warehouse
   const warehouse = await prisma.warehouse.create({
@@ -114,7 +114,7 @@ async function main() {
       dockAccessInstructions: 'Use main entrance',
       status: WarehouseStatus.ACTIVE,
     },
-  })
+  });
 
   // Create a test skid
   const skid = await prisma.skid.create({
@@ -125,21 +125,21 @@ async function main() {
       status: SkidStatus.STORED,
       footprint: 'standard',
     },
-  })
+  });
 
-  console.log('✅ Simple demo seed completed successfully!')
-  console.log('\n📧 Demo Login Credentials:')
-  console.log('  Admin: admin@warehouse-network.com / demo123')
-  console.log('  Operator: operator@test.com / demo123')
-  console.log('  Customer: customer@test.com / demo123')
+  console.log('✅ Simple demo seed completed successfully!');
+  console.log('\n📧 Demo Login Credentials:');
+  console.log('  Admin: admin@warehouse-network.com / demo123');
+  console.log('  Operator: operator@test.com / demo123');
+  console.log('  Customer: customer@test.com / demo123');
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+  .catch(async e => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

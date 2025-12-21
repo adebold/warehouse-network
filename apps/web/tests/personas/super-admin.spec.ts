@@ -11,7 +11,7 @@ test.describe('Super Admin Persona', () => {
     // Find a pending application and approve it
     const pendingAppRow = page.locator('tr', { hasText: 'APPLIED' }).first();
     await pendingAppRow.getByRole('button', { name: 'Approve' }).click();
-    
+
     // Expect the status to change (page reload will happen)
     await expect(page.locator('tr', { hasText: 'APPROVED' }).first()).toBeVisible();
 

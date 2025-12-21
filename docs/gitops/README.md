@@ -78,6 +78,7 @@ Run the setup script:
 ```
 
 This will configure:
+
 - AWS credentials
 - Slack webhooks
 - API tokens
@@ -241,6 +242,7 @@ gh release create v1.2.0 --generate-notes
 ### Alerts
 
 Configured alerts for:
+
 - Application downtime
 - High error rates
 - Performance degradation
@@ -303,6 +305,7 @@ Configured alerts for:
 ### Common Issues
 
 1. **Deployment Failures**
+
    ```bash
    # Check pod status
    kubectl get pods -n warehouse-network
@@ -311,6 +314,7 @@ Configured alerts for:
    ```
 
 2. **Secret Issues**
+
    ```bash
    # Verify secrets exist
    kubectl get secrets -n warehouse-network

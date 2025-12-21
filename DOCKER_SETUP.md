@@ -6,25 +6,28 @@ The platform is now running! Access it at: **http://localhost:3000**
 
 ## Services
 
-| Service | URL/Port | Purpose |
-|---------|----------|---------|
-| Web App | http://localhost:3000 | Next.js application |
-| PostgreSQL | localhost:5433 | Database |
-| Redis | localhost:6380 | Caching & sessions |
+| Service    | URL/Port              | Purpose             |
+| ---------- | --------------------- | ------------------- |
+| Web App    | http://localhost:3000 | Next.js application |
+| PostgreSQL | localhost:5433        | Database            |
+| Redis      | localhost:6380        | Caching & sessions  |
 
 ## Docker Commands
 
 ### Start the platform
+
 ```bash
 docker-compose up -d
 ```
 
 ### Stop the platform
+
 ```bash
 docker-compose down
 ```
 
 ### View logs
+
 ```bash
 # All services
 docker-compose logs -f
@@ -34,16 +37,19 @@ docker-compose logs -f app
 ```
 
 ### Restart services
+
 ```bash
 docker-compose restart
 ```
 
 ### Access database
+
 ```bash
 docker exec -it warehouse-postgres psql -U warehouse warehouse_network
 ```
 
 ### Access Redis
+
 ```bash
 docker exec -it warehouse-redis redis-cli
 ```
@@ -51,13 +57,17 @@ docker exec -it warehouse-redis redis-cli
 ## Troubleshooting
 
 ### Port conflicts
+
 If you get port conflicts, the ports are configured in `docker-compose.yml`:
+
 - Change `${DB_PORT:-5433}:5432` for PostgreSQL
 - Change `${REDIS_PORT:-6380}:6379` for Redis
 - Change `${APP_PORT:-3000}:3000` for the web app
 
 ### Rebuild after code changes
+
 The app runs in development mode with hot-reloading, so most changes don't require a rebuild. If you modify dependencies:
+
 ```bash
 docker-compose down
 docker-compose build --no-cache

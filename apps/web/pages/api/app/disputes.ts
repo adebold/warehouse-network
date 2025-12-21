@@ -1,48 +1,45 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../auth/[...nextauth]'
-import prisma from '../../../lib/prisma'
-import { disputeSchema } from '../../../lib/schemas'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
+import prisma from '../../../lib/prisma';
+import { disputeSchema } from '../../../lib/schemas';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
-    const session = await getServerSession(req, res, authOptions)
+    const session = await getServerSession(req, res, authOptions);
 
     if (!session || session.user?.role !== 'CUSTOMER_ADMIN') {
-      return res.status(403).json({ message: 'Forbidden' })
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     if (!session.user.customerId) {
-      return res.status(400).json({ message: 'You are not associated with a customer.'})
+      return res.status(400).json({ message: 'You are not associated with a customer.' });
     }
 
     try {
-      const validation = disputeSchema.safeParse(req.body)
+      const validation = disputeSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ errors: validation.error.issues })
+        return res.status(400).json({ errors: validation.error.issues });
       }
 
-      const { type, description, skidIds, evidence } = validation.data
+      const { type, description, skidIds, evidence } = validation.data;
 
       const skids = await prisma.skid.findMany({
         where: { id: { in: skidIds }, customerId: session.user.customerId },
-      })
+      });
 
       if (skids.length !== skidIds.length) {
-        return res.status(400).json({ message: 'Invalid skid selection.' })
+        return res.status(400).json({ message: 'Invalid skid selection.' });
       }
 
       // Assuming all skids in a dispute belong to the same operator/warehouse for simplicity
       // In a more complex scenario, this would need to handle disputes across multiple operators/warehouses
-      const warehouseId = skids[0].warehouseId
+      const warehouseId = skids[0].warehouseId;
       const operator = await prisma.operator.findFirst({
         where: { warehouses: { some: { id: warehouseId } } },
-      })
+      });
       if (!operator) {
-        return res.status(400).json({ message: 'Operator not found for selected warehouse.' })
+        return res.status(400).json({ message: 'Operator not found for selected warehouse.' });
       }
 
       const dispute = await prisma.dispute.create({
@@ -56,15 +53,15 @@ export default async function handler(
             create: skidIds.map(skidId => ({ skidId })),
           },
         },
-      })
+      });
 
-      res.status(201).json(dispute)
+      res.status(201).json(dispute);
     } catch (error) {
-      console.error(error)
-      res.status(500).json({ message: 'An unexpected error occurred.' })
+      console.error(error);
+      res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {
-    res.setHeader('Allow', ['POST'])
-    res.status(405).end(`Method ${req.method} Not Allowed`)
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

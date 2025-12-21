@@ -9,11 +9,13 @@ The Warehouse Network platform now includes a comprehensive payment control syst
 ### 1. Account Status Management
 
 #### Account Status Types:
+
 - **ACTIVE**: Normal operations allowed
 - **SUSPENDED**: Limited operations, warnings displayed
 - **LOCKED**: No new inventory receipts or releases allowed
 
 #### Payment Status Types:
+
 - **CURRENT**: Payments up to date
 - **OVERDUE**: Payment past due date
 - **DELINQUENT**: Severely overdue, automatic restrictions
@@ -22,7 +24,7 @@ The Warehouse Network platform now includes a comprehensive payment control syst
 
 Located at `/admin/customers`, this dashboard provides:
 
-- **Overview Cards**: 
+- **Overview Cards**:
   - Total customers
   - Locked accounts count
   - Overdue accounts
@@ -38,12 +40,14 @@ Located at `/admin/customers`, this dashboard provides:
 ### 3. Account Locking Features
 
 #### Manual Lock/Unlock:
+
 - Operators can manually lock/unlock accounts
 - Required to provide reason for audit trail
 - Admin users can add override reasons
 - All actions are logged with timestamp and performer
 
 #### Lock History:
+
 - Complete audit trail of all lock/unlock actions
 - Shows who performed the action and when
 - Includes reasons and override notes
@@ -52,6 +56,7 @@ Located at `/admin/customers`, this dashboard provides:
 ### 4. Operation Restrictions
 
 When an account is **LOCKED**:
+
 - ❌ Cannot receive new inventory
 - ❌ Cannot create release requests
 - ❌ Cannot create new RFQs
@@ -61,6 +66,7 @@ When an account is **LOCKED**:
 - ✅ Can make payments
 
 When payment status is **DELINQUENT**:
+
 - ❌ Cannot receive new inventory
 - ⚠️ Warning displayed on all operations
 - ✅ Can release existing inventory (to allow clearing warehouse)
@@ -68,12 +74,14 @@ When payment status is **DELINQUENT**:
 ### 5. UI Indicators
 
 #### Account Lock Warning Component:
+
 - Prominent alert displayed on affected pages
 - Shows lock reason if available
 - Provides context-appropriate messaging
 - Option to show "Manage Account" button for admins
 
 #### Inline Status Indicators:
+
 - Lock icon for locked accounts
 - Warning triangle for overdue payments
 - Color-coded badges (red for locked, yellow for warning)
@@ -81,6 +89,7 @@ When payment status is **DELINQUENT**:
 ### 6. API Protection
 
 All sensitive operations are protected by middleware that:
+
 - Checks account status before allowing operation
 - Returns appropriate error messages
 - Logs attempted operations on locked accounts
@@ -128,23 +137,23 @@ model AccountLockHistory {
 ### Middleware Usage
 
 ```typescript
-import { withAccountLockCheck } from '@/lib/middleware/accountLock'
+import { withAccountLockCheck } from '@/lib/middleware/accountLock';
 
 // Protect an API endpoint
-export default withAccountLockCheck(handler, 'RELEASE')
+export default withAccountLockCheck(handler, 'RELEASE');
 ```
 
 ### UI Component Usage
 
 ```tsx
-import { AccountLockWarning } from '@/components/ui/account-lock-warning'
+import { AccountLockWarning } from '@/components/ui/account-lock-warning';
 
 // Display warning when appropriate
 <AccountLockWarning
   customer={customer}
   operation="create release requests"
   showManageButton={true}
-/>
+/>;
 ```
 
 ## User Workflows

@@ -1,31 +1,31 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { OperatorUser, Invitation } from '@prisma/client'
-import prisma from '../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { OperatorUser, Invitation } from '@prisma/client';
+import prisma from '../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]';
 
 interface ManageUsersProps {
-  users: OperatorUser[]
-  invitations: Invitation[]
+  users: OperatorUser[];
+  invitations: Invitation[];
 }
 
 const ManageUsers: NextPage<ManageUsersProps> = ({ users, invitations }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [role, setRole] = useState('WAREHOUSE_STAFF')
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState('WAREHOUSE_STAFF');
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
   const handleInvite = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/operator/invitations', {
@@ -34,29 +34,29 @@ const ManageUsers: NextPage<ManageUsersProps> = ({ users, invitations }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email, role }),
-      })
+      });
 
       if (response.ok) {
-        router.replace(router.asPath) // Refresh the page
+        router.replace(router.asPath); // Refresh the page
       } else {
-        const errorData = await response.json()
-        console.error('Failed to send invitation', errorData)
-        alert('Failed to send invitation')
+        const errorData = await response.json();
+        console.error('Failed to send invitation', errorData);
+        alert('Failed to send invitation');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while sending the invitation.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while sending the invitation.');
     }
-  }
+  };
 
   if (status === 'loading' || !session || session.user.role !== 'OPERATOR_ADMIN') {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
     <div>
       <h1>Manage Users</h1>
-      
+
       <h2>Existing Users</h2>
       <table>
         <thead>
@@ -112,11 +112,11 @@ const ManageUsers: NextPage<ManageUsersProps> = ({ users, invitations }) => {
         <button type="submit">Send Invitation</button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session || session.user?.role !== 'OPERATOR_ADMIN') {
     return {
@@ -124,18 +124,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         destination: '/unauthorized',
         permanent: false,
       },
-    }
+    };
   }
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email ?? '' },
     include: { operatorUser: true },
-  })
+  });
 
   if (!user?.operatorUser) {
     return {
       notFound: true,
-    }
+    };
   }
 
   const operatorId = user.operatorUser.operatorId;
@@ -143,18 +143,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const users = await prisma.operatorUser.findMany({
     where: { operatorId },
     include: { user: true },
-  })
+  });
 
   const invitations = await prisma.invitation.findMany({
     where: { operatorId },
-  })
+  });
 
   return {
     props: {
       users: JSON.parse(JSON.stringify(users)),
       invitations: JSON.parse(JSON.stringify(invitations)),
     },
-  }
-}
+  };
+};
 
-export default ManageUsers
+export default ManageUsers;

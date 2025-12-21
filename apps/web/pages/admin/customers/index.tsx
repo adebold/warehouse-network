@@ -1,19 +1,13 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { DashboardLayout } from '@/components/layouts/DashboardLayout'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Badge } from '@/components/ui/badge'
-import { DataTable } from '@/components/ui/table'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { DataTable } from '@/components/ui/table';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +15,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -29,10 +23,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog'
-import { Label } from '@/components/ui/label'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Checkbox } from '@/components/ui/checkbox'
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Search,
   MoreVertical,
@@ -47,74 +41,78 @@ import {
   History,
   FileText,
   Users,
-} from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface Customer {
-  id: string
-  name: string
-  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED'
-  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT'
-  lockReason?: string
-  lockedAt?: string
-  lockedBy?: string
-  paymentDueDate?: string
-  overdueAmount: number
-  totalOutstanding: number
+  id: string;
+  name: string;
+  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT';
+  lockReason?: string;
+  lockedAt?: string;
+  lockedBy?: string;
+  paymentDueDate?: string;
+  overdueAmount: number;
+  totalOutstanding: number;
   _count: {
-    skids: number
-    rfqs: number
-  }
+    skids: number;
+    rfqs: number;
+  };
 }
 
 export default function CustomersPage() {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const [customers, setCustomers] = useState<Customer[]>([])
-  const [loading, setLoading] = useState(true)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([])
-  const [showBulkDialog, setShowBulkDialog] = useState(false)
-  const [bulkAction, setBulkAction] = useState<'lock' | 'unlock'>('lock')
-  const [bulkReason, setBulkReason] = useState('')
-  const [bulkProcessing, setBulkProcessing] = useState(false)
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [showBulkDialog, setShowBulkDialog] = useState(false);
+  const [bulkAction, setBulkAction] = useState<'lock' | 'unlock'>('lock');
+  const [bulkReason, setBulkReason] = useState('');
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   useEffect(() => {
-    fetchCustomers()
-  }, [])
+    fetchCustomers();
+  }, []);
 
   const fetchCustomers = async () => {
     try {
-      const response = await fetch('/api/admin/customers')
+      const response = await fetch('/api/admin/customers');
       if (response.ok) {
-        const data = await response.json()
-        setCustomers(data)
+        const data = await response.json();
+        setCustomers(data);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error)
+      console.error('Error fetching customers:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  const handleLockAccount = async (customerId: string, action: 'lock' | 'unlock', reason?: string) => {
+  const handleLockAccount = async (
+    customerId: string,
+    action: 'lock' | 'unlock',
+    reason?: string
+  ) => {
     try {
       const response = await fetch(`/api/admin/customers/${customerId}/lock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action, reason }),
-      })
-      
+      });
+
       if (response.ok) {
-        fetchCustomers()
+        fetchCustomers();
       }
     } catch (error) {
-      console.error('Error updating account lock:', error)
+      console.error('Error updating account lock:', error);
     }
-  }
+  };
 
   const handleBulkOperation = async () => {
-    setBulkProcessing(true)
+    setBulkProcessing(true);
     try {
       const response = await fetch('/api/admin/customers/bulk-lock', {
         method: 'POST',
@@ -122,74 +120,74 @@ export default function CustomersPage() {
         body: JSON.stringify({
           customerIds: selectedCustomers,
           action: bulkAction,
-          reason: bulkReason
-        })
-      })
+          reason: bulkReason,
+        }),
+      });
 
       if (response.ok) {
-        const data = await response.json()
-        alert(`Successfully ${bulkAction}ed ${data.updated} accounts`)
-        setSelectedCustomers([])
-        setShowBulkDialog(false)
-        setBulkReason('')
-        fetchCustomers()
+        const data = await response.json();
+        alert(`Successfully ${bulkAction}ed ${data.updated} accounts`);
+        setSelectedCustomers([]);
+        setShowBulkDialog(false);
+        setBulkReason('');
+        fetchCustomers();
       }
     } catch (error) {
-      console.error('Error performing bulk operation:', error)
-      alert('Failed to perform bulk operation')
+      console.error('Error performing bulk operation:', error);
+      alert('Failed to perform bulk operation');
     } finally {
-      setBulkProcessing(false)
+      setBulkProcessing(false);
     }
-  }
+  };
 
   const toggleSelectAll = () => {
     if (selectedCustomers.length === filteredCustomers.length) {
-      setSelectedCustomers([])
+      setSelectedCustomers([]);
     } else {
-      setSelectedCustomers(filteredCustomers.map(c => c.id))
+      setSelectedCustomers(filteredCustomers.map(c => c.id));
     }
-  }
+  };
 
   const toggleSelectCustomer = (customerId: string) => {
     setSelectedCustomers(prev =>
-      prev.includes(customerId)
-        ? prev.filter(id => id !== customerId)
-        : [...prev, customerId]
-    )
-  }
+      prev.includes(customerId) ? prev.filter(id => id !== customerId) : [...prev, customerId]
+    );
+  };
 
   const getAccountStatusBadge = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge variant="success">Active</Badge>
+        return <Badge variant="success">Active</Badge>;
       case 'SUSPENDED':
-        return <Badge variant="warning">Suspended</Badge>
+        return <Badge variant="warning">Suspended</Badge>;
       case 'LOCKED':
-        return <Badge variant="destructive">Locked</Badge>
+        return <Badge variant="destructive">Locked</Badge>;
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   const getPaymentStatusBadge = (status: string) => {
     switch (status) {
       case 'CURRENT':
-        return <Badge variant="success">Current</Badge>
+        return <Badge variant="success">Current</Badge>;
       case 'OVERDUE':
-        return <Badge variant="warning">Overdue</Badge>
+        return <Badge variant="warning">Overdue</Badge>;
       case 'DELINQUENT':
-        return <Badge variant="destructive">Delinquent</Badge>
+        return <Badge variant="destructive">Delinquent</Badge>;
       default:
-        return <Badge>{status}</Badge>
+        return <Badge>{status}</Badge>;
     }
-  }
+  };
 
   const columns = [
     {
       id: 'select',
       header: ({ table }: any) => (
         <Checkbox
-          checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+          checked={
+            selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0
+          }
           onCheckedChange={toggleSelectAll}
           aria-label="Select all"
         />
@@ -208,9 +206,7 @@ export default function CustomersPage() {
       cell: ({ row }: any) => (
         <div className="flex items-center space-x-2">
           <span className="font-medium">{row.original.name}</span>
-          {row.original.accountStatus === 'LOCKED' && (
-            <Lock className="h-4 w-4 text-destructive" />
-          )}
+          {row.original.accountStatus === 'LOCKED' && <Lock className="text-destructive h-4 w-4" />}
         </div>
       ),
     },
@@ -237,14 +233,14 @@ export default function CustomersPage() {
       accessorKey: 'paymentDueDate',
       header: 'Due Date',
       cell: ({ row }: any) => {
-        if (!row.original.paymentDueDate) return '-'
-        const dueDate = new Date(row.original.paymentDueDate)
-        const isOverdue = dueDate < new Date()
+        if (!row.original.paymentDueDate) return '-';
+        const dueDate = new Date(row.original.paymentDueDate);
+        const isOverdue = dueDate < new Date();
         return (
           <span className={isOverdue ? 'text-destructive' : ''}>
             {dueDate.toLocaleDateString()}
           </span>
-        )
+        );
       },
     },
     {
@@ -265,9 +261,7 @@ export default function CustomersPage() {
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => router.push(`/admin/customers/${row.original.id}`)}
-            >
+            <DropdownMenuItem onClick={() => router.push(`/admin/customers/${row.original.id}`)}>
               <FileText className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
@@ -299,20 +293,22 @@ export default function CustomersPage() {
         </DropdownMenu>
       ),
     },
-  ]
+  ];
 
   const filteredCustomers = customers.filter(customer =>
     customer.name.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  );
 
   // Calculate summary stats
   const stats = {
     total: customers.length,
     active: customers.filter(c => c.accountStatus === 'ACTIVE').length,
     locked: customers.filter(c => c.accountStatus === 'LOCKED').length,
-    overdue: customers.filter(c => c.paymentStatus === 'OVERDUE' || c.paymentStatus === 'DELINQUENT').length,
+    overdue: customers.filter(
+      c => c.paymentStatus === 'OVERDUE' || c.paymentStatus === 'DELINQUENT'
+    ).length,
     totalOutstanding: customers.reduce((sum, c) => sum + c.totalOutstanding, 0),
-  }
+  };
 
   if (loading) {
     return (
@@ -328,7 +324,7 @@ export default function CustomersPage() {
                 </CardHeader>
                 <CardContent>
                   <Skeleton className="h-7 w-16" />
-                  <Skeleton className="h-3 w-32 mt-1" />
+                  <Skeleton className="mt-1 h-3 w-32" />
                 </CardContent>
               </Card>
             ))}
@@ -343,7 +339,7 @@ export default function CustomersPage() {
           </Card>
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   return (
@@ -357,8 +353,8 @@ export default function CustomersPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setBulkAction('lock')
-                    setShowBulkDialog(true)
+                    setBulkAction('lock');
+                    setShowBulkDialog(true);
                   }}
                 >
                   <Lock className="mr-2 h-4 w-4" />
@@ -367,8 +363,8 @@ export default function CustomersPage() {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setBulkAction('unlock')
-                    setShowBulkDialog(true)
+                    setBulkAction('unlock');
+                    setShowBulkDialog(true);
                   }}
                 >
                   <Unlock className="mr-2 h-4 w-4" />
@@ -388,52 +384,44 @@ export default function CustomersPage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CheckCircle className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total}</div>
-              <p className="text-xs text-muted-foreground">
-                {stats.active} active accounts
-              </p>
+              <p className="text-muted-foreground text-xs">{stats.active} active accounts</p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Locked Accounts</CardTitle>
-              <Lock className="h-4 w-4 text-destructive" />
+              <Lock className="text-destructive h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-destructive">{stats.locked}</div>
-              <p className="text-xs text-muted-foreground">
-                Restricted from operations
-              </p>
+              <div className="text-destructive text-2xl font-bold">{stats.locked}</div>
+              <p className="text-muted-foreground text-xs">Restricted from operations</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Overdue Accounts</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-warning" />
+              <AlertTriangle className="text-warning h-4 w-4" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-warning">{stats.overdue}</div>
-              <p className="text-xs text-muted-foreground">
-                Require payment attention
-              </p>
+              <div className="text-warning text-2xl font-bold">{stats.overdue}</div>
+              <p className="text-muted-foreground text-xs">Require payment attention</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Outstanding</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <DollarSign className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">${stats.totalOutstanding.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">
-                Across all customers
-              </p>
+              <p className="text-muted-foreground text-xs">Across all customers</p>
             </CardContent>
           </Card>
         </div>
@@ -442,7 +430,12 @@ export default function CustomersPage() {
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>
-              <strong>{stats.locked} customer account{stats.locked > 1 ? 's are' : ' is'} currently locked.</strong> These customers cannot receive new inventory or release existing skids until their accounts are unlocked.
+              <strong>
+                {stats.locked} customer account{stats.locked > 1 ? 's are' : ' is'} currently
+                locked.
+              </strong>{' '}
+              These customers cannot receive new inventory or release existing skids until their
+              accounts are unlocked.
             </AlertDescription>
           </Alert>
         )}
@@ -460,15 +453,11 @@ export default function CustomersPage() {
               <Input
                 placeholder="Search customers..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 startIcon={<Search className="h-4 w-4" />}
               />
             </div>
-            <DataTable
-              columns={columns}
-              data={filteredCustomers}
-              searchKey="name"
-            />
+            <DataTable columns={columns} data={filteredCustomers} searchKey="name" />
           </CardContent>
         </Card>
 
@@ -476,12 +465,11 @@ export default function CustomersPage() {
         <Dialog open={showBulkDialog} onOpenChange={setShowBulkDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                Bulk {bulkAction === 'lock' ? 'Lock' : 'Unlock'} Accounts
-              </DialogTitle>
+              <DialogTitle>Bulk {bulkAction === 'lock' ? 'Lock' : 'Unlock'} Accounts</DialogTitle>
               <DialogDescription>
-                You are about to {bulkAction} {selectedCustomers.length} customer account{selectedCustomers.length > 1 ? 's' : ''}.
-                {bulkAction === 'lock' 
+                You are about to {bulkAction} {selectedCustomers.length} customer account
+                {selectedCustomers.length > 1 ? 's' : ''}.
+                {bulkAction === 'lock'
                   ? ' This will prevent these customers from receiving new inventory or releasing existing skids.'
                   : ' This will restore full access to warehouse operations for these customers.'}
               </DialogDescription>
@@ -494,7 +482,7 @@ export default function CustomersPage() {
                 <Input
                   id="bulk-reason"
                   value={bulkReason}
-                  onChange={(e) => setBulkReason(e.target.value)}
+                  onChange={e => setBulkReason(e.target.value)}
                   placeholder={
                     bulkAction === 'lock'
                       ? 'e.g., Overdue payments, Policy violation'
@@ -508,7 +496,7 @@ export default function CustomersPage() {
                   <strong>Selected customers:</strong>
                   <ul className="mt-2 max-h-32 overflow-y-auto text-sm">
                     {selectedCustomers.map(id => {
-                      const customer = customers.find(c => c.id === id)
+                      const customer = customers.find(c => c.id === id);
                       return customer ? (
                         <li key={id} className="flex items-center justify-between py-1">
                           <span>{customer.name}</span>
@@ -516,7 +504,7 @@ export default function CustomersPage() {
                             ${customer.totalOutstanding.toFixed(2)}
                           </Badge>
                         </li>
-                      ) : null
+                      ) : null;
                     })}
                   </ul>
                 </AlertDescription>
@@ -535,8 +523,8 @@ export default function CustomersPage() {
                 onClick={handleBulkOperation}
                 disabled={!bulkReason || bulkProcessing}
               >
-                {bulkProcessing 
-                  ? 'Processing...' 
+                {bulkProcessing
+                  ? 'Processing...'
                   : `${bulkAction === 'lock' ? 'Lock' : 'Unlock'} ${selectedCustomers.length} Account${selectedCustomers.length > 1 ? 's' : ''}`}
               </Button>
             </DialogFooter>
@@ -544,5 +532,5 @@ export default function CustomersPage() {
         </Dialog>
       </div>
     </DashboardLayout>
-  )
+  );
 }

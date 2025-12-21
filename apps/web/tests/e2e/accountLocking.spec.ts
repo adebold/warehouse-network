@@ -68,7 +68,7 @@ test.describe('Account Locking Flow', () => {
     // Step 4: Lock the account
     const customerRow = page.locator(`tr:has-text("${testCustomer.email}")`);
     await expect(customerRow).toBeVisible();
-    
+
     // Check initial status
     await expect(customerRow.locator('.badge:has-text("Active")')).toBeVisible();
 
@@ -89,7 +89,7 @@ test.describe('Account Locking Flow', () => {
     // Step 5: Verify lock details
     await customerRow.locator('button[title="View details"]').click();
     await page.waitForURL(`**/admin/customers/${testCustomer.email}`);
-    
+
     await expect(page.locator('text=Account Status: Locked')).toBeVisible();
     await expect(page.locator(`text=${lockReason}`)).toBeVisible();
 
@@ -118,10 +118,13 @@ test.describe('Account Locking Flow', () => {
     await adminPage.waitForTimeout(500);
 
     const customerRow = adminPage.locator(`tr:has-text("${testCustomer.email}")`);
-    
+
     // Lock account if not already locked
-    const isLocked = await customerRow.locator('.badge:has-text("Locked")').isVisible().catch(() => false);
-    
+    const isLocked = await customerRow
+      .locator('.badge:has-text("Locked")')
+      .isVisible()
+      .catch(() => false);
+
     if (!isLocked) {
       await customerRow.locator('button[title="Lock account"]').click();
       await adminPage.fill('textarea[name="reason"]', lockReason);
@@ -186,7 +189,7 @@ test.describe('Account Locking Flow', () => {
 
     // Select multiple customers
     const checkboxes = page.locator('input[type="checkbox"]').first(3);
-    for (let i = 0; i < await checkboxes.count(); i++) {
+    for (let i = 0; i < (await checkboxes.count()); i++) {
       await checkboxes.nth(i).check();
     }
 
@@ -251,7 +254,7 @@ test.describe('Account Locking Flow', () => {
     expect(await overdueRows.count()).toBeGreaterThanOrEqual(0);
 
     // If there are results, test individual actions
-    if (await overdueRows.count() > 0) {
+    if ((await overdueRows.count()) > 0) {
       // Test send reminder
       const firstRow = overdueRows.first();
       await firstRow.locator('button[title="Send reminder"]').click();
@@ -266,7 +269,7 @@ test.describe('Account Locking Flow', () => {
     await page.goto('/admin/payments/overdue');
     await page.click('button:has-text("Export Report")');
     await page.click('text=Export as CSV');
-    
+
     // Verify download started (in real scenario)
     // For E2E, we'd check that the download was triggered
   });
@@ -289,9 +292,12 @@ test.describe('Account Locking Flow', () => {
     await adminPage.waitForTimeout(500);
 
     const customerRow = adminPage.locator(`tr:has-text("${testCustomer.email}")`);
-    
+
     // Unlock first if locked
-    const isLocked = await customerRow.locator('.badge:has-text("Locked")').isVisible().catch(() => false);
+    const isLocked = await customerRow
+      .locator('.badge:has-text("Locked")')
+      .isVisible()
+      .catch(() => false);
     if (isLocked) {
       await customerRow.locator('button[title="Unlock account"]').click();
       await adminPage.click('button:has-text("Confirm Unlock")');
@@ -305,7 +311,7 @@ test.describe('Account Locking Flow', () => {
 
     // Customer page should show lock warning after refresh or navigation
     await customerPage.reload();
-    
+
     // Should see the lock warning
     await expect(customerPage.locator('.alert-error')).toBeVisible({ timeout: 10000 });
     await expect(customerPage.locator('text=Account Access Restricted')).toBeVisible();
@@ -320,7 +326,7 @@ test.describe('Account Locking Flow', () => {
 test.describe('Edge Cases and Error Scenarios', () => {
   test('Handles network errors gracefully', async ({ page, context }) => {
     await loginAsAdmin(page);
-    
+
     // Intercept network requests to simulate failure
     await context.route('**/api/admin/customers/*/lock', route => {
       route.abort('failed');
@@ -342,7 +348,7 @@ test.describe('Edge Cases and Error Scenarios', () => {
   test('Validates required fields', async ({ page }) => {
     await loginAsAdmin(page);
     await page.goto('/admin/customers');
-    
+
     await page.fill('input[placeholder*="Search"]', testCustomer.email);
     await page.waitForTimeout(500);
 
@@ -365,9 +371,12 @@ test.describe('Edge Cases and Error Scenarios', () => {
     await page.waitForTimeout(500);
 
     const customerRow = page.locator(`tr:has-text("${testCustomer.email}")`);
-    
+
     // If not locked, lock it first
-    const isLocked = await customerRow.locator('.badge:has-text("Locked")').isVisible().catch(() => false);
+    const isLocked = await customerRow
+      .locator('.badge:has-text("Locked")')
+      .isVisible()
+      .catch(() => false);
     if (!isLocked) {
       await customerRow.locator('button[title="Lock account"]').click();
       await page.fill('textarea[name="reason"]', 'Initial lock');

@@ -1,6 +1,7 @@
 # 🚀 Vercel Deployment Guide
 
 ## Prerequisites Completed ✅
+
 - Vercel CLI installed globally
 - Environment variables configured
 - vercel.json created
@@ -15,6 +16,7 @@ vercel
 ```
 
 ### First-time deployment prompts:
+
 1. **Set up and deploy?** → Yes
 2. **Which scope?** → Select your account or create one
 3. **Link to existing project?** → No (create new)
@@ -37,6 +39,7 @@ NEXTAUTH_URL=https://your-project.vercel.app
 ```
 
 ### Generate NEXTAUTH_SECRET:
+
 ```bash
 openssl rand -base64 32
 ```
@@ -44,11 +47,13 @@ openssl rand -base64 32
 ## Step 3: Database Options
 
 ### Option A: Use Vercel Postgres (Recommended)
+
 1. Go to Storage tab in Vercel dashboard
 2. Create a new Postgres database
 3. It will automatically set DATABASE_URL
 
 ### Option B: Use External Database
+
 - Supabase: https://supabase.com (free tier available)
 - Neon: https://neon.tech (serverless Postgres)
 - PlanetScale: https://planetscale.com (MySQL)
@@ -104,6 +109,7 @@ vercel rm [deployment-url]
 ## Troubleshooting
 
 If deployment fails:
+
 1. Check build logs in Vercel dashboard
 2. Ensure all dependencies are in package.json
 3. Verify environment variables are set

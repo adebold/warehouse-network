@@ -111,8 +111,26 @@ const tokens = {
   },
   typography: {
     fonts: {
-      sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif'],
-      mono: ['JetBrains Mono', 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+      sans: [
+        'Inter',
+        'system-ui',
+        '-apple-system',
+        'BlinkMacSystemFont',
+        'Segoe UI',
+        'Roboto',
+        'Helvetica Neue',
+        'Arial',
+        'sans-serif',
+      ],
+      mono: [
+        'JetBrains Mono',
+        'Menlo',
+        'Monaco',
+        'Consolas',
+        'Liberation Mono',
+        'Courier New',
+        'monospace',
+      ],
     },
     sizes: {
       xs: ['0.75rem', { lineHeight: '1rem' }],
@@ -187,6 +205,6 @@ const tokens = {
     50: '50',
     auto: 'auto',
   },
-}
+};
 
-module.exports = { tokens }
+module.exports = { tokens };

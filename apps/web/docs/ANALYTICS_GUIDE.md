@@ -18,6 +18,7 @@ This platform implements comprehensive Google Analytics 4 (GA4) tracking with co
 ### 2. Conversion Goals Setup
 
 In GA4, configure these conversion events:
+
 - `partner_application_submit` - When partner form is submitted
 - `partner_signup_complete` - When partner successfully signs up
 - `login_success` - Successful user login
@@ -27,17 +28,20 @@ In GA4, configure these conversion events:
 ## Tracking Implementation
 
 ### Page Views
+
 Automatically tracked on route changes with enhanced measurement.
 
 ### Events Tracked
 
 #### User Journey Events
+
 - **Search**: Query terms, filters, result clicks
 - **Form Interactions**: Field focus, abandonment, completion
 - **CTA Clicks**: Button name, location, context
 - **Engagement**: Scroll depth, time on page, bounce rate
 
 #### E-commerce Events
+
 - **view_item**: Warehouse listing views
 - **add_to_cart**: Adding to comparison
 - **begin_checkout**: Starting inquiry process
@@ -53,40 +57,44 @@ Automatically tracked on route changes with enhanced measurement.
 ## Usage Examples
 
 ### Track Custom Events
+
 ```typescript
-import { logEvent } from '@/lib/analytics'
+import { logEvent } from '@/lib/analytics';
 
 // Track a custom action
-logEvent('Video', 'play', 'warehouse_tour', 30) // 30 second video
+logEvent('Video', 'play', 'warehouse_tour', 30); // 30 second video
 ```
 
 ### Track Conversions
+
 ```typescript
-import { trackConversion } from '@/lib/analytics'
+import { trackConversion } from '@/lib/analytics';
 
 // Track high-value conversion
 trackConversion('warehouse_booking', {
   value: 5000,
   warehouse_id: 'WH123',
-  duration_months: 6
-})
+  duration_months: 6,
+});
 ```
 
 ### Form Tracking
+
 ```typescript
-const { formTracking } = useAnalytics()
+const { formTracking } = useAnalytics();
 
 // Start tracking
-formTracking.start('contact_form')
+formTracking.start('contact_form');
 
 // Field interaction
-formTracking.field('contact_form', 'email')
+formTracking.field('contact_form', 'email');
 
 // Submission
-formTracking.submit('contact_form')
+formTracking.submit('contact_form');
 ```
 
 ### CTA Performance
+
 ```typescript
 const { trackCTA } = useAnalytics()
 
@@ -98,60 +106,67 @@ const { trackCTA } = useAnalytics()
 ## Conversion Optimization Tips
 
 ### 1. A/B Testing
+
 ```typescript
-import { trackExperiment } from '@/lib/analytics'
+import { trackExperiment } from '@/lib/analytics';
 
 // Track variant exposure
-trackExperiment('hero_cta_test', variantA ? 'control' : 'variant_b')
+trackExperiment('hero_cta_test', variantA ? 'control' : 'variant_b');
 ```
 
 ### 2. Enhanced E-commerce
+
 - Track product impressions in search results
 - Monitor cart abandonment points
 - Analyze checkout funnel drop-offs
 
 ### 3. User Segmentation
+
 ```typescript
-import { setUserProperties } from '@/lib/analytics'
+import { setUserProperties } from '@/lib/analytics';
 
 // Segment users
 setUserProperties({
   account_type: 'premium',
   industry: 'logistics',
-  company_size: 'enterprise'
-})
+  company_size: 'enterprise',
+});
 ```
 
 ## Performance Monitoring
 
 ### Core Web Vitals
+
 ```typescript
-import { trackTiming } from '@/lib/analytics'
+import { trackTiming } from '@/lib/analytics';
 
 // Track page load performance
-trackTiming('page_load', 'warehouse_search', 1234) // milliseconds
+trackTiming('page_load', 'warehouse_search', 1234); // milliseconds
 ```
 
 ### Error Tracking
+
 ```typescript
-import { trackException } from '@/lib/analytics'
+import { trackException } from '@/lib/analytics';
 
 try {
   // Your code
 } catch (error) {
-  trackException(error.message, false) // non-fatal
+  trackException(error.message, false); // non-fatal
 }
 ```
 
 ## Reports & Dashboards
 
 ### Key Reports in GA4:
+
 1. **Acquisition**: Traffic sources, campaign performance
 2. **Engagement**: Pages, events, conversions
 3. **Monetization**: Revenue, conversion value
 4. **Retention**: User return rate, lifetime value
 
 ### Custom Reports:
+
 - Partner acquisition funnel
 - Search to booking conversion
 - Form abandonment analysis
@@ -160,37 +175,43 @@ try {
 ## Privacy & Compliance
 
 ### GDPR Compliance
+
 - IP anonymization available
 - Cookie consent implementation
 - Data retention controls
 - User data deletion requests
 
 ### Cookie Settings
+
 ```javascript
 gtag('config', 'GA_MEASUREMENT_ID', {
-  'cookie_expires': 63072000, // 2 years
-  'cookie_prefix': 'wn_',
-  'cookie_domain': 'auto',
-  'cookie_flags': 'SameSite=None;Secure'
+  cookie_expires: 63072000, // 2 years
+  cookie_prefix: 'wn_',
+  cookie_domain: 'auto',
+  cookie_flags: 'SameSite=None;Secure',
 });
 ```
 
 ## Debugging
 
 ### Enable Debug Mode
+
 Set in development:
+
 ```
 NODE_ENV=development
 ```
 
 ### GA4 DebugView
+
 1. Install GA Debugger Chrome extension
 2. View real-time events in GA4 > DebugView
 
 ### Console Logging
+
 ```typescript
 if (process.env.NODE_ENV === 'development') {
-  console.log('Analytics Event:', { category, action, label, value })
+  console.log('Analytics Event:', { category, action, label, value });
 }
 ```
 

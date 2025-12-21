@@ -9,21 +9,25 @@
 ## Direct Console Links
 
 ### 1. View Your Warehouse Project
+
 ```
 https://console.cloud.google.com/home/dashboard?project=warehouse-network-20251220
 ```
 
 ### 2. Cloud Run Service (Your App)
+
 ```
 https://console.cloud.google.com/run?project=warehouse-network-20251220
 ```
 
 ### 3. Organization Policy (To Enable Public Access)
+
 ```
 https://console.cloud.google.com/iam-admin/orgpolicies/iam-allowedPolicyMemberDomains?organizationId=266590371030
 ```
 
 ### 4. IAM & Admin
+
 ```
 https://console.cloud.google.com/iam-admin/iam?project=warehouse-network-20251220
 ```
@@ -48,6 +52,7 @@ https://console.cloud.google.com/iam-admin/iam?project=warehouse-network-2025122
 ## Quick CLI Check
 
 To verify you can see the project:
+
 ```bash
 gcloud projects describe warehouse-network-20251220
 ```

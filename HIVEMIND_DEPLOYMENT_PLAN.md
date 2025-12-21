@@ -7,12 +7,14 @@ This deployment strategy solves the Mac ARM64 to Linux AMD64 cross-compilation i
 ## 🔍 Problem Analysis
 
 ### Current Issues:
+
 1. **Architecture Mismatch**: Development on Mac ARM64 (M1/M2) vs deployment on Linux AMD64
 2. **Build Memory Constraints**: Next.js build process consuming excessive memory
 3. **Docker Buildx Failures**: Platform emulation causing timeouts
 4. **Complex Dependencies**: bcryptjs and native modules failing cross-compilation
 
 ### Root Causes:
+
 - Single-stage Dockerfile attempting to build everything in one layer
 - No build caching strategy
 - Missing platform-specific optimizations
@@ -164,6 +166,7 @@ module.exports = {
 ### Phase 1: Immediate Deployment (Today)
 
 1. **Create Production Dockerfile**
+
    ```bash
    cd apps/web
    cp Dockerfile Dockerfile.production
@@ -171,12 +174,13 @@ module.exports = {
    ```
 
 2. **Deploy via Cloud Shell**
+
    ```bash
    # Use Cloud Shell for immediate deployment
    gcloud cloud-shell ssh
    git clone https://github.com/adebold/warehouse-network.git
    cd warehouse-network/apps/web
-   
+
    # Build and deploy
    gcloud builds submit \
      --config cloudbuild.yaml \
@@ -214,11 +218,13 @@ module.exports = {
 ## 🛡️ Risk Mitigation
 
 ### Build Failure Mitigation
+
 1. **Fallback Strategy**: Pre-built base images
 2. **Local Testing**: Docker Desktop with `--platform` flag
 3. **Progressive Rollout**: Canary deployments
 
 ### Performance Optimization
+
 1. **CDN Integration**: Cloud CDN for static assets
 2. **Image Optimization**: Next.js Image component with Cloud Storage
 3. **Database Pooling**: Cloud SQL Proxy with connection pooling

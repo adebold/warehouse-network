@@ -3,31 +3,31 @@
 const securityHeaders = [
   {
     key: 'X-DNS-Prefetch-Control',
-    value: 'on'
+    value: 'on',
   },
   {
     key: 'Strict-Transport-Security',
-    value: 'max-age=63072000; includeSubDomains; preload'
+    value: 'max-age=63072000; includeSubDomains; preload',
   },
   {
     key: 'X-XSS-Protection',
-    value: '1; mode=block'
+    value: '1; mode=block',
   },
   {
     key: 'X-Frame-Options',
-    value: 'DENY'
+    value: 'DENY',
   },
   {
     key: 'X-Content-Type-Options',
-    value: 'nosniff'
+    value: 'nosniff',
   },
   {
     key: 'Referrer-Policy',
-    value: 'origin-when-cross-origin'
+    value: 'origin-when-cross-origin',
   },
   {
     key: 'Permissions-Policy',
-    value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()'
+    value: 'camera=(), microphone=(), geolocation=(), interest-cohort=()',
   },
   {
     key: 'Content-Security-Policy',
@@ -44,9 +44,11 @@ const securityHeaders = [
       form-action 'self';
       frame-ancestors 'none';
       upgrade-insecure-requests;
-    `.replace(/\s{2,}/g, ' ').trim()
-  }
-]
+    `
+      .replace(/\s{2,}/g, ' ')
+      .trim(),
+  },
+];
 
 const nextConfig = {
   reactStrictMode: true,
@@ -70,23 +72,23 @@ const nextConfig = {
         net: false,
         tls: false,
         crypto: false,
-      }
+      };
     }
-    
+
     // Ignore specific problematic modules
     config.plugins.push(
       new webpack.IgnorePlugin({
         resourceRegExp: /^(mock-aws-s3|aws-sdk|nock)$/,
       })
-    )
-    
+    );
+
     // Exclude HTML files from being processed by webpack
     config.module.rules.push({
       test: /\.html$/,
-      loader: 'ignore-loader'
-    })
-    
-    return config
+      loader: 'ignore-loader',
+    });
+
+    return config;
   },
   async headers() {
     return [
@@ -95,8 +97,8 @@ const nextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
-    ]
+    ];
   },
-}
+};
 
-module.exports = nextConfig
+module.exports = nextConfig;

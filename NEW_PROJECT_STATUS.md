@@ -59,7 +59,7 @@ If the deployment is taking too long:
 # Check Cloud Build logs
 gcloud builds list --project=warehouse-adebold-202512191452 --limit=5
 
-# Check Cloud Run logs  
+# Check Cloud Run logs
 gcloud run services logs read warehouse-app \
   --region us-central1 \
   --project warehouse-adebold-202512191452

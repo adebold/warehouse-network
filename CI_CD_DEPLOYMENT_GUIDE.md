@@ -13,15 +13,18 @@ Your organization has policies preventing service account key creation, which bl
 ## Solution: Semi-Automated CI/CD
 
 ### 1. GitHub Actions (Automated Part)
+
 - ✅ Runs tests
 - ✅ Builds Docker images
 - ✅ Validates code quality
 - ✅ Creates deployment artifacts
 
 ### 2. Manual Deployment Trigger
+
 Since we can't authenticate GitHub Actions with GCP, we use a hybrid approach:
 
 #### Option A: Cloud Shell Deployment (Recommended)
+
 ```bash
 # In Google Cloud Shell (already authenticated)
 git clone https://github.com/adebold/warehouse-network.git
@@ -36,6 +39,7 @@ gcloud run deploy warehouse-frontend \
 ```
 
 #### Option B: Local Deployment with gcloud CLI
+
 ```bash
 # On your Mac (already authenticated)
 cd /Users/adebold/Documents/GitHub/warehouse-network/apps/web
@@ -66,6 +70,7 @@ gcloud run deploy warehouse-frontend \
 To fully automate deployments, ask your GCP admin to:
 
 1. Create Workload Identity Pool:
+
 ```bash
 gcloud iam workload-identity-pools create github-pool \
   --location="global" \

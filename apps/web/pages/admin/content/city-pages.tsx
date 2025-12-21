@@ -1,53 +1,53 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { CityPage } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../../pages/api/auth/[...nextauth]'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Checkbox } from '@/components/ui/checkbox'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Globe, Edit, Trash2, Plus } from 'lucide-react'
-import Link from 'next/link'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { CityPage } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../../pages/api/auth/[...nextauth]';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, Globe, Edit, Trash2, Plus } from 'lucide-react';
+import Link from 'next/link';
 
 interface CityPagesProps {
-  cityPages: CityPage[]
+  cityPages: CityPage[];
 }
 
 const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     city: '',
     region: '',
     h1: '',
     introContent: '',
     isActive: false,
-  })
+  });
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    const checked = (e.target as HTMLInputElement).checked
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData(prevState => ({
       ...prevState,
       [name]: type === 'checkbox' ? checked : value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/admin/content/city-pages', {
@@ -56,23 +56,23 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        router.replace(router.asPath)
+        router.replace(router.asPath);
       } else {
-        const errorData = await response.json()
-        console.error('Failed to create city page', errorData)
-        alert('Failed to create city page')
+        const errorData = await response.json();
+        console.error('Failed to create city page', errorData);
+        alert('Failed to create city page');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while creating the city page.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while creating the city page.');
     }
-  }
+  };
 
   if (status === 'loading' || !session || session.user.role !== 'SUPER_ADMIN') {
-    return <div className="flex items-center justify-center min-h-screen">Loading...</div>
+    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
 
   return (
@@ -80,8 +80,11 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/admin/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Link
+            href="/admin/dashboard"
+            className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Link>
           <h1 className="text-3xl font-bold tracking-tight">City Pages Management</h1>
@@ -98,8 +101,8 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
           </CardHeader>
           <CardContent>
             {cityPages.length === 0 ? (
-              <div className="text-center py-8">
-                <Globe className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <div className="py-8 text-center">
+                <Globe className="mx-auto mb-4 h-12 w-12 text-gray-400" />
                 <p className="text-gray-600">No city pages created yet</p>
               </div>
             ) : (
@@ -107,30 +110,34 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 px-4">City</th>
-                      <th className="text-left py-3 px-4">Region</th>
-                      <th className="text-left py-3 px-4">H1 Title</th>
-                      <th className="text-center py-3 px-4">Status</th>
-                      <th className="text-right py-3 px-4">Actions</th>
+                      <th className="px-4 py-3 text-left">City</th>
+                      <th className="px-4 py-3 text-left">Region</th>
+                      <th className="px-4 py-3 text-left">H1 Title</th>
+                      <th className="px-4 py-3 text-center">Status</th>
+                      <th className="px-4 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {cityPages.map(page => (
                       <tr key={page.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium">{page.city}</td>
-                        <td className="py-3 px-4">{page.region}</td>
-                        <td className="py-3 px-4 text-gray-600">{page.h1}</td>
-                        <td className="py-3 px-4 text-center">
+                        <td className="px-4 py-3 font-medium">{page.city}</td>
+                        <td className="px-4 py-3">{page.region}</td>
+                        <td className="px-4 py-3 text-gray-600">{page.h1}</td>
+                        <td className="px-4 py-3 text-center">
                           <Badge variant={page.isActive ? 'default' : 'secondary'}>
                             {page.isActive ? 'Active' : 'Inactive'}
                           </Badge>
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="px-4 py-3">
                           <div className="flex justify-end gap-2">
                             <Button size="sm" variant="ghost">
                               <Edit className="h-4 w-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="text-red-600 hover:text-red-700">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-600 hover:text-red-700"
+                            >
                               <Trash2 className="h-4 w-4" />
                             </Button>
                           </div>
@@ -152,7 +159,7 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="city">City Name</Label>
                   <Input
@@ -206,24 +213,32 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
                 <Checkbox
                   id="isActive"
                   checked={formData.isActive}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isActive: checked as boolean }))}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({ ...prev, isActive: checked as boolean }))
+                  }
                 />
                 <Label htmlFor="isActive" className="cursor-pointer">
                   Make page active immediately
                 </Label>
               </div>
               <div className="flex justify-end gap-4">
-                <Button type="button" variant="outline" onClick={() => setFormData({
-                  city: '',
-                  region: '',
-                  h1: '',
-                  introContent: '',
-                  isActive: false,
-                })}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() =>
+                    setFormData({
+                      city: '',
+                      region: '',
+                      h1: '',
+                      introContent: '',
+                      isActive: false,
+                    })
+                  }
+                >
                   Clear Form
                 </Button>
                 <Button type="submit">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Create City Page
                 </Button>
               </div>
@@ -232,23 +247,23 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
         </Card>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session || session.user?.role !== 'SUPER_ADMIN') {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
-  const cityPages = await prisma.cityPage.findMany()
+  const cityPages = await prisma.cityPage.findMany();
 
   return {
     props: {
       cityPages: JSON.parse(JSON.stringify(cityPages)),
     },
-  }
-}
+  };
+};
 
-export default CityPages
+export default CityPages;

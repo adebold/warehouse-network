@@ -1,83 +1,89 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { AppLayout } from '@/components/layouts/AppLayout'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { AccountLockWarning } from '@/components/ui/account-lock-warning'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Package, Truck, AlertTriangle, Lock } from 'lucide-react'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { AppLayout } from '@/components/layouts/AppLayout';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AccountLockWarning } from '@/components/ui/account-lock-warning';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Package, Truck, AlertTriangle, Lock } from 'lucide-react';
 
 interface SkidData {
-  id: string
-  skidCode: string
-  trackingNumber: string
-  status: string
-  weight: number
+  id: string;
+  skidCode: string;
+  trackingNumber: string;
+  status: string;
+  weight: number;
   location: {
-    name: string
-  }
+    name: string;
+  };
 }
 
 interface CustomerData {
-  id: string
-  name: string
-  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED'
-  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT'
-  lockReason?: string
+  id: string;
+  name: string;
+  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT';
+  lockReason?: string;
 }
 
 export default function ReleaseRequestPage() {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const [skids, setSkids] = useState<SkidData[]>([])
-  const [customer, setCustomer] = useState<CustomerData | null>(null)
-  const [selectedSkids, setSelectedSkids] = useState<string[]>([])
-  const [deliveryAddress, setDeliveryAddress] = useState('')
-  const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [skids, setSkids] = useState<SkidData[]>([]);
+  const [customer, setCustomer] = useState<CustomerData | null>(null);
+  const [selectedSkids, setSelectedSkids] = useState<string[]>([]);
+  const [deliveryAddress, setDeliveryAddress] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (session?.user?.customerId) {
-      fetchData()
+      fetchData();
     }
-  }, [session])
+  }, [session]);
 
   const fetchData = async () => {
     try {
       const [skidsRes, customerRes] = await Promise.all([
         fetch('/api/customer/skids'),
-        fetch('/api/customer/account')
-      ])
+        fetch('/api/customer/account'),
+      ]);
 
       if (skidsRes.ok && customerRes.ok) {
-        const skidsData = await skidsRes.json()
-        const customerData = await customerRes.json()
-        
-        setSkids(skidsData.filter((s: SkidData) => s.status === 'STORED'))
-        setCustomer(customerData)
+        const skidsData = await skidsRes.json();
+        const customerData = await customerRes.json();
+
+        setSkids(skidsData.filter((s: SkidData) => s.status === 'STORED'));
+        setCustomer(customerData);
       }
     } catch (err) {
-      setError('Failed to load data')
+      setError('Failed to load data');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async () => {
     if (selectedSkids.length === 0 || !deliveryAddress) {
-      setError('Please select at least one skid and provide a delivery address')
-      return
+      setError('Please select at least one skid and provide a delivery address');
+      return;
     }
 
-    setSubmitting(true)
-    setError(null)
+    setSubmitting(true);
+    setError(null);
 
     try {
       const response = await fetch('/api/customer/release-request', {
@@ -86,27 +92,27 @@ export default function ReleaseRequestPage() {
         body: JSON.stringify({
           skidIds: selectedSkids,
           deliveryAddress,
-          customerId: session?.user?.customerId
-        })
-      })
+          customerId: session?.user?.customerId,
+        }),
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!response.ok) {
         if (data.error === 'ACCOUNT_LOCKED') {
-          setError(data.message)
+          setError(data.message);
         } else {
-          setError(data.message || 'Failed to create release request')
+          setError(data.message || 'Failed to create release request');
         }
       } else {
-        router.push('/app/release-requests')
+        router.push('/app/release-requests');
       }
     } catch (err) {
-      setError('An error occurred while creating the release request')
+      setError('An error occurred while creating the release request');
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -128,10 +134,10 @@ export default function ReleaseRequestPage() {
           </Card>
         </div>
       </AppLayout>
-    )
+    );
   }
 
-  const canCreateRelease = customer?.accountStatus !== 'LOCKED'
+  const canCreateRelease = customer?.accountStatus !== 'LOCKED';
 
   return (
     <AppLayout>
@@ -163,33 +169,29 @@ export default function ReleaseRequestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Available Skids</CardTitle>
-            <CardDescription>
-              Select the skids you want to release from inventory
-            </CardDescription>
+            <CardDescription>Select the skids you want to release from inventory</CardDescription>
           </CardHeader>
           <CardContent>
             {skids.length === 0 ? (
-              <div className="text-center py-8">
-                <Package className="mx-auto h-12 w-12 text-muted-foreground" />
-                <p className="mt-4 text-sm text-muted-foreground">
-                  No skids available for release
-                </p>
+              <div className="py-8 text-center">
+                <Package className="text-muted-foreground mx-auto h-12 w-12" />
+                <p className="text-muted-foreground mt-4 text-sm">No skids available for release</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {skids.map((skid) => (
+                {skids.map(skid => (
                   <div
                     key={skid.id}
-                    className={`flex items-center space-x-4 p-4 border rounded-lg ${
+                    className={`flex items-center space-x-4 rounded-lg border p-4 ${
                       selectedSkids.includes(skid.id) ? 'bg-accent' : ''
-                    } ${!canCreateRelease ? 'opacity-50' : 'cursor-pointer hover:bg-accent/50'}`}
+                    } ${!canCreateRelease ? 'opacity-50' : 'hover:bg-accent/50 cursor-pointer'}`}
                     onClick={() => {
-                      if (!canCreateRelease) return
+                      if (!canCreateRelease) return;
                       setSelectedSkids(prev =>
                         prev.includes(skid.id)
                           ? prev.filter(id => id !== skid.id)
                           : [...prev, skid.id]
-                      )
+                      );
                     }}
                   >
                     <input
@@ -204,7 +206,7 @@ export default function ReleaseRequestPage() {
                         <p className="font-medium">{skid.skidCode}</p>
                         <Badge variant="outline">{skid.trackingNumber}</Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {skid.weight} kg • Location: {skid.location.name}
                       </p>
                     </div>
@@ -219,9 +221,7 @@ export default function ReleaseRequestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Delivery Details</CardTitle>
-            <CardDescription>
-              Provide the delivery address for the selected skids
-            </CardDescription>
+            <CardDescription>Provide the delivery address for the selected skids</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -230,28 +230,30 @@ export default function ReleaseRequestPage() {
                 <Input
                   id="address"
                   value={deliveryAddress}
-                  onChange={(e) => setDeliveryAddress(e.target.value)}
+                  onChange={e => setDeliveryAddress(e.target.value)}
                   placeholder="Enter the complete delivery address"
                   disabled={!canCreateRelease}
                 />
               </div>
-              
+
               <div className="flex items-center justify-between pt-4">
                 <div>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-muted-foreground text-sm">
                     Selected skids: {selectedSkids.length}
                   </p>
                 </div>
                 <div className="space-x-2">
-                  <Button
-                    variant="outline"
-                    onClick={() => router.push('/app/inventory')}
-                  >
+                  <Button variant="outline" onClick={() => router.push('/app/inventory')}>
                     Cancel
                   </Button>
                   <Button
                     onClick={handleSubmit}
-                    disabled={!canCreateRelease || selectedSkids.length === 0 || !deliveryAddress || submitting}
+                    disabled={
+                      !canCreateRelease ||
+                      selectedSkids.length === 0 ||
+                      !deliveryAddress ||
+                      submitting
+                    }
                   >
                     {submitting ? (
                       'Creating...'
@@ -269,5 +271,5 @@ export default function ReleaseRequestPage() {
         </Card>
       </div>
     </AppLayout>
-  )
+  );
 }

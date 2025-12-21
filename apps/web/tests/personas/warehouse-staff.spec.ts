@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Warehouse Staff Persona', () => {
-  test('should create a receiving order, generate skids, and perform a skid move', async ({ page }) => {
+  test('should create a receiving order, generate skids, and perform a skid move', async ({
+    page,
+  }) => {
     // Access /operator/mobile/receive and create a receiving order
     await page.goto('/operator/mobile/receive');
     await expect(page.locator('h1')).toHaveText('Receive Skids');
@@ -12,7 +14,7 @@ test.describe('Warehouse Staff Persona', () => {
     await page.getByLabel('Expected Skid Count').fill('2');
     await page.getByLabel('Notes (damage, exceptions)').fill('Fragile items');
     await page.getByRole('button', { name: 'Create Receiving Order' }).click();
-    
+
     // Wait for redirection to receiving order details page
     await page.waitForURL(/\/operator\/mobile\/receiving-orders\/.+/);
     await expect(page.locator('h1')).toContainText('Receiving Order: RO-');
@@ -30,18 +32,18 @@ test.describe('Warehouse Staff Persona', () => {
     await expect(page.locator('h1')).toHaveText('Move Skid');
 
     // Simulate scanning a Skid QR Code
-    await page.evaluate((skidCode) => {
-        (window as any).handleScan(skidCode);
+    await page.evaluate(skidCode => {
+      (window as any).handleScan(skidCode);
     }, firstSkidCode);
-    
+
     await expect(page.locator('p', { hasText: `Skid: ${firstSkidCode}` })).toBeVisible();
     await expect(page.locator('p', { hasText: 'Scan a Location QR Code' })).toBeVisible();
 
     // Simulate scanning a Location QR Code
     await page.evaluate(() => {
-        (window as any).handleScan('TEST-LOC-A1'); // Simulate scan for a location
+      (window as any).handleScan('TEST-LOC-A1'); // Simulate scan for a location
     });
-    
+
     await expect(page.locator('p', { hasText: 'Location: TEST-LOC-A1' })).toBeVisible();
     await page.getByRole('button', { name: 'Confirm' }).click();
     await expect(page.locator('text=Skid moved successfully')).toBeVisible();

@@ -1,10 +1,11 @@
 # 🚀 Warehouse Network - Final Deployment Status
 
 ## Current Build Progress
+
 **Build ID**: `16852e9e-bf1f-423a-a7b9-8274b4540239`  
 **Status**: BUILDING  
 **Project**: `easyreno-poc-202512161545`  
-**Service**: `warehouse-app-mesh`  
+**Service**: `warehouse-app-mesh`
 
 ## 🔧 Issues Fixed by Hivemind
 
@@ -37,15 +38,17 @@
 ### Once Build Completes:
 
 1. **Check Build Status**:
+
    ```bash
    gcloud builds describe 16852e9e-bf1f-423a-a7b9-8274b4540239 --project=easyreno-poc-202512161545
    ```
 
 2. **Access with Authentication**:
+
    ```bash
    # Get fresh token
    TOKEN=$(gcloud auth print-identity-token)
-   
+
    # Access the app
    curl -H "Authorization: Bearer $TOKEN" https://warehouse-app-mesh-3yuo5fgbja-uc.a.run.app
    ```
@@ -69,24 +72,24 @@ const TARGET = 'warehouse-app-mesh-3yuo5fgbja-uc.a.run.app';
 app.use('*', (req, res) => {
   exec('gcloud auth print-identity-token', (err, token) => {
     if (err) return res.status(500).send('Auth failed');
-    
+
     const options = {
       hostname: TARGET,
       path: req.originalUrl,
       method: req.method,
       headers: {
         ...req.headers,
-        'Authorization': `Bearer ${token.trim()}`,
-        'host': TARGET
-      }
+        Authorization: `Bearer ${token.trim()}`,
+        host: TARGET,
+      },
     };
-    
-    const proxy = https.request(options, (response) => {
+
+    const proxy = https.request(options, response => {
       res.status(response.statusCode);
       Object.entries(response.headers).forEach(([k, v]) => res.setHeader(k, v));
       response.pipe(res);
     });
-    
+
     req.pipe(proxy);
   });
 });
@@ -120,6 +123,7 @@ gcloud run services logs read warehouse-app-mesh --region=us-central1 --project=
 - **Cloud Infrastructure**: Auto-scaling, scale-to-zero cost optimization
 
 ## 💰 Cost Estimate
+
 - Cloud Run: ~$5-15/month (scale-to-zero)
 - Cloud SQL (when added): ~$7-10/month
 - Total: ~$15-25/month
@@ -127,11 +131,13 @@ gcloud run services logs read warehouse-app-mesh --region=us-central1 --project=
 ## 🎯 Next Steps After Deployment
 
 1. **Database Setup**:
+
    ```bash
    gcloud sql instances create warehouse-db --tier=db-f1-micro --region=us-central1
    ```
 
 2. **Update Environment**:
+
    ```bash
    gcloud run services update warehouse-app-mesh --region=us-central1 \
      --update-env-vars DATABASE_URL=postgresql://...

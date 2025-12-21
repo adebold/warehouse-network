@@ -1,30 +1,30 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import type { Dispute, Skid } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import type { Dispute, Skid } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface DisputeDetailsProps {
-  dispute: Dispute & { skids: { skid: Skid }[] }
+  dispute: Dispute & { skids: { skid: Skid }[] };
 }
 
 const DisputeDetails: NextPage<DisputeDetailsProps> = ({ dispute }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
     if (session?.user?.role !== 'CUSTOMER_ADMIN' && session?.user?.role !== 'CUSTOMER_USER') {
-      router.push('/unauthorized')
+      router.push('/unauthorized');
     }
-  }, [session, status, router])
+  }, [session, status, router]);
 
   if (status === 'loading' || !session) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -45,15 +45,18 @@ const DisputeDetails: NextPage<DisputeDetailsProps> = ({ dispute }) => {
         ))}
       </ul>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
-  const { id } = context.params || {}
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  const { id } = context.params || {};
 
-  if (!session || (session.user?.role !== 'CUSTOMER_ADMIN' && session.user?.role !== 'CUSTOMER_USER')) {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+  if (
+    !session ||
+    (session.user?.role !== 'CUSTOMER_ADMIN' && session.user?.role !== 'CUSTOMER_USER')
+  ) {
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
   const dispute = await prisma.dispute.findUnique({
@@ -61,17 +64,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     include: {
       skids: { include: { skid: true } },
     },
-  })
+  });
 
   if (!dispute || dispute.customerId !== session.user.customerId) {
-    return { notFound: true }
+    return { notFound: true };
   }
 
   return {
     props: {
       dispute: JSON.parse(JSON.stringify(dispute)),
     },
-  }
-}
+  };
+};
 
-export default DisputeDetails
+export default DisputeDetails;

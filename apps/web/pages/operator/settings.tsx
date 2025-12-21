@@ -1,37 +1,37 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { Operator } from '@prisma/client'
-import prisma from '../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { Operator } from '@prisma/client';
+import prisma from '../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]';
 
 interface OperatorSettingsProps {
-  operator: Operator
+  operator: Operator;
 }
 
 const OperatorSettings: NextPage<OperatorSettingsProps> = ({ operator }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [formData, setFormData] = useState(operator)
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [formData, setFormData] = useState(operator);
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
       [name]: value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/operator/profile', {
@@ -40,23 +40,23 @@ const OperatorSettings: NextPage<OperatorSettingsProps> = ({ operator }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        alert('Profile updated successfully')
+        alert('Profile updated successfully');
       } else {
-        const errorData = await response.json()
-        console.error('Failed to update profile', errorData)
-        alert('Failed to update profile')
+        const errorData = await response.json();
+        console.error('Failed to update profile', errorData);
+        alert('Failed to update profile');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while updating the profile.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while updating the profile.');
     }
-  }
+  };
 
   if (status === 'loading' || !session || session.user.role !== 'OPERATOR_ADMIN') {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -124,12 +124,13 @@ const OperatorSettings: NextPage<OperatorSettingsProps> = ({ operator }) => {
           />
         </div>
         <button type="submit">Save Changes</button>
-      </form>    </div>
-  )
-}
+      </form>{' '}
+    </div>
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session || session.user?.role !== 'OPERATOR_ADMIN') {
     return {
@@ -137,29 +138,29 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         destination: '/unauthorized',
         permanent: false,
       },
-    }
+    };
   }
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email ?? '' },
     include: { operatorUser: true },
-  })
+  });
 
   if (!user?.operatorUser) {
     return {
       notFound: true,
-    }
+    };
   }
 
   const operator = await prisma.operator.findUnique({
     where: { id: user.operatorUser.operatorId },
-  })
+  });
 
   return {
     props: {
       operator: JSON.parse(JSON.stringify(operator)),
     },
-  }
-}
+  };
+};
 
-export default OperatorSettings
+export default OperatorSettings;

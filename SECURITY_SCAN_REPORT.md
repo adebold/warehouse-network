@@ -9,15 +9,16 @@
 ### 1. **Exposed Secrets in Environment Files**
 
 #### ❌ CRITICAL: Hardcoded Credentials
+
 - **File:** `.env.production`
   - Contains placeholder database credentials: `postgresql://user:password@localhost:5432/`
   - Contains placeholder secret: `NEXTAUTH_SECRET="your-production-secret-here"`
-  
 - **File:** `.env.production.local`
   - Contains placeholder database credentials: `postgresql://user:password@host:5432/`
   - Contains placeholder secret: `NEXTAUTH_SECRET="generate-a-secure-secret-here"`
 
 #### ⚠️ WARNING: Actual Secret in Local Environment
+
 - **File:** `.env.local`
   - Contains actual NEXTAUTH_SECRET: `+UefH8z9IL+5Xxl1cPO8Qv+Eh2iIjlL2XfQa2ocHOpA=`
   - While this is for local development, it should not be committed to the repository
@@ -25,11 +26,13 @@
 ### 2. **Hardcoded Credentials in Code**
 
 #### ❌ CRITICAL: Seed Data with Hardcoded Password
+
 - **File:** `packages/db/prisma/seed.ts`
   - Line 50: `const hashedPassword = await bcrypt.hash('password', 10)`
   - Using a weak, hardcoded password 'password' for seed data
 
 #### ⚠️ WARNING: Hardcoded Secret in CloudBuild
+
 - **File:** `cloudbuild-production.yaml`
   - Line contains: `NEXTAUTH_SECRET=production-secret-change-me-in-production`
   - This is a placeholder but should be replaced with proper secret management
@@ -37,11 +40,13 @@
 ### 3. **Security Configuration Issues**
 
 #### ❌ Missing Security Headers
+
 - No evidence of security headers implementation (HSTS, CSP, X-Frame-Options, etc.)
 - No rate limiting configuration found
 - No CORS configuration detected
 
 #### ⚠️ Localhost URLs in Production Code
+
 - Multiple files contain hardcoded localhost URLs:
   - `jest.config.js`: `http://localhost:3000`
   - `playwright.config.ts`: `http://localhost:3000`
@@ -50,10 +55,12 @@
 ### 4. **GitHub Actions Security**
 
 #### ✅ Good Practice: Using GitHub Secrets
+
 - Workflows properly reference secrets using `${{ secrets.* }}` syntax
 - No hardcoded credentials found in workflow files
 
 #### ⚠️ Missing Security Scans
+
 - No automated secret scanning in CI/CD pipeline
 - No dependency vulnerability scanning
 - No container image scanning
@@ -61,11 +68,13 @@
 ### 5. **Missing Security Features**
 
 #### ❌ Authentication & Authorization
+
 - No JWT refresh token implementation found
 - No session management configuration
 - No password complexity requirements
 
 #### ❌ Database Security
+
 - No SQL injection prevention measures visible
 - No database connection encryption configuration
 - No query parameterization enforcement
@@ -148,6 +157,7 @@
 **Overall Risk Level: HIGH**
 
 The application has several critical security vulnerabilities that could lead to:
+
 - Unauthorized access to the database
 - Session hijacking
 - Data breaches

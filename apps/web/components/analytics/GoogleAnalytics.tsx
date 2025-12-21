@@ -1,7 +1,7 @@
-import Script from 'next/script'
+import Script from 'next/script';
 
 interface GoogleAnalyticsProps {
-  measurementId: string
+  measurementId: string;
 }
 
 const GoogleAnalytics: React.FC<GoogleAnalyticsProps> = ({ measurementId }) => {
@@ -53,7 +53,7 @@ const GoogleAnalytics: React.FC<GoogleAnalyticsProps> = ({ measurementId }) => {
         `}
       </Script>
     </>
-  )
-}
+  );
+};
 
-export default GoogleAnalytics
+export default GoogleAnalytics;

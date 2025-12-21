@@ -1,11 +1,13 @@
 # 🚀 Vercel CLI Deployment Guide
 
 ## Current Status
+
 Your code is pushed to GitHub and ready for deployment. However, Vercel CLI requires authentication.
 
 ## Authentication Required
 
 ### Option 1: Interactive Login (Recommended)
+
 ```bash
 # 1. Login to Vercel
 npx vercel login
@@ -21,6 +23,7 @@ npx vercel --yes
 ```
 
 ### Option 2: Token-Based Deployment
+
 ```bash
 # 1. Get a token from:
 https://vercel.com/account/tokens
@@ -31,6 +34,7 @@ VERCEL_TOKEN=your-token-here npx vercel --yes --token=your-token-here
 ```
 
 ## Deployment Command (After Login)
+
 ```bash
 npx vercel --yes \
   --name warehouse-network \
@@ -45,16 +49,18 @@ npx vercel --yes \
 ## Post-Deployment Steps
 
 1. **Update Environment Variables**
+
    ```bash
    # Pull down environment file
    vercel env pull .env.local
-   
+
    # Edit with real values
    # Then push back
    vercel env add DATABASE_URL production < .env.local
    ```
 
 2. **Connect Database**
+
    ```bash
    # Use Vercel Postgres
    vercel link
@@ -67,17 +73,20 @@ npx vercel --yes \
    ```
 
 ## Quick Scripts Created
+
 - `vercel-deploy.sh` - Full deployment with checks
 - `deploy-now.sh` - Quick deployment helper
 
 ## Environment Variables Needed
+
 ```env
 DATABASE_URL=your-database-connection
-NEXTAUTH_URL=https://warehouse-network.vercel.app  
+NEXTAUTH_URL=https://warehouse-network.vercel.app
 NEXTAUTH_SECRET=generate-with-openssl-rand-base64-32
 ```
 
 ## Generate NEXTAUTH_SECRET
+
 ```bash
 openssl rand -base64 32
 ```

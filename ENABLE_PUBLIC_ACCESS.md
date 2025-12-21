@@ -18,6 +18,7 @@ Good news! You have **Organization Administrator** permissions for alexdebold.co
 ### Step 1: Open Organization Policy Console
 
 Click this link or copy to your browser:
+
 ```
 https://console.cloud.google.com/iam-admin/orgpolicies/iam-allowedPolicyMemberDomains?organizationId=266590371030
 ```
@@ -56,6 +57,7 @@ gcloud run services update warehouse-frontend \
 ```
 
 Or do it in the Console:
+
 1. Go to [Cloud Run Console](https://console.cloud.google.com/run?project=warehouse-network-20251220)
 2. Click on `warehouse-frontend`
 3. Click **"Permissions"** tab
@@ -67,6 +69,7 @@ Or do it in the Console:
 ## 🚀 Verification
 
 Once complete, test your public URL:
+
 ```
 https://warehouse-frontend-467296114824.us-central1.run.app
 ```
@@ -76,6 +79,7 @@ It should load without requiring authentication!
 ## 🛠️ Troubleshooting
 
 If the policy change doesn't work immediately:
+
 1. Wait 2-5 minutes for propagation
 2. Clear browser cache and cookies
 3. Try incognito/private browser window
@@ -86,16 +90,19 @@ If the policy change doesn't work immediately:
 If you prefer not to modify organization policies:
 
 ### Option 1: Identity-Aware Proxy (IAP)
+
 - More secure than fully public
 - Control access by email/group
 - No org policy changes needed
 
 ### Option 2: Custom Domain
+
 - Set up a load balancer
 - Use Cloud CDN
 - Custom authentication
 
 ### Option 3: Personal Project
+
 - Create project with personal Gmail
 - No organization restrictions
 - Full control over policies
@@ -103,6 +110,7 @@ If you prefer not to modify organization policies:
 ## 📊 Benefits of Current Setup
 
 Even with authentication required, your warehouse app has:
+
 - ✅ Separate P&L tracking
 - ✅ Independent billing
 - ✅ Isolated resources

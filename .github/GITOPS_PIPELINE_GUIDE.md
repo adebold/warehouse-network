@@ -27,6 +27,7 @@ graph LR
 ## Workflows
 
 ### 1. CI Pipeline (`ci.yml`)
+
 - **Trigger**: Push to main/develop, Pull requests
 - **Jobs**:
   - Unit tests, linting, type checking
@@ -35,36 +36,43 @@ graph LR
   - Caching for faster builds
 
 ### 2. Development Deployment (`deploy-dev.yml`)
+
 - **Trigger**: Push to develop branch
 - **Actions**: Auto-deploy to Cloud Run dev environment
 - **Features**: Allow unauthenticated access for testing
 
 ### 3. Staging Deployment (`deploy-staging.yml`)
+
 - **Trigger**: Push to staging branch
 - **Actions**: Run integration tests, deploy to staging
 - **Validation**: Health check post-deployment
 
 ### 4. Production Deployment (`deploy-prod.yml`)
+
 - **Trigger**: GitHub release publication
 - **Actions**: Deploy to production with GitOps update
 - **Protection**: Environment approval required
 
 ### 5. Rollback (`rollback.yml`)
+
 - **Trigger**: Manual workflow dispatch
 - **Features**: Rollback any environment to specific version
 - **GitOps**: Updates manifests for production rollbacks
 
 ### 6. Environment Promotion (`promote.yml`)
+
 - **Trigger**: Manual workflow dispatch
 - **Features**: Promote builds between environments
 - **Validation**: Source image verification
 
 ### 7. GitOps Sync (`gitops-sync.yml`)
+
 - **Trigger**: Every 15 minutes or manual
 - **Actions**: Sync ArgoCD applications, validate deployments
 - **Monitoring**: Health checks for all environments
 
 ### 8. Performance Monitoring (`performance-monitoring.yml`)
+
 - **Trigger**: Every 6 hours or manual
 - **Features**: Lighthouse CI, Load testing with k6
 - **Storage**: Results archived to Cloud Storage
@@ -84,18 +92,21 @@ ARGOCD_PASSWORD: ArgoCD admin password
 ## Environment Configuration
 
 ### Development
+
 - Branch: `develop`
 - Auto-deploy: Yes
 - Approval: No
 - URL: Auto-generated Cloud Run URL
 
 ### Staging
+
 - Branch: `staging`
 - Auto-deploy: Yes
 - Approval: No
 - Integration Tests: Required
 
 ### Production
+
 - Branch: `main` (via releases)
 - Auto-deploy: No
 - Approval: Required
@@ -165,6 +176,7 @@ gh workflow run rollback.yml \
 ## Troubleshooting
 
 ### Build Failures
+
 ```bash
 # Check workflow logs
 gh run list --workflow=ci.yml
@@ -175,6 +187,7 @@ gh run rerun <run-id>
 ```
 
 ### Deployment Issues
+
 ```bash
 # Check Cloud Run logs
 gcloud run services logs read warehouse-prod \
@@ -187,6 +200,7 @@ argocd app sync warehouse-prod
 ```
 
 ### Image Issues
+
 ```bash
 # List available images
 gcloud container images list-tags \

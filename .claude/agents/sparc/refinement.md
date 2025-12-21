@@ -31,6 +31,7 @@ You are a code refinement specialist focused on the Refinement phase of the SPAR
 ## SPARC Refinement Phase
 
 The Refinement phase ensures code quality through:
+
 1. Test-Driven Development (TDD)
 2. Code optimization and refactoring
 3. Performance tuning
@@ -59,14 +60,14 @@ describe('AuthenticationService', () => {
       // Arrange
       const credentials = {
         email: 'user@example.com',
-        password: 'SecurePass123!'
+        password: 'SecurePass123!',
       };
       const mockUser = {
         id: 'user-123',
         email: credentials.email,
-        passwordHash: await hash(credentials.password)
+        passwordHash: await hash(credentials.password),
       };
-      
+
       mockUserRepo.findByEmail.mockResolvedValue(mockUser);
 
       // Act
@@ -87,18 +88,18 @@ describe('AuthenticationService', () => {
       // This test will fail initially - driving implementation
       const credentials = {
         email: 'user@example.com',
-        password: 'WrongPassword'
+        password: 'WrongPassword',
       };
 
       // Simulate 5 failed attempts
       for (let i = 0; i < 5; i++) {
-        await expect(service.login(credentials))
-          .rejects.toThrow('Invalid credentials');
+        await expect(service.login(credentials)).rejects.toThrow('Invalid credentials');
       }
 
       // 6th attempt should indicate locked account
-      await expect(service.login(credentials))
-        .rejects.toThrow('Account locked due to multiple failed attempts');
+      await expect(service.login(credentials)).rejects.toThrow(
+        'Account locked due to multiple failed attempts'
+      );
     });
   });
 });
@@ -125,9 +126,7 @@ export class AuthenticationService {
     // Check if account is locked
     const attempts = this.failedAttempts.get(email) || 0;
     if (attempts >= this.MAX_ATTEMPTS) {
-      throw new AccountLockedException(
-        'Account locked due to multiple failed attempts'
-      );
+      throw new AccountLockedException('Account locked due to multiple failed attempts');
     }
 
     // Find user
@@ -138,10 +137,7 @@ export class AuthenticationService {
     }
 
     // Verify password
-    const isValidPassword = await this.verifyPassword(
-      password,
-      user.passwordHash
-    );
+    const isValidPassword = await this.verifyPassword(password, user.passwordHash);
     if (!isValidPassword) {
       this.recordFailedAttempt(email);
       throw new UnauthorizedException('Invalid credentials');
@@ -155,28 +151,24 @@ export class AuthenticationService {
     const session = {
       userId: user.id,
       email: user.email,
-      createdAt: new Date()
+      createdAt: new Date(),
     };
 
-    await this.cache.set(
-      `session:${token}`,
-      session,
-      this.SESSION_DURATION
-    );
+    await this.cache.set(`session:${token}`, session, this.SESSION_DURATION);
 
     return {
       user: this.sanitizeUser(user),
-      token
+      token,
     };
   }
 
   private recordFailedAttempt(email: string): void {
     const current = this.failedAttempts.get(email) || 0;
     this.failedAttempts.set(email, current + 1);
-    
+
     this.logger.warn('Failed login attempt', {
       email,
-      attempts: current + 1
+      attempts: current + 1,
     });
   }
 }
@@ -202,17 +194,17 @@ export class AuthenticationService {
     try {
       const user = await this.authenticateUser(credentials);
       const session = await this.createSession(user);
-      
+
       // Emit event for other services
       await this.eventBus.emit('user.logged_in', {
         userId: user.id,
-        timestamp: new Date()
+        timestamp: new Date(),
       });
 
       return {
         user: this.sanitizeUser(user),
         token: session.token,
-        expiresAt: session.expiresAt
+        expiresAt: session.expiresAt,
       };
     } catch (error) {
       await this.handleLoginFailure(credentials.email, error);
@@ -224,15 +216,13 @@ export class AuthenticationService {
     const lockInfo = await this.cache.get(`lock:${email}`);
     if (lockInfo) {
       const remainingTime = this.calculateRemainingLockTime(lockInfo);
-      throw new AccountLockedException(
-        `Account locked. Try again in ${remainingTime} minutes`
-      );
+      throw new AccountLockedException(`Account locked. Try again in ${remainingTime} minutes`);
     }
   }
 
   private async authenticateUser(credentials: LoginDto): Promise<User> {
     const user = await this.userRepo.findByEmail(credentials.email);
-    if (!user || !await this.verifyPassword(credentials.password, user.passwordHash)) {
+    if (!user || !(await this.verifyPassword(credentials.password, user.passwordHash))) {
       throw new UnauthorizedException('Invalid credentials');
     }
     return user;
@@ -241,7 +231,7 @@ export class AuthenticationService {
   private async handleLoginFailure(email: string, error: Error): Promise<void> {
     if (error instanceof UnauthorizedException) {
       const attempts = await this.incrementFailedAttempts(email);
-      
+
       if (attempts >= this.config.maxLoginAttempts) {
         await this.lockAccount(email);
       }
@@ -259,16 +249,21 @@ export class AuthenticationService {
 describe('Performance', () => {
   it('should handle 1000 concurrent login requests', async () => {
     const startTime = performance.now();
-    
-    const promises = Array(1000).fill(null).map((_, i) => 
-      service.login({
-        email: `user${i}@example.com`,
-        password: 'password'
-      }).catch(() => {}) // Ignore errors for perf test
-    );
+
+    const promises = Array(1000)
+      .fill(null)
+      .map(
+        (_, i) =>
+          service
+            .login({
+              email: `user${i}@example.com`,
+              password: 'password',
+            })
+            .catch(() => {}) // Ignore errors for perf test
+      );
 
     await Promise.all(promises);
-    
+
     const duration = performance.now() - startTime;
     expect(duration).toBeLessThan(5000); // Should complete in 5 seconds
   });
@@ -283,12 +278,12 @@ async function getUserPermissions(userId: string): Promise<string[]> {
   const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
   const roles = await db.query('SELECT * FROM user_roles WHERE user_id = ?', [userId]);
   const permissions = [];
-  
+
   for (const role of roles) {
     const perms = await db.query('SELECT * FROM role_permissions WHERE role_id = ?', [role.id]);
     permissions.push(...perms);
   }
-  
+
   return permissions;
 }
 
@@ -299,18 +294,21 @@ async function getUserPermissions(userId: string): Promise<string[]> {
   if (cached) return cached;
 
   // Single query with joins
-  const permissions = await db.query(`
+  const permissions = await db.query(
+    `
     SELECT DISTINCT p.name
     FROM users u
     JOIN user_roles ur ON u.id = ur.user_id
     JOIN role_permissions rp ON ur.role_id = rp.role_id
     JOIN permissions p ON rp.permission_id = p.id
     WHERE u.id = ?
-  `, [userId]);
+  `,
+    [userId]
+  );
 
   // Cache for 5 minutes
   await cache.set(`permissions:${userId}`, permissions, 300);
-  
+
   return permissions;
 }
 ```
@@ -335,7 +333,10 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  constructor(message: string, public fields?: Record<string, string>) {
+  constructor(
+    message: string,
+    public fields?: Record<string, string>
+  ) {
     super(message, 'VALIDATION_ERROR', 400);
   }
 }
@@ -347,19 +348,14 @@ export class AuthenticationError extends AppError {
 }
 
 // Global error handler
-export function errorHandler(
-  error: Error,
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void {
+export function errorHandler(error: Error, req: Request, res: Response, next: NextFunction): void {
   if (error instanceof AppError && error.isOperational) {
     res.status(error.statusCode).json({
       error: {
         code: error.code,
         message: error.message,
-        ...(error instanceof ValidationError && { fields: error.fields })
-      }
+        ...(error instanceof ValidationError && { fields: error.fields }),
+      },
     });
   } else {
     // Unexpected errors
@@ -367,8 +363,8 @@ export function errorHandler(
     res.status(500).json({
       error: {
         code: 'INTERNAL_ERROR',
-        message: 'An unexpected error occurred'
-      }
+        message: 'An unexpected error occurred',
+      },
     });
   }
 }
@@ -379,18 +375,18 @@ export function errorHandler(
 ```typescript
 // Retry decorator for transient failures
 function retry(attempts = 3, delay = 1000) {
-  return function(target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
 
-    descriptor.value = async function(...args: any[]) {
+    descriptor.value = async function (...args: any[]) {
       let lastError: Error;
-      
+
       for (let i = 0; i < attempts; i++) {
         try {
           return await originalMethod.apply(this, args);
         } catch (error) {
           lastError = error;
-          
+
           if (i < attempts - 1 && isRetryable(error)) {
             await sleep(delay * Math.pow(2, i)); // Exponential backoff
           } else {
@@ -398,7 +394,7 @@ function retry(attempts = 3, delay = 1000) {
           }
         }
       }
-      
+
       throw lastError;
     };
   };
@@ -442,15 +438,14 @@ export class CircuitBreaker {
   private onFailure(): void {
     this.failures++;
     this.lastFailureTime = new Date();
-    
+
     if (this.failures >= this.threshold) {
       this.state = 'OPEN';
     }
   }
 
   private shouldAttemptReset(): boolean {
-    return this.lastFailureTime 
-      && (Date.now() - this.lastFailureTime.getTime()) > this.timeout;
+    return this.lastFailureTime && Date.now() - this.lastFailureTime.getTime() > this.timeout;
   }
 }
 ```
@@ -458,6 +453,7 @@ export class CircuitBreaker {
 ## Quality Metrics
 
 ### 1. Code Coverage
+
 ```bash
 # Jest configuration for coverage
 module.exports = {
@@ -478,6 +474,7 @@ module.exports = {
 ```
 
 ### 2. Complexity Analysis
+
 ```typescript
 // Keep cyclomatic complexity low
 // Bad: Complexity = 7

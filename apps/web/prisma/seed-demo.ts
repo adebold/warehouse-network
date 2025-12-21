@@ -1,7 +1,7 @@
-import { PrismaClient, UserRole, WarehouseStatus, SkidStatus, PayoutStatus } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient, UserRole, WarehouseStatus, SkidStatus, PayoutStatus } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 // Sample warehouse images
 const warehouseImages = [
@@ -10,37 +10,55 @@ const warehouseImages = [
   'https://images.unsplash.com/photo-1553413077-190dd305871c',
   'https://images.unsplash.com/photo-1581087458702-372e94955c9f',
   'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5',
-  'https://images.unsplash.com/photo-1519452575417-564c1401ecc0'
-]
+  'https://images.unsplash.com/photo-1519452575417-564c1401ecc0',
+];
 
 // Sample Ontario cities
-const cities = ['Toronto', 'Mississauga', 'Brampton', 'Hamilton', 'London', 'Kitchener', 'Windsor', 'Ottawa']
+const cities = [
+  'Toronto',
+  'Mississauga',
+  'Brampton',
+  'Hamilton',
+  'London',
+  'Kitchener',
+  'Windsor',
+  'Ottawa',
+];
 
 // Sample warehouse features
 const features = [
-  'Climate Control', 'High Ceilings (30ft+)', 'Loading Docks', 'Rail Access',
-  '24/7 Security', 'LED Lighting', 'CCTV Monitoring', 'Sprinkler System',
-  'Cross-Docking', 'Forklift Available', 'Pallet Racking', 'Office Space'
-]
+  'Climate Control',
+  'High Ceilings (30ft+)',
+  'Loading Docks',
+  'Rail Access',
+  '24/7 Security',
+  'LED Lighting',
+  'CCTV Monitoring',
+  'Sprinkler System',
+  'Cross-Docking',
+  'Forklift Available',
+  'Pallet Racking',
+  'Office Space',
+];
 
 async function main() {
-  console.log('🌱 Starting comprehensive demo seed...')
+  console.log('🌱 Starting comprehensive demo seed...');
 
   // Create platform
   let platform = await prisma.platform.findFirst({
-    where: { name: 'Warehouse Network Ontario' }
-  })
-  
+    where: { name: 'Warehouse Network Ontario' },
+  });
+
   if (!platform) {
     platform = await prisma.platform.create({
       data: {
         name: 'Warehouse Network Ontario',
       },
-    })
+    });
   }
 
   // Create users with hashed passwords
-  const hashedPassword = await bcrypt.hash('demo123', 10)
+  const hashedPassword = await bcrypt.hash('demo123', 10);
 
   // Super Admin
   const superAdmin = await prisma.user.upsert({
@@ -52,7 +70,7 @@ async function main() {
       password: hashedPassword,
       role: UserRole.SUPER_ADMIN,
     },
-  })
+  });
 
   // Create sample customers first
   const customerData = [
@@ -60,19 +78,19 @@ async function main() {
     { name: 'Great Lakes Trading Co', email: 'admin@greatlakestrading.com' },
     { name: 'Toronto Tech Distributors', email: 'warehouse@torontotech.com' },
     { name: 'Ontario Manufacturing Inc', email: 'logistics@ontariomfg.com' },
-  ]
+  ];
 
   for (const custData of customerData) {
     let customer = await prisma.customer.findFirst({
-      where: { name: custData.name }
-    })
-    
+      where: { name: custData.name },
+    });
+
     if (!customer) {
       customer = await prisma.customer.create({
         data: {
           name: custData.name,
         },
-      })
+      });
     }
 
     await prisma.user.upsert({
@@ -85,7 +103,7 @@ async function main() {
         role: UserRole.CUSTOMER_ADMIN,
         customerId: customer.id,
       },
-    })
+    });
   }
 
   // Create multiple operators with warehouses
@@ -94,27 +112,27 @@ async function main() {
       name: 'Premium Storage Solutions',
       email: 'ops@premiumstorage.com',
       warehouses: 3,
-      region: 'Toronto, Mississauga'
+      region: 'Toronto, Mississauga',
     },
     {
       name: 'Central Logistics Hub',
       email: 'manager@centrallogistics.com',
       warehouses: 2,
-      region: 'Hamilton, Burlington'
+      region: 'Hamilton, Burlington',
     },
     {
       name: 'TechSpace Warehousing',
       email: 'admin@techspace.com',
       warehouses: 4,
-      region: 'Kitchener, Waterloo, Cambridge'
+      region: 'Kitchener, Waterloo, Cambridge',
     },
     {
       name: 'Express Distribution Centers',
       email: 'ops@expressdc.com',
       warehouses: 3,
-      region: 'Brampton, Vaughan'
-    }
-  ]
+      region: 'Brampton, Vaughan',
+    },
+  ];
 
   for (const opData of operatorData) {
     // Create operator
@@ -133,7 +151,7 @@ async function main() {
         stripeAccountId: `acct_${Math.random().toString(36).substr(2, 9)}`,
         stripeOnboardingComplete: true,
       },
-    })
+    });
 
     // Create operator admin user
     const operatorAdmin = await prisma.user.upsert({
@@ -150,14 +168,14 @@ async function main() {
           },
         },
       },
-    })
+    });
 
     // Create warehouses for this operator
     for (let i = 0; i < opData.warehouses; i++) {
-      const cityIndex = Math.floor(Math.random() * cities.length)
-      const city = cities[cityIndex]
-      const size = Math.floor(Math.random() * 100000) + 10000 // 10,000 to 110,000 sq ft
-      
+      const cityIndex = Math.floor(Math.random() * cities.length);
+      const city = cities[cityIndex];
+      const size = Math.floor(Math.random() * 100000) + 10000; // 10,000 to 110,000 sq ft
+
       const warehouse = await prisma.warehouse.create({
         data: {
           operatorId: operator.id,
@@ -173,44 +191,45 @@ async function main() {
           operatingHours: '24/7',
           capacity: Math.floor(size / 100), // Rough pallet capacity
           supportedGoods: 'General Merchandise, Palletized Goods, E-commerce Products',
-          dockAccessInstructions: 'Please check in at security gate. Loading dock assignments provided on arrival.',
+          dockAccessInstructions:
+            'Please check in at security gate. Loading dock assignments provided on arrival.',
           status: WarehouseStatus.ACTIVE,
           pricingRules: {
             create: [
               {
                 chargeCategory: 'STORAGE',
-                price: 0.50, // $0.50 per pallet per day
+                price: 0.5, // $0.50 per pallet per day
                 currency: 'CAD',
               },
               {
                 chargeCategory: 'RECEIVING',
-                price: 2.00, // $2.00 per pallet
+                price: 2.0, // $2.00 per pallet
                 currency: 'CAD',
               },
               {
                 chargeCategory: 'PICKING',
-                price: 1.50, // $1.50 per pallet
+                price: 1.5, // $1.50 per pallet
                 currency: 'CAD',
               },
               {
                 chargeCategory: 'PICKUP_RELEASE',
-                price: 1.00, // $1.00 per pallet
+                price: 1.0, // $1.00 per pallet
                 currency: 'CAD',
               },
             ],
           },
         },
-      })
+      });
 
       // Add some sample skids/inventory
-      const skidCount = Math.floor(Math.random() * 50) + 10
+      const skidCount = Math.floor(Math.random() * 50) + 10;
       for (let j = 0; j < skidCount; j++) {
         // Create a customer for this skid
-        const customerIndex = Math.floor(Math.random() * customerData.length)
+        const customerIndex = Math.floor(Math.random() * customerData.length);
         const customer = await prisma.customer.findFirst({
-          where: { name: customerData[customerIndex].name }
-        })
-        
+          where: { name: customerData[customerIndex].name },
+        });
+
         if (customer) {
           await prisma.skid.create({
             data: {
@@ -221,7 +240,7 @@ async function main() {
               footprint: Math.random() > 0.8 ? 'oversized' : 'standard',
               specialHandlingNotes: Math.random() > 0.9 ? 'Fragile - Handle with care' : null,
             },
-          })
+          });
         }
       }
     }
@@ -237,19 +256,18 @@ async function main() {
         complianceSignals: Math.random() * 20 + 80,
         lastCalculatedAt: new Date(),
       },
-    })
+    });
   }
 
-
   // Create sample RFQs from customers
-  const customers = await prisma.customer.findMany()
-  const warehouses = await prisma.warehouse.findMany({ where: { status: 'ACTIVE' } })
-  
+  const customers = await prisma.customer.findMany();
+  const warehouses = await prisma.warehouse.findMany({ where: { status: 'ACTIVE' } });
+
   for (const customer of customers) {
     // Create 1-2 RFQs per customer
-    const rfqCount = Math.floor(Math.random() * 2) + 1
+    const rfqCount = Math.floor(Math.random() * 2) + 1;
     for (let i = 0; i < rfqCount; i++) {
-      const isQuoted = Math.random() > 0.3
+      const isQuoted = Math.random() > 0.3;
       const rfq = await prisma.rFQ.create({
         data: {
           customerId: customer.id,
@@ -257,15 +275,20 @@ async function main() {
           estimatedSkidCount: Math.floor(Math.random() * 100) + 20,
           footprintType: Math.random() > 0.5 ? 'standard' : 'oversized',
           expectedInboundDate: new Date(Date.now() + Math.random() * 60 * 24 * 60 * 60 * 1000), // Random within next 60 days
-          expectedDuration: ['3 months', '6 months', '1 year', 'unknown'][Math.floor(Math.random() * 4)],
+          expectedDuration: ['3 months', '6 months', '1 year', 'unknown'][
+            Math.floor(Math.random() * 4)
+          ],
           specialHandlingNotes: Math.random() > 0.7 ? 'Temperature controlled required' : null,
-          preferredWarehouseIds: warehouses.length > 0 ? [warehouses[Math.floor(Math.random() * warehouses.length)].id] : [],
+          preferredWarehouseIds:
+            warehouses.length > 0
+              ? [warehouses[Math.floor(Math.random() * warehouses.length)].id]
+              : [],
         },
-      })
+      });
 
       // Create quotes for quoted RFQs
       if (isQuoted && warehouses.length > 0) {
-        const warehouse = warehouses[Math.floor(Math.random() * warehouses.length)]
+        const warehouse = warehouses[Math.floor(Math.random() * warehouses.length)];
         const quote = await prisma.quote.create({
           data: {
             rfqId: rfq.id,
@@ -278,10 +301,10 @@ async function main() {
             expiryDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
             status: 'PENDING',
           },
-        })
+        });
 
         // Create quote items
-        const categories = ['RECEIVING', 'STORAGE', 'PICKING', 'PICKUP_RELEASE']
+        const categories = ['RECEIVING', 'STORAGE', 'PICKING', 'PICKUP_RELEASE'];
         for (const category of categories) {
           await prisma.quoteItem.create({
             data: {
@@ -291,14 +314,14 @@ async function main() {
               quantity: Math.floor(Math.random() * 100) + 10,
               description: `${category.toLowerCase().replace('_', ' ')} services`,
             },
-          })
+          });
         }
       }
     }
   }
 
   // Create some sample payouts for operators
-  const operators = await prisma.operator.findMany()
+  const operators = await prisma.operator.findMany();
   for (const operator of operators) {
     // Create past payouts
     for (let i = 0; i < 3; i++) {
@@ -311,7 +334,7 @@ async function main() {
           stripePayoutId: `po_${Math.random().toString(36).substr(2, 9)}`,
           processedAt: new Date(Date.now() - (i + 1) * 30 * 24 * 60 * 60 * 1000), // Monthly payouts
         },
-      })
+      });
     }
 
     // Create pending payout
@@ -322,22 +345,21 @@ async function main() {
         currency: 'CAD',
         status: PayoutStatus.PENDING,
       },
-    })
+    });
   }
 
-
-  console.log('✅ Demo seed completed successfully!')
-  console.log('\n📧 Demo Login Credentials:')
-  console.log('  Admin: admin@warehouse-network.com / demo123')
-  console.log('  Operator: ops@premiumstorage.com / demo123')
-  console.log('  Customer: ops@mapleleaf-ecom.com / demo123')
+  console.log('✅ Demo seed completed successfully!');
+  console.log('\n📧 Demo Login Credentials:');
+  console.log('  Admin: admin@warehouse-network.com / demo123');
+  console.log('  Operator: ops@premiumstorage.com / demo123');
+  console.log('  Customer: ops@mapleleaf-ecom.com / demo123');
 }
 
 // Helper functions
 function generatePostalCode(): string {
-  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-  const numbers = '0123456789'
-  return `${letters[Math.floor(Math.random() * letters.length)]}${numbers[Math.floor(Math.random() * numbers.length)]}${letters[Math.floor(Math.random() * letters.length)]} ${numbers[Math.floor(Math.random() * numbers.length)]}${letters[Math.floor(Math.random() * letters.length)]}${numbers[Math.floor(Math.random() * numbers.length)]}`
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const numbers = '0123456789';
+  return `${letters[Math.floor(Math.random() * letters.length)]}${numbers[Math.floor(Math.random() * numbers.length)]}${letters[Math.floor(Math.random() * letters.length)]} ${numbers[Math.floor(Math.random() * numbers.length)]}${letters[Math.floor(Math.random() * letters.length)]}${numbers[Math.floor(Math.random() * numbers.length)]}`;
 }
 
 function getRandomProduct(): string {
@@ -354,16 +376,16 @@ function getRandomProduct(): string {
     'Industrial Equipment',
     'Building Materials',
     'Office Supplies',
-  ]
-  return products[Math.floor(Math.random() * products.length)]
+  ];
+  return products[Math.floor(Math.random() * products.length)];
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+  .catch(async e => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

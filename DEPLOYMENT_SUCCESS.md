@@ -10,7 +10,7 @@ Your Warehouse Network application infrastructure is now deployed on Google Clou
    - Status: ✅ LIVE (Public access enabled)
    - Currently showing Cloud Run test page
 
-2. **Backend Service**: https://easyreno-backend-1078962111758.us-central1.run.app  
+2. **Backend Service**: https://easyreno-backend-1078962111758.us-central1.run.app
    - Status: ✅ LIVE (From previous deployment)
    - Currently showing Cloud Run default page
 
@@ -26,6 +26,7 @@ Your Warehouse Network application infrastructure is now deployed on Google Clou
 Since the Cloud Run infrastructure is now confirmed working, you can deploy your actual Next.js application using one of these methods:
 
 #### Option 1: Update the Frontend Service (Recommended)
+
 ```bash
 cd /Users/adebold/Documents/GitHub/warehouse-network/apps/web
 gcloud run deploy warehouse-frontend \
@@ -35,7 +36,9 @@ gcloud run deploy warehouse-frontend \
 ```
 
 #### Option 2: Use GitHub Actions
+
 The GitHub Actions CI/CD pipeline is set up. Add the missing GCP secrets:
+
 ```bash
 # If you can create a service account key:
 gh secret set GCP_PROJECT_ID --body "easyreno-demo-20251219144606"
@@ -43,22 +46,26 @@ gh secret set GCP_SERVICE_ACCOUNT_KEY --body "$(cat key.json)"
 ```
 
 #### Option 3: Deploy via Docker Hub
+
 1. Build and push to Docker Hub (public registry)
 2. Deploy from Docker Hub image
 
 ### 🎯 What You've Achieved
 
 ✅ **Infrastructure Ready**
+
 - Google Cloud Run services created and accessible
 - Public URLs configured and working
 - Both frontend and backend services deployed
 
 ✅ **GitOps Setup Complete**
+
 - GitHub repository with full CI/CD pipelines
 - Enterprise-grade workflows configured
 - Security scanning and monitoring ready
 
 ✅ **Production Architecture**
+
 - Scalable serverless deployment
 - Automatic HTTPS/SSL certificates
 - Global CDN through Google's infrastructure

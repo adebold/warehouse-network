@@ -16,7 +16,7 @@ jest.mock('../../../lib/prisma', () => ({
       groupBy: jest.fn(),
       findMany: jest.fn(),
     },
-    $transaction: jest.fn((queries) => Promise.all(queries)),
+    $transaction: jest.fn(queries => Promise.all(queries)),
   },
 }));
 
@@ -114,9 +114,7 @@ describe('/api/admin/payments/dashboard', () => {
         _avg: { daysOverdue: mockStats.averageDaysOverdue },
       });
 
-      (prisma.payment.findMany as jest.Mock).mockResolvedValue(
-        mockRecentPayments
-      );
+      (prisma.payment.findMany as jest.Mock).mockResolvedValue(mockRecentPayments);
 
       (prisma.user.findMany as jest.Mock).mockResolvedValue([
         { id: 'user1', daysOverdue: 5, overdueAmount: 1000 },
@@ -137,9 +135,9 @@ describe('/api/admin/payments/dashboard', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const responseData = JSON.parse(res._getData());
-      
+
       expect(responseData).toMatchObject({
         statistics: {
           totalCustomers: mockStats.totalCustomers,
@@ -226,7 +224,7 @@ describe('/api/admin/payments/dashboard', () => {
       await handler(req, res);
 
       const responseData = JSON.parse(res._getData());
-      
+
       expect(responseData.overdueBreakdown).toEqual([
         { range: '1-7 days', count: 3, totalAmount: 450, percentage: 37.5 },
         { range: '8-14 days', count: 2, totalAmount: 700, percentage: 25 },
@@ -252,9 +250,9 @@ describe('/api/admin/payments/dashboard', () => {
       await handler(req, res);
 
       expect(res._getStatusCode()).toBe(200);
-      
+
       const responseData = JSON.parse(res._getData());
-      
+
       expect(responseData).toMatchObject({
         statistics: {
           totalCustomers: 0,
@@ -291,7 +289,7 @@ describe('/api/admin/payments/dashboard', () => {
       (prisma.user.findMany as jest.Mock).mockResolvedValue([]);
 
       (prisma.payment.groupBy as jest.Mock).mockResolvedValue(
-        mockPaymentTrends.map((trend) => ({
+        mockPaymentTrends.map(trend => ({
           createdAt: new Date(trend.date),
           _sum: { amount: trend.amount },
           _count: { _all: trend.count },
@@ -306,7 +304,7 @@ describe('/api/admin/payments/dashboard', () => {
       await handler(req, res);
 
       const responseData = JSON.parse(res._getData());
-      
+
       expect(responseData.paymentTrends).toBeDefined();
       expect(responseData.paymentTrends.length).toBe(3);
     });
@@ -329,9 +327,7 @@ describe('/api/admin/payments/dashboard', () => {
 
   describe('Error handling', () => {
     it('should handle database errors gracefully', async () => {
-      (prisma.$transaction as jest.Mock).mockRejectedValue(
-        new Error('Database connection failed')
-      );
+      (prisma.$transaction as jest.Mock).mockRejectedValue(new Error('Database connection failed'));
 
       const { req, res } = createMocks({
         method: 'GET',

@@ -1,13 +1,13 @@
-import React from 'react'
-import { useSession, signOut } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import Link from 'next/link'
-import { 
-  Building2, 
+import React from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
+import {
+  Building2,
   LayoutDashboard,
-  Package, 
-  FileText, 
-  Users, 
+  Package,
+  FileText,
+  Users,
   Settings,
   LogOut,
   Menu,
@@ -17,12 +17,12 @@ import {
   Building,
   ClipboardList,
   Bell,
-  Search
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
-import { cn } from '@/lib/utils'
+  Search,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,16 +30,16 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from '@/components/ui/dropdown-menu';
 
 interface DashboardLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false)
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
   const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
@@ -51,27 +51,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
-  ]
+  ];
 
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: '/login' })
-  }
+    await signOut({ callbackUrl: '/login' });
+  };
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="border-primary h-8 w-8 animate-spin rounded-full border-b-2"></div>
       </div>
-    )
+    );
   }
 
   if (!session || (session.user?.role !== 'ADMIN' && session.user?.role !== 'SUPER_ADMIN')) {
-    router.push('/unauthorized')
-    return null
+    router.push('/unauthorized');
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Mobile sidebar backdrop */}
       {isSidebarOpen && (
         <div
@@ -83,16 +83,16 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-card border-r transform transition-transform lg:translate-x-0",
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          'bg-card fixed inset-y-0 left-0 z-50 w-72 transform border-r transition-transform lg:translate-x-0',
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         )}
       >
-        <div className="flex h-16 items-center justify-between px-6 border-b">
+        <div className="flex h-16 items-center justify-between border-b px-6">
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
-            <Building2 className="h-6 w-6 text-primary" />
+            <Building2 className="text-primary h-6 w-6" />
             <div>
-              <span className="font-semibold text-lg">Admin Panel</span>
-              <span className="block text-xs text-muted-foreground">Warehouse Network</span>
+              <span className="text-lg font-semibold">Admin Panel</span>
+              <span className="text-muted-foreground block text-xs">Warehouse Network</span>
             </div>
           </Link>
           <Button
@@ -107,46 +107,42 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
         <div className="p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search..."
-              className="pl-9"
-              size="sm"
-            />
+            <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+            <Input placeholder="Search..." className="pl-9" size="sm" />
           </div>
         </div>
 
         <nav className="flex-1 space-y-1 px-4">
-          {navigation.map((item) => {
-            const isActive = router.pathname.startsWith(item.href)
+          {navigation.map(item => {
+            const isActive = router.pathname.startsWith(item.href);
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  'flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
                   isActive
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? 'bg-primary text-primary-foreground'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                 )}
               >
                 <item.icon className="h-5 w-5" />
                 <span>{item.name}</span>
               </Link>
-            )
+            );
           })}
         </nav>
 
         <div className="border-t p-4">
           <div className="flex items-center space-x-3">
-            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="bg-primary/10 flex h-10 w-10 items-center justify-center rounded-full">
               <span className="text-sm font-medium">
                 {session.user?.name?.[0]?.toUpperCase() || 'A'}
               </span>
             </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{session.user?.name}</p>
-              <p className="text-xs text-muted-foreground truncate">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium">{session.user?.name}</p>
+              <p className="text-muted-foreground truncate text-xs">
                 {session.user?.role?.replace('_', ' ')}
               </p>
             </div>
@@ -157,7 +153,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       {/* Main content */}
       <div className="lg:pl-72">
         {/* Top bar */}
-        <header className="sticky top-0 z-40 h-16 bg-background border-b">
+        <header className="bg-background sticky top-0 z-40 h-16 border-b">
           <div className="flex h-full items-center justify-between px-4 sm:px-6">
             <Button
               variant="ghost"
@@ -173,7 +169,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground flex items-center justify-center">
+                <span className="bg-destructive text-destructive-foreground absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-medium">
                   3
                 </span>
               </Button>
@@ -183,7 +179,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="gap-2">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-full">
                       <span className="text-sm font-medium">
                         {session.user?.name?.[0]?.toUpperCase() || 'A'}
                       </span>
@@ -194,7 +190,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
                       <p className="text-sm font-medium">{session.user?.name}</p>
-                      <p className="text-xs text-muted-foreground">{session.user?.email}</p>
+                      <p className="text-muted-foreground text-xs">{session.user?.email}</p>
                     </div>
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
@@ -206,7 +202,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
+                    <LogOut className="mr-2 h-4 w-4" />
                     Sign out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -216,10 +212,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8">
-          {children}
-        </main>
+        <main className="p-4 sm:p-6 lg:p-8">{children}</main>
       </div>
     </div>
-  )
+  );
 }

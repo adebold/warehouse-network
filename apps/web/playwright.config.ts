@@ -1,5 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
-import { STORAGE_STATE_ADMIN, STORAGE_STATE_CUSTOMER_ADMIN, STORAGE_STATE_CUSTOMER_USER, STORAGE_STATE_OPERATOR_ADMIN, STORAGE_STATE_WAREHOUSE_STAFF } from './tests/test-utils';
+import {
+  STORAGE_STATE_ADMIN,
+  STORAGE_STATE_CUSTOMER_ADMIN,
+  STORAGE_STATE_CUSTOMER_USER,
+  STORAGE_STATE_OPERATOR_ADMIN,
+  STORAGE_STATE_WAREHOUSE_STAFF,
+} from './tests/test-utils';
 
 /**
  * Read environment variables from file.
@@ -25,7 +31,7 @@ export default defineConfig({
     ['html'],
     ['json', { outputFile: 'test-results.json' }],
     ['junit', { outputFile: 'junit.xml' }],
-    process.env.CI ? ['github'] : ['list']
+    process.env.CI ? ['github'] : ['list'],
   ],
 
   globalSetup: require.resolve('./tests/auth.setup.ts'),
@@ -38,14 +44,14 @@ export default defineConfig({
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
-    
+
     /* Screenshot configuration */
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
-    
+
     /* Default viewport */
     viewport: { width: 1440, height: 900 },
-    
+
     /* Test timeout */
     actionTimeout: 10000,
     navigationTimeout: 30000,
@@ -82,16 +88,16 @@ export default defineConfig({
       use: { ...devices['Desktop Chrome'], storageState: STORAGE_STATE_CUSTOMER_USER },
       dependencies: ['setup'],
     },
-    
+
     // Visual Regression Testing
     {
       name: 'visual-regression',
-      use: { 
+      use: {
         ...devices['Desktop Chrome'],
         // Visual comparison settings
         screenshot: {
           mode: 'only-on-failure',
-          fullPage: true
+          fullPage: true,
         },
         // Consistent rendering
         locale: 'en-US',
@@ -101,11 +107,11 @@ export default defineConfig({
       },
       testMatch: /.*\.visual\.spec\.ts/,
     },
-    
+
     // Mobile Testing
     {
       name: 'mobile-chrome',
-      use: { 
+      use: {
         ...devices['Pixel 5'],
         storageState: STORAGE_STATE_CUSTOMER_USER,
       },
@@ -114,14 +120,14 @@ export default defineConfig({
     },
     {
       name: 'mobile-safari',
-      use: { 
+      use: {
         ...devices['iPhone 13'],
         storageState: STORAGE_STATE_CUSTOMER_USER,
       },
       dependencies: ['setup'],
       testMatch: /.*\.mobile\.spec\.ts/,
     },
-    
+
     // Accessibility Testing
     {
       name: 'accessibility',
@@ -134,7 +140,7 @@ export default defineConfig({
       },
       testMatch: /.*\.(a11y|accessibility)\.spec\.ts/,
     },
-    
+
     // Performance Testing
     {
       name: 'performance',
@@ -146,7 +152,7 @@ export default defineConfig({
       },
       testMatch: /.*\.perf\.spec\.ts/,
     },
-    
+
     // HTML/CSS Audit
     {
       name: 'html-css-audit',
@@ -155,7 +161,7 @@ export default defineConfig({
       },
       testMatch: /.*html-css-audit\.ts/,
     },
-    
+
     // Integration Tests
     {
       name: 'integration',

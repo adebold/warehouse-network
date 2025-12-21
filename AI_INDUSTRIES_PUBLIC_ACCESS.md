@@ -11,6 +11,7 @@
 ### Option 1: Update via Console (Recommended)
 
 1. **Open AI Industries Org Policy Console**:
+
    ```
    https://console.cloud.google.com/iam-admin/orgpolicies/iam-allowedPolicyMemberDomains?organizationId=178614569132
    ```
@@ -49,6 +50,7 @@ gcloud resource-manager org-policies set-policy ai-industries-policy.yaml \
 Once the policy is updated, deploy your apps with public access:
 
 ### Warehouse App
+
 ```bash
 gcloud run deploy warehouse-frontend \
   --source . \
@@ -58,6 +60,7 @@ gcloud run deploy warehouse-frontend \
 ```
 
 ### Future Projects (EasyReno, etc.)
+
 Same process - all projects under AI Industries will be able to have public endpoints.
 
 ## 📊 Benefits
@@ -70,6 +73,7 @@ Same process - all projects under AI Industries will be able to have public endp
 ## 🔍 Verify Success
 
 After updating:
+
 ```bash
 # Check the policy
 gcloud resource-manager org-policies describe \

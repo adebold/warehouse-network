@@ -1,8 +1,8 @@
-import prisma from '../../db/src/client'
+import prisma from '../../db/src/client';
 
 export async function calculateOperatorTrustScore(operatorId: string) {
   // TODO: Implement actual scoring logic based on audit events, financial behavior, etc.
-  const score = Math.random() * 100 // Simulate a score for now
+  const score = Math.random() * 100; // Simulate a score for now
 
   await prisma.operatorTrustScore.upsert({
     where: { operatorId },
@@ -22,12 +22,12 @@ export async function calculateOperatorTrustScore(operatorId: string) {
       financialBehavior: Math.random() * 100,
       complianceSignals: Math.random() * 100,
     },
-  })
+  });
 }
 
 export async function calculateWarehouseQualityScore(warehouseId: string) {
   // TODO: Implement actual scoring logic based on throughput, damage reports, etc.
-  const score = Math.random() * 100 // Simulate a score for now
+  const score = Math.random() * 100; // Simulate a score for now
 
   await prisma.warehouseQualityScore.upsert({
     where: { warehouseId },
@@ -47,5 +47,5 @@ export async function calculateWarehouseQualityScore(warehouseId: string) {
       dockAppointmentAdherence: Math.random() * 100,
       customerComplaints: Math.floor(Math.random() * 5),
     },
-  })
+  });
 }

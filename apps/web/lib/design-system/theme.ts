@@ -3,84 +3,84 @@
  * Provides light and dark theme configurations with semantic color mappings
  */
 
-import { tokens } from './tokens'
+import { tokens } from './tokens';
 
 export type Theme = {
-  name: 'light' | 'dark'
+  name: 'light' | 'dark';
   colors: {
     // Background colors
     background: {
-      primary: string
-      secondary: string
-      tertiary: string
-      elevated: string
-      overlay: string
-    }
-    
+      primary: string;
+      secondary: string;
+      tertiary: string;
+      elevated: string;
+      overlay: string;
+    };
+
     // Foreground colors
     foreground: {
-      primary: string
-      secondary: string
-      tertiary: string
-      disabled: string
-      inverse: string
-    }
-    
+      primary: string;
+      secondary: string;
+      tertiary: string;
+      disabled: string;
+      inverse: string;
+    };
+
     // Border colors
     border: {
-      default: string
-      light: string
-      dark: string
-      focus: string
-    }
-    
+      default: string;
+      light: string;
+      dark: string;
+      focus: string;
+    };
+
     // Interactive elements
     interactive: {
       primary: {
-        default: string
-        hover: string
-        active: string
-        disabled: string
-      }
+        default: string;
+        hover: string;
+        active: string;
+        disabled: string;
+      };
       secondary: {
-        default: string
-        hover: string
-        active: string
-        disabled: string
-      }
+        default: string;
+        hover: string;
+        active: string;
+        disabled: string;
+      };
       tertiary: {
-        default: string
-        hover: string
-        active: string
-        disabled: string
-      }
-    }
-    
+        default: string;
+        hover: string;
+        active: string;
+        disabled: string;
+      };
+    };
+
     // Semantic colors
     semantic: {
       success: {
-        default: string
-        light: string
-        dark: string
-      }
+        default: string;
+        light: string;
+        dark: string;
+      };
       warning: {
-        default: string
-        light: string
-        dark: string
-      }
+        default: string;
+        light: string;
+        dark: string;
+      };
       error: {
-        default: string
-        light: string
-        dark: string
-      }
+        default: string;
+        light: string;
+        dark: string;
+      };
       info: {
-        default: string
-        light: string
-        dark: string
-      }
-    }
-  }
-}
+        default: string;
+        light: string;
+        dark: string;
+      };
+    };
+  };
+};
 
 export const lightTheme: Theme = {
   name: 'light',
@@ -148,7 +148,7 @@ export const lightTheme: Theme = {
       },
     },
   },
-}
+};
 
 export const darkTheme: Theme = {
   name: 'dark',
@@ -216,7 +216,7 @@ export const darkTheme: Theme = {
       },
     },
   },
-}
+};
 
 // CSS Variable mapping for runtime theme switching
 export const generateCSSVariables = (theme: Theme) => {
@@ -224,82 +224,82 @@ export const generateCSSVariables = (theme: Theme) => {
     // Primary palette
     '--primary': theme.colors.interactive.primary.default,
     '--primary-foreground': theme.colors.background.primary,
-    
+
     // Secondary palette
     '--secondary': theme.colors.interactive.secondary.default,
     '--secondary-foreground': theme.colors.foreground.primary,
-    
+
     // Muted palette
     '--muted': theme.colors.background.tertiary,
     '--muted-foreground': theme.colors.foreground.tertiary,
-    
+
     // Accent palette
     '--accent': theme.colors.background.secondary,
     '--accent-foreground': theme.colors.foreground.primary,
-    
+
     // Destructive palette
     '--destructive': theme.colors.semantic.error.default,
     '--destructive-foreground': theme.colors.background.primary,
-    
+
     // Success palette
     '--success': theme.colors.semantic.success.default,
     '--success-foreground': theme.colors.background.primary,
-    
+
     // Warning palette
     '--warning': theme.colors.semantic.warning.default,
     '--warning-foreground': theme.colors.background.primary,
-    
+
     // Info palette
     '--info': theme.colors.semantic.info.default,
     '--info-foreground': theme.colors.background.primary,
-    
+
     // Border
     '--border': theme.colors.border.default,
     '--input': theme.colors.border.default,
     '--ring': theme.colors.border.focus,
-    
+
     // Backgrounds
     '--background': theme.colors.background.primary,
     '--background-secondary': theme.colors.background.secondary,
     '--background-tertiary': theme.colors.background.tertiary,
     '--foreground': theme.colors.foreground.primary,
-    
+
     // Card
     '--card': theme.colors.background.elevated,
     '--card-foreground': theme.colors.foreground.primary,
-    
+
     // Popover
     '--popover': theme.colors.background.elevated,
     '--popover-foreground': theme.colors.foreground.primary,
-    
+
     // Radius
     '--radius': tokens.radii.lg,
-  }
-}
+  };
+};
 
 // Theme context helper
 export const getThemeFromLocalStorage = (): 'light' | 'dark' => {
-  if (typeof window === 'undefined') return 'light'
-  
-  const stored = localStorage.getItem('theme')
-  if (stored === 'dark' || stored === 'light') return stored
-  
+  if (typeof window === 'undefined') return 'light';
+
+  const stored = localStorage.getItem('theme');
+  if (stored === 'dark' || stored === 'light') return stored;
+
   // Check system preference
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-    return 'dark'
+    return 'dark';
   }
-  
-  return 'light'
-}
+
+  return 'light';
+};
 
 export const applyTheme = (theme: Theme) => {
-  const root = document.documentElement
-  const variables = generateCSSVariables(theme)
-  
+  const root = document.documentElement;
+  const variables = generateCSSVariables(theme);
+
   Object.entries(variables).forEach(([key, value]) => {
-    root.style.setProperty(key, value)
-  })
-  
-  root.setAttribute('data-theme', theme.name)
-  localStorage.setItem('theme', theme.name)
-}
+    root.style.setProperty(key, value);
+  });
+
+  root.setAttribute('data-theme', theme.name);
+  localStorage.setItem('theme', theme.name);
+};

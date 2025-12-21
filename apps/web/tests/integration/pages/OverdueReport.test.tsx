@@ -243,12 +243,15 @@ describe('Overdue Report Page', () => {
       await user.type(amountFilter, '1000');
 
       // Debounced, so wait a bit
-      await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining('minAmount=1000'),
-          expect.any(Object)
-        );
-      }, { timeout: 1000 });
+      await waitFor(
+        () => {
+          expect(fetch).toHaveBeenCalledWith(
+            expect.stringContaining('minAmount=1000'),
+            expect.any(Object)
+          );
+        },
+        { timeout: 1000 }
+      );
     });
 
     it('should sort by different columns', async () => {
@@ -417,10 +420,10 @@ describe('Overdue Report Page', () => {
       await user.click(selectAllCheckbox);
 
       // All customer checkboxes should be selected
-      const customerCheckboxes = screen.getAllByRole('checkbox').filter(
-        (cb) => cb !== selectAllCheckbox
-      );
-      customerCheckboxes.forEach((checkbox) => {
+      const customerCheckboxes = screen
+        .getAllByRole('checkbox')
+        .filter(cb => cb !== selectAllCheckbox);
+      customerCheckboxes.forEach(checkbox => {
         expect(checkbox).toBeChecked();
       });
 
@@ -515,7 +518,7 @@ describe('Overdue Report Page', () => {
   describe('Export Functionality', () => {
     it('should export report data', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -527,7 +530,7 @@ describe('Overdue Report Page', () => {
         });
 
       global.URL.createObjectURL = jest.fn(() => 'blob:url');
-      
+
       render(<OverdueReport />);
 
       await waitFor(() => {
@@ -551,7 +554,7 @@ describe('Overdue Report Page', () => {
 
     it('should export filtered results', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: async () => mockOverdueData,
@@ -598,7 +601,7 @@ describe('Overdue Report Page', () => {
   describe('Pagination', () => {
     it('should handle pagination', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -642,10 +645,7 @@ describe('Overdue Report Page', () => {
       await user.click(nextButton);
 
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining('page=2'),
-          expect.any(Object)
-        );
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('page=2'), expect.any(Object));
         expect(screen.getByText('Alice Brown')).toBeInTheDocument();
       });
     });

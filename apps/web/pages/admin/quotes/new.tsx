@@ -1,35 +1,46 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { RFQ, Warehouse, ChargeCategory } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../api/auth/[...nextauth]'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Checkbox } from '@/components/ui/checkbox'
-import { ArrowLeft, Plus, Trash2, Package, CreditCard, FileText, Info } from 'lucide-react'
-import Link from 'next/link'
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import QuoteFormSkeleton from '@/components/quotes/QuoteFormSkeleton'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { RFQ, Warehouse, ChargeCategory } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../api/auth/[...nextauth]';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Plus, Trash2, Package, CreditCard, FileText, Info } from 'lucide-react';
+import Link from 'next/link';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import QuoteFormSkeleton from '@/components/quotes/QuoteFormSkeleton';
 
 interface NewQuoteProps {
-  rfq: RFQ
-  warehouses: Warehouse[]
-  chargeCategories: ChargeCategory[]
+  rfq: RFQ;
+  warehouses: Warehouse[];
+  chargeCategories: ChargeCategory[];
 }
 
 const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     warehouseId: '',
-    items: [] as { chargeCategoryId: string; unitPrice: number; quantity: number; description: string }[],
+    items: [] as {
+      chargeCategoryId: string;
+      unitPrice: number;
+      quantity: number;
+      description: string;
+    }[],
     currency: 'USD',
     assumptions: '',
     guaranteedCharges: false,
@@ -39,32 +50,34 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
     paymentMethod: 'INVOICE',
     paymentTerms: 'NET30',
     poNumber: '',
-  })
-  const [errors, setErrors] = useState<Record<string, string>>({})
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target
-    const checked = (e.target as HTMLInputElement).checked
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData(prevState => ({
       ...prevState,
       [name]: type === 'checkbox' ? checked : value,
-    }))
-  }
+    }));
+  };
 
   const handleItemChange = (index: number, field: string, value: any) => {
     setFormData(prevState => {
-      const newItems = [...prevState.items]
-      newItems[index] = { ...newItems[index], [field]: value }
-      return { ...prevState, items: newItems }
-    })
-  }
+      const newItems = [...prevState.items];
+      newItems[index] = { ...newItems[index], [field]: value };
+      return { ...prevState, items: newItems };
+    });
+  };
 
   const handleAddItem = () => {
     setFormData(prevState => ({
@@ -73,40 +86,40 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
         ...prevState.items,
         { chargeCategoryId: '', unitPrice: 0, quantity: 1, description: '' },
       ],
-    }))
-  }
+    }));
+  };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.warehouseId) {
-      newErrors.warehouseId = 'Please select a warehouse'
+      newErrors.warehouseId = 'Please select a warehouse';
     }
 
     if (formData.items.length === 0) {
-      newErrors.items = 'Please add at least one item'
+      newErrors.items = 'Please add at least one item';
     }
 
     if (!formData.expiryDate) {
-      newErrors.expiryDate = 'Please set an expiry date'
+      newErrors.expiryDate = 'Please set an expiry date';
     }
 
     if (formData.paymentMethod === 'PO' && !formData.poNumber) {
-      newErrors.poNumber = 'PO number is required for Purchase Order payment'
+      newErrors.poNumber = 'PO number is required for Purchase Order payment';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!validateForm()) {
-      return
+      return;
     }
 
-    setIsSubmitting(true)
+    setIsSubmitting(true);
 
     try {
       const response = await fetch('/api/admin/quotes', {
@@ -115,30 +128,30 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ ...formData, rfqId: rfq.id }),
-      })
+      });
 
       if (response.ok) {
-        const newQuote = await response.json()
-        router.push(`/admin/quotes/${newQuote.id}`)
+        const newQuote = await response.json();
+        router.push(`/admin/quotes/${newQuote.id}`);
       } else {
-        const errorData = await response.json()
-        console.error('Failed to create quote', errorData)
-        alert('Failed to create quote')
+        const errorData = await response.json();
+        console.error('Failed to create quote', errorData);
+        alert('Failed to create quote');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while creating the quote.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while creating the quote.');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   if (status === 'loading') {
-    return <QuoteFormSkeleton />
+    return <QuoteFormSkeleton />;
   }
 
   if (!session || session.user.role !== 'SUPER_ADMIN') {
-    return <div className="flex items-center justify-center min-h-screen">Unauthorized</div>
+    return <div className="flex min-h-screen items-center justify-center">Unauthorized</div>;
   }
 
   return (
@@ -146,14 +159,15 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/admin/rfqs" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Link
+            href="/admin/rfqs"
+            className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to RFQs
           </Link>
           <h1 className="text-3xl font-bold tracking-tight">Create Quote</h1>
-          <p className="text-muted-foreground mt-2">
-            Create a new quote for RFQ #{rfq.id}
-          </p>
+          <p className="text-muted-foreground mt-2">Create a new quote for RFQ #{rfq.id}</p>
         </div>
 
         {/* RFQ Details Card */}
@@ -162,7 +176,7 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
             <CardTitle>RFQ Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <div>
                 <Label className="text-sm text-gray-500">Customer ID</Label>
                 <p className="font-medium">{rfq.customerId}</p>
@@ -186,20 +200,30 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
               <CardTitle>Quote Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="warehouseId">Warehouse <span className="text-red-500">*</span></Label>
-                  <Select name="warehouseId" value={formData.warehouseId} onValueChange={(value) => setFormData(prev => ({ ...prev, warehouseId: value }))}>
+                  <Label htmlFor="warehouseId">
+                    Warehouse <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    name="warehouseId"
+                    value={formData.warehouseId}
+                    onValueChange={value => setFormData(prev => ({ ...prev, warehouseId: value }))}
+                  >
                     <SelectTrigger className={errors.warehouseId ? 'border-red-500' : ''}>
                       <SelectValue placeholder="Select a warehouse" />
                     </SelectTrigger>
                     <SelectContent>
                       {warehouses.map(wh => (
-                        <SelectItem key={wh.id} value={wh.id}>{wh.name}</SelectItem>
+                        <SelectItem key={wh.id} value={wh.id}>
+                          {wh.name}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                  {errors.warehouseId && <p className="text-sm text-red-500">{errors.warehouseId}</p>}
+                  {errors.warehouseId && (
+                    <p className="text-sm text-red-500">{errors.warehouseId}</p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="currency">Currency</Label>
@@ -228,13 +252,15 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                 <Checkbox
                   id="guaranteedCharges"
                   checked={formData.guaranteedCharges}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, guaranteedCharges: checked as boolean }))}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({ ...prev, guaranteedCharges: checked as boolean }))
+                  }
                 />
                 <Label htmlFor="guaranteedCharges" className="cursor-pointer">
                   Guaranteed Charges
                 </Label>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="depositAmount">Deposit Amount</Label>
                   <Input
@@ -249,7 +275,13 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="accrualStartRule">Accrual Start Rule</Label>
-                  <Select name="accrualStartRule" value={formData.accrualStartRule} onValueChange={(value) => setFormData(prev => ({ ...prev, accrualStartRule: value }))}>
+                  <Select
+                    name="accrualStartRule"
+                    value={formData.accrualStartRule}
+                    onValueChange={value =>
+                      setFormData(prev => ({ ...prev, accrualStartRule: value }))
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -261,7 +293,9 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="expiryDate">Expiry Date <span className="text-red-500">*</span></Label>
+                <Label htmlFor="expiryDate">
+                  Expiry Date <span className="text-red-500">*</span>
+                </Label>
                 <Input
                   type="datetime-local"
                   id="expiryDate"
@@ -284,18 +318,20 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
               </div>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="paymentMethod">Payment Method <span className="text-red-500">*</span></Label>
-                  <Select 
-                    name="paymentMethod" 
-                    value={formData.paymentMethod} 
-                    onValueChange={(value) => {
-                      setFormData(prev => ({ ...prev, paymentMethod: value }))
+                  <Label htmlFor="paymentMethod">
+                    Payment Method <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    name="paymentMethod"
+                    value={formData.paymentMethod}
+                    onValueChange={value => {
+                      setFormData(prev => ({ ...prev, paymentMethod: value }));
                       // Clear PO number if not using PO payment method
                       if (value !== 'PO') {
-                        setFormData(prev => ({ ...prev, poNumber: '' }))
-                        setErrors(prev => ({ ...prev, poNumber: '' }))
+                        setFormData(prev => ({ ...prev, poNumber: '' }));
+                        setErrors(prev => ({ ...prev, poNumber: '' }));
                       }
                     }}
                   >
@@ -313,10 +349,10 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="paymentTerms">Payment Terms</Label>
-                  <Select 
-                    name="paymentTerms" 
-                    value={formData.paymentTerms} 
-                    onValueChange={(value) => setFormData(prev => ({ ...prev, paymentTerms: value }))}
+                  <Select
+                    name="paymentTerms"
+                    value={formData.paymentTerms}
+                    onValueChange={value => setFormData(prev => ({ ...prev, paymentTerms: value }))}
                     disabled={formData.paymentMethod === 'CREDIT_CARD'}
                   >
                     <SelectTrigger>
@@ -332,10 +368,12 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                   </Select>
                 </div>
               </div>
-              
+
               {formData.paymentMethod === 'PO' && (
                 <div className="space-y-2">
-                  <Label htmlFor="poNumber">Purchase Order Number <span className="text-red-500">*</span></Label>
+                  <Label htmlFor="poNumber">
+                    Purchase Order Number <span className="text-red-500">*</span>
+                  </Label>
                   <Input
                     type="text"
                     id="poNumber"
@@ -353,7 +391,8 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                 <Alert>
                   <Info className="h-4 w-4" />
                   <AlertDescription>
-                    Credit card payments are processed immediately upon quote acceptance. Payment terms do not apply.
+                    Credit card payments are processed immediately upon quote acceptance. Payment
+                    terms do not apply.
                   </AlertDescription>
                 </Alert>
               )}
@@ -368,52 +407,56 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
               )}
             </CardContent>
           </Card>
-      
+
           <Card className="mt-6">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Quote Items</CardTitle>
                 <Button type="button" onClick={handleAddItem} size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="mr-2 h-4 w-4" />
                   Add Item
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
               {formData.items.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                <div className="py-8 text-center">
+                  <Package className="mx-auto mb-4 h-12 w-12 text-gray-400" />
                   <p className="text-gray-600">No items added yet</p>
                   <Button type="button" onClick={handleAddItem} className="mt-4" variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="mr-2 h-4 w-4" />
                     Add First Item
                   </Button>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {formData.items.map((item, index) => (
-                    <div key={index} className="p-4 border rounded-lg space-y-4 bg-white shadow-sm">
-                      <div className="flex items-center justify-between mb-4">
+                    <div key={index} className="space-y-4 rounded-lg border bg-white p-4 shadow-sm">
+                      <div className="mb-4 flex items-center justify-between">
                         <h4 className="font-medium text-gray-900">Item {index + 1}</h4>
                         <Button
                           type="button"
                           size="sm"
                           variant="ghost"
-                          onClick={() => setFormData(prev => ({
-                            ...prev,
-                            items: prev.items.filter((_, i) => i !== index)
-                          }))}
+                          onClick={() =>
+                            setFormData(prev => ({
+                              ...prev,
+                              items: prev.items.filter((_, i) => i !== index),
+                            }))
+                          }
                           className="text-red-500 hover:text-red-700"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div className="space-y-2">
                           <Label>Charge Category</Label>
                           <Select
                             value={item.chargeCategoryId}
-                            onValueChange={value => handleItemChange(index, 'chargeCategoryId', value)}
+                            onValueChange={value =>
+                              handleItemChange(index, 'chargeCategoryId', value)
+                            }
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select charge category" />
@@ -433,7 +476,9 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                             type="number"
                             placeholder="0.00"
                             value={item.unitPrice}
-                            onChange={e => handleItemChange(index, 'unitPrice', parseFloat(e.target.value))}
+                            onChange={e =>
+                              handleItemChange(index, 'unitPrice', parseFloat(e.target.value))
+                            }
                             step="0.01"
                           />
                         </div>
@@ -443,7 +488,9 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
                             type="number"
                             placeholder="1"
                             value={item.quantity}
-                            onChange={e => handleItemChange(index, 'quantity', parseInt(e.target.value, 10))}
+                            onChange={e =>
+                              handleItemChange(index, 'quantity', parseInt(e.target.value, 10))
+                            }
                           />
                         </div>
                         <div className="space-y-2">
@@ -466,13 +513,15 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
           {/* Submit Button */}
           <div className="mt-8 flex justify-end gap-4">
             <Link href="/admin/rfqs">
-              <Button variant="outline" disabled={isSubmitting}>Cancel</Button>
+              <Button variant="outline" disabled={isSubmitting}>
+                Cancel
+              </Button>
             </Link>
             <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? 'Creating...' : 'Create Quote'}
             </Button>
           </div>
-          
+
           {errors.items && (
             <Alert className="mt-4" variant="destructive">
               <AlertDescription>{errors.items}</AlertDescription>
@@ -481,30 +530,30 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
-  const { rfqId } = context.query
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  const { rfqId } = context.query;
 
   if (!session || session.user?.role !== 'SUPER_ADMIN') {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
   const rfq = await prisma.rFQ.findUnique({
     where: { id: String(rfqId) },
-  })
+  });
 
   if (!rfq) {
-    return { notFound: true }
+    return { notFound: true };
   }
 
   const warehouses = await prisma.warehouse.findMany({
     where: { status: 'READY_FOR_MARKETPLACE' },
-  })
+  });
 
-  const chargeCategories = await prisma.chargeCategory.findMany()
+  const chargeCategories = await prisma.chargeCategory.findMany();
 
   return {
     props: {
@@ -512,7 +561,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       warehouses: JSON.parse(JSON.stringify(warehouses)),
       chargeCategories: JSON.parse(JSON.stringify(chargeCategories)),
     },
-  }
-}
+  };
+};
 
-export default NewQuote
+export default NewQuote;

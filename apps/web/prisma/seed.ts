@@ -1,27 +1,27 @@
-import { PrismaClient, UserRole } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+import { PrismaClient, UserRole } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Start seeding ...')
+  console.log('Start seeding ...');
 
   // Create a default platform
   let platform = await prisma.platform.findFirst({
-    where: { name: 'Warehouse Network' }
-  })
-  
+    where: { name: 'Warehouse Network' },
+  });
+
   if (!platform) {
     platform = await prisma.platform.create({
       data: {
         name: 'Warehouse Network',
       },
-    })
+    });
   }
-  console.log(`Created platform with id: ${platform.id}`)
+  console.log(`Created platform with id: ${platform.id}`);
 
   // Create Super Admin User
-  const hashedPassword = await bcrypt.hash('password', 10)
+  const hashedPassword = await bcrypt.hash('password', 10);
   const superAdmin = await prisma.user.upsert({
     where: { email: 'superadmin@example.com' },
     update: {},
@@ -31,8 +31,8 @@ async function main() {
       password: hashedPassword,
       role: UserRole.SUPER_ADMIN,
     },
-  })
-  console.log(`Created super admin user with id: ${superAdmin.id}`)
+  });
+  console.log(`Created super admin user with id: ${superAdmin.id}`);
 
   // Create Operator
   const operator = await prisma.operator.upsert({
@@ -50,8 +50,8 @@ async function main() {
       termsAccepted: true,
       termsAcceptedAt: new Date(),
     },
-  })
-  console.log(`Created operator with id: ${operator.id}`)
+  });
+  console.log(`Created operator with id: ${operator.id}`);
 
   // Create Operator Admin User
   const operatorAdmin = await prisma.user.upsert({
@@ -68,8 +68,8 @@ async function main() {
         },
       },
     },
-  })
-  console.log(`Created operator admin user with id: ${operatorAdmin.id}`)
+  });
+  console.log(`Created operator admin user with id: ${operatorAdmin.id}`);
 
   // Create Warehouse Staff User
   const warehouseStaff = await prisma.user.upsert({
@@ -87,8 +87,8 @@ async function main() {
         },
       },
     },
-  })
-  console.log(`Created warehouse staff user with id: ${warehouseStaff.id}`)
+  });
+  console.log(`Created warehouse staff user with id: ${warehouseStaff.id}`);
 
   // Create Customer
   const customer = await prisma.customer.upsert({
@@ -97,8 +97,8 @@ async function main() {
     create: {
       name: 'Test Customer Corp.',
     },
-  })
-  console.log(`Created customer with id: ${customer.id}`)
+  });
+  console.log(`Created customer with id: ${customer.id}`);
 
   // Create Customer Admin User
   const customerAdmin = await prisma.user.upsert({
@@ -111,8 +111,8 @@ async function main() {
       role: UserRole.CUSTOMER_ADMIN,
       customerId: customer.id,
     },
-  })
-  console.log(`Created customer admin user with id: ${customerAdmin.id}`)
+  });
+  console.log(`Created customer admin user with id: ${customerAdmin.id}`);
 
   // Create Customer User
   const customerUser = await prisma.user.upsert({
@@ -125,18 +125,18 @@ async function main() {
       role: UserRole.CUSTOMER_USER,
       customerId: customer.id,
     },
-  })
-  console.log(`Created customer user with id: ${customerUser.id}`)
+  });
+  console.log(`Created customer user with id: ${customerUser.id}`);
 
-  console.log('Seeding finished.')
+  console.log('Seeding finished.');
 }
 
 main()
   .then(async () => {
-    await prisma.$disconnect()
+    await prisma.$disconnect();
   })
-  .catch(async (e) => {
-    console.error(e)
-    await prisma.$disconnect()
-    process.exit(1)
-  })
+  .catch(async e => {
+    console.error(e);
+    await prisma.$disconnect();
+    process.exit(1);
+  });

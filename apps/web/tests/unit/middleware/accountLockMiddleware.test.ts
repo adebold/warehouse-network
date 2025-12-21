@@ -39,11 +39,7 @@ describe('accountLockMiddleware', () => {
     it('should return 401 if no session exists', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(status).toHaveBeenCalledWith(401);
       expect(json).toHaveBeenCalledWith({ error: 'Unauthorized' });
@@ -53,11 +49,7 @@ describe('accountLockMiddleware', () => {
     it('should return 401 if session has no user', async () => {
       (getServerSession as jest.Mock).mockResolvedValue({});
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(status).toHaveBeenCalledWith(401);
       expect(json).toHaveBeenCalledWith({ error: 'Unauthorized' });
@@ -71,11 +63,7 @@ describe('accountLockMiddleware', () => {
         user: { id: 'admin123', role: 'ADMIN' },
       });
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(next).toHaveBeenCalled();
       expect(status).not.toHaveBeenCalled();
@@ -96,11 +84,7 @@ describe('accountLockMiddleware', () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
         where: { id: mockUser.id },
@@ -130,11 +114,7 @@ describe('accountLockMiddleware', () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(status).toHaveBeenCalledWith(403);
       expect(json).toHaveBeenCalledWith({
@@ -152,11 +132,7 @@ describe('accountLockMiddleware', () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(status).toHaveBeenCalledWith(404);
       expect(json).toHaveBeenCalledWith({ error: 'User not found' });
@@ -174,11 +150,7 @@ describe('accountLockMiddleware', () => {
         new Error('Database connection error')
       );
 
-      await accountLockMiddleware(
-        req as NextApiRequest,
-        res as NextApiResponse,
-        next
-      );
+      await accountLockMiddleware(req as NextApiRequest, res as NextApiResponse, next);
 
       expect(status).toHaveBeenCalledWith(500);
       expect(json).toHaveBeenCalledWith({

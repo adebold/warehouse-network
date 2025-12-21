@@ -1,14 +1,14 @@
-import { faker } from '@faker-js/faker'
-import { 
-  Customer, 
-  User, 
-  Warehouse, 
-  Skid, 
+import { faker } from '@faker-js/faker';
+import {
+  Customer,
+  User,
+  Warehouse,
+  Skid,
   CustomerAccountStatus,
   CustomerPaymentStatus,
-  UserRole 
-} from '@prisma/client'
-import bcrypt from 'bcryptjs'
+  UserRole,
+} from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 // Factory for creating test customers
 export const customerFactory = {
@@ -27,7 +27,7 @@ export const customerFactory = {
     ...overrides,
   }),
 
-  buildLocked: (overrides: Partial<Customer> = {}) => 
+  buildLocked: (overrides: Partial<Customer> = {}) =>
     customerFactory.build({
       accountStatus: 'LOCKED',
       paymentStatus: 'DELINQUENT',
@@ -39,7 +39,7 @@ export const customerFactory = {
       ...overrides,
     }),
 
-  buildOverdue: (daysOverdue: number = 30, overrides: Partial<Customer> = {}) => 
+  buildOverdue: (daysOverdue: number = 30, overrides: Partial<Customer> = {}) =>
     customerFactory.build({
       paymentStatus: daysOverdue > 45 ? 'DELINQUENT' : 'OVERDUE',
       overdueAmount: faker.number.float({ min: 1000, max: 10000, precision: 0.01 }),
@@ -47,11 +47,13 @@ export const customerFactory = {
       paymentDueDate: faker.date.past({ days: daysOverdue }),
       ...overrides,
     }),
-}
+};
 
 // Factory for creating test users
 export const userFactory = {
-  build: async (overrides: Partial<User> = {}): Promise<Omit<User, 'id' | 'createdAt' | 'updatedAt'>> => ({
+  build: async (
+    overrides: Partial<User> = {}
+  ): Promise<Omit<User, 'id' | 'createdAt' | 'updatedAt'>> => ({
     email: faker.internet.email(),
     emailVerified: new Date(),
     name: faker.person.fullName(),
@@ -63,7 +65,7 @@ export const userFactory = {
     ...overrides,
   }),
 
-  buildAdmin: async (overrides: Partial<User> = {}) => 
+  buildAdmin: async (overrides: Partial<User> = {}) =>
     userFactory.build({
       role: 'ADMIN',
       email: `admin-${faker.string.alphanumeric(5)}@test.com`,
@@ -71,7 +73,7 @@ export const userFactory = {
       ...overrides,
     }),
 
-  buildOperator: async (overrides: Partial<User> = {}) => 
+  buildOperator: async (overrides: Partial<User> = {}) =>
     userFactory.build({
       role: 'OPERATOR',
       email: `operator-${faker.string.alphanumeric(5)}@test.com`,
@@ -79,18 +81,21 @@ export const userFactory = {
       ...overrides,
     }),
 
-  buildCustomerAdmin: async (customerId: string, overrides: Partial<User> = {}) => 
+  buildCustomerAdmin: async (customerId: string, overrides: Partial<User> = {}) =>
     userFactory.build({
       role: 'CUSTOMER_ADMIN',
       customerId,
       email: `customer-${faker.string.alphanumeric(5)}@test.com`,
       ...overrides,
     }),
-}
+};
 
 // Factory for creating test warehouses
 export const warehouseFactory = {
-  build: (operatorId: string, overrides: Partial<Warehouse> = {}): Omit<Warehouse, 'id' | 'createdAt' | 'updatedAt'> => ({
+  build: (
+    operatorId: string,
+    overrides: Partial<Warehouse> = {}
+  ): Omit<Warehouse, 'id' | 'createdAt' | 'updatedAt'> => ({
     name: `${faker.company.name()} Warehouse`,
     location: faker.location.city(),
     address: faker.location.streetAddress(),
@@ -108,11 +113,15 @@ export const warehouseFactory = {
     operatorId,
     ...overrides,
   }),
-}
+};
 
 // Factory for creating test skids
 export const skidFactory = {
-  build: (customerId: string, warehouseId: string, overrides: Partial<Skid> = {}): Omit<Skid, 'id' | 'createdAt' | 'updatedAt'> => ({
+  build: (
+    customerId: string,
+    warehouseId: string,
+    overrides: Partial<Skid> = {}
+  ): Omit<Skid, 'id' | 'createdAt' | 'updatedAt'> => ({
     skidCode: `SKD-${faker.string.alphanumeric(8).toUpperCase()}`,
     trackingNumber: `TN${faker.string.numeric(12)}`,
     customerId,
@@ -125,23 +134,24 @@ export const skidFactory = {
   }),
 
   buildBatch: (count: number, customerId: string, warehouseId: string) => {
-    return Array.from({ length: count }, () => 
-      skidFactory.build(customerId, warehouseId)
-    )
+    return Array.from({ length: count }, () => skidFactory.build(customerId, warehouseId));
   },
-}
+};
 
 // Helper to create a complete test scenario
-export async function createTestScenario(prisma: any, scenario: {
-  customerName: string
-  accountStatus?: CustomerAccountStatus
-  paymentStatus?: CustomerPaymentStatus
-  overdueAmount?: number
-  daysOverdue?: number
-  skidCount?: number
-  warehouseId: string
-  operatorId: string
-}) {
+export async function createTestScenario(
+  prisma: any,
+  scenario: {
+    customerName: string;
+    accountStatus?: CustomerAccountStatus;
+    paymentStatus?: CustomerPaymentStatus;
+    overdueAmount?: number;
+    daysOverdue?: number;
+    skidCount?: number;
+    warehouseId: string;
+    operatorId: string;
+  }
+) {
   const {
     customerName,
     accountStatus = 'ACTIVE',
@@ -151,7 +161,7 @@ export async function createTestScenario(prisma: any, scenario: {
     skidCount = 5,
     warehouseId,
     operatorId,
-  } = scenario
+  } = scenario;
 
   // Create customer
   const customerData = customerFactory.build({
@@ -161,47 +171,45 @@ export async function createTestScenario(prisma: any, scenario: {
     overdueAmount,
     totalOutstanding: overdueAmount * 1.2,
     paymentDueDate: daysOverdue > 0 ? faker.date.past({ days: daysOverdue }) : null,
-  })
+  });
 
-  const customer = await prisma.customer.create({ data: customerData })
+  const customer = await prisma.customer.create({ data: customerData });
 
   // Create customer admin user
   const userData = await userFactory.buildCustomerAdmin(customer.id, {
     name: `${customerName} Admin`,
     email: `${customerName.toLowerCase().replace(/\s+/g, '-')}@test.com`,
-  })
+  });
 
-  const user = await prisma.user.create({ data: userData })
+  const user = await prisma.user.create({ data: userData });
 
   // Create skids
-  const skidsData = skidFactory.buildBatch(skidCount, customer.id, warehouseId)
-  const skids = await Promise.all(
-    skidsData.map(data => prisma.skid.create({ data }))
-  )
+  const skidsData = skidFactory.buildBatch(skidCount, customer.id, warehouseId);
+  const skids = await Promise.all(skidsData.map(data => prisma.skid.create({ data })));
 
-  return { customer, user, skids }
+  return { customer, user, skids };
 }
 
 // Cleanup function for tests
 export async function cleanupTestData(prisma: any) {
   // Delete in correct order to respect foreign key constraints
   await prisma.accountLockHistory.deleteMany({
-    where: { customer: { isTestData: true } }
-  })
-  
+    where: { customer: { isTestData: true } },
+  });
+
   await prisma.releaseRequest.deleteMany({
-    where: { customer: { isTestData: true } }
-  })
-  
+    where: { customer: { isTestData: true } },
+  });
+
   await prisma.skid.deleteMany({
-    where: { customer: { isTestData: true } }
-  })
-  
+    where: { customer: { isTestData: true } },
+  });
+
   await prisma.user.deleteMany({
-    where: { isTestUser: true }
-  })
-  
+    where: { isTestUser: true },
+  });
+
   await prisma.customer.deleteMany({
-    where: { isTestData: true }
-  })
+    where: { isTestData: true },
+  });
 }

@@ -1,33 +1,33 @@
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { 
-  BarChart3, 
-  TrendingUp, 
-  Users, 
-  DollarSign, 
+import { useEffect, useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import {
+  BarChart3,
+  TrendingUp,
+  Users,
+  DollarSign,
   Activity,
   Target,
   MousePointer,
-  Clock
-} from 'lucide-react'
+  Clock,
+} from 'lucide-react';
 
 interface ConversionData {
-  conversionRate: number
-  totalConversions: number
-  conversionValue: number
+  conversionRate: number;
+  totalConversions: number;
+  conversionValue: number;
   topConversions: Array<{
-    name: string
-    count: number
-    value: number
-  }>
+    name: string;
+    count: number;
+    value: number;
+  }>;
 }
 
 interface EngagementData {
-  avgTimeOnPage: number
-  avgScrollDepth: number
-  bounceRate: number
-  ctaClicks: Record<string, number>
+  avgTimeOnPage: number;
+  avgScrollDepth: number;
+  bounceRate: number;
+  ctaClicks: Record<string, number>;
 }
 
 export const ConversionMonitor: React.FC = () => {
@@ -39,22 +39,22 @@ export const ConversionMonitor: React.FC = () => {
       { name: 'Partner Application Submit', count: 45, value: 18500 },
       { name: 'Login Success', count: 89, value: 8900 },
       { name: 'Search Intent', count: 312, value: 1500 },
-      { name: 'Warehouse View', count: 567, value: 0 }
-    ]
-  })
+      { name: 'Warehouse View', count: 567, value: 0 },
+    ],
+  });
 
   const [engagementData, setEngagementData] = useState<EngagementData>({
     avgTimeOnPage: 234, // seconds
     avgScrollDepth: 65, // percentage
     bounceRate: 32, // percentage
     ctaClicks: {
-      'get_started': 234,
-      'browse_listings': 189,
-      'list_property': 156,
-      'start_earning_now': 89,
-      'calculate_revenue': 67
-    }
-  })
+      get_started: 234,
+      browse_listings: 189,
+      list_property: 156,
+      start_earning_now: 89,
+      calculate_revenue: 67,
+    },
+  });
 
   // In production, this would fetch from your analytics API
   useEffect(() => {
@@ -63,18 +63,18 @@ export const ConversionMonitor: React.FC = () => {
       setConversionData(prev => ({
         ...prev,
         totalConversions: prev.totalConversions + Math.floor(Math.random() * 3),
-        conversionValue: prev.conversionValue + Math.floor(Math.random() * 500)
-      }))
-    }, 5000)
+        conversionValue: prev.conversionValue + Math.floor(Math.random() * 500),
+      }));
+    }, 5000);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   return (
     <div className="space-y-6">
@@ -87,18 +87,18 @@ export const ConversionMonitor: React.FC = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{conversionData.conversionRate}%</div>
-            <p className="text-xs text-muted-foreground">+12% from last week</p>
+            <p className="text-muted-foreground text-xs">+12% from last week</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Total Conversions</CardTitle>
-            <Target className="h-4 w-4 text-primary" />
+            <Target className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{conversionData.totalConversions}</div>
-            <p className="text-xs text-muted-foreground">Today's total</p>
+            <p className="text-muted-foreground text-xs">Today's total</p>
           </CardContent>
         </Card>
 
@@ -108,19 +108,21 @@ export const ConversionMonitor: React.FC = () => {
             <DollarSign className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${conversionData.conversionValue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">Estimated monthly revenue</p>
+            <div className="text-2xl font-bold">
+              ${conversionData.conversionValue.toLocaleString()}
+            </div>
+            <p className="text-muted-foreground text-xs">Estimated monthly revenue</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium">Avg. Time on Site</CardTitle>
-            <Clock className="h-4 w-4 text-primary" />
+            <Clock className="text-primary h-4 w-4" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatTime(engagementData.avgTimeOnPage)}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               {engagementData.bounceRate}% bounce rate
             </p>
           </CardContent>
@@ -140,11 +142,11 @@ export const ConversionMonitor: React.FC = () => {
                   <span>{conversion.name}</span>
                   <span className="font-medium">{conversion.count}</span>
                 </div>
-                <div className="w-full bg-muted rounded-full h-2">
-                  <div 
-                    className="bg-primary rounded-full h-2 transition-all"
-                    style={{ 
-                      width: `${(conversion.count / conversionData.topConversions[0].count) * 100}%` 
+                <div className="bg-muted h-2 w-full rounded-full">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all"
+                    style={{
+                      width: `${(conversion.count / conversionData.topConversions[0].count) * 100}%`,
                     }}
                   />
                 </div>
@@ -165,7 +167,7 @@ export const ConversionMonitor: React.FC = () => {
         <CardContent>
           <div className="space-y-3">
             {Object.entries(engagementData.ctaClicks)
-              .sort(([,a], [,b]) => b - a)
+              .sort(([, a], [, b]) => b - a)
               .map(([cta, clicks]) => (
                 <div key={cta} className="flex items-center justify-between">
                   <span className="text-sm font-medium">
@@ -173,7 +175,7 @@ export const ConversionMonitor: React.FC = () => {
                   </span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold">{clicks}</span>
-                    <span className="text-xs text-muted-foreground">clicks</span>
+                    <span className="text-muted-foreground text-xs">clicks</span>
                   </div>
                 </div>
               ))}
@@ -190,11 +192,11 @@ export const ConversionMonitor: React.FC = () => {
           <CardContent>
             <div className="flex items-end gap-2">
               <div className="text-3xl font-bold">{engagementData.avgScrollDepth}%</div>
-              <Activity className="h-5 w-5 text-muted-foreground mb-1" />
+              <Activity className="text-muted-foreground mb-1 h-5 w-5" />
             </div>
-            <div className="mt-2 h-2 bg-muted rounded-full overflow-hidden">
-              <div 
-                className="h-full bg-gradient-to-r from-primary to-green-600"
+            <div className="bg-muted mt-2 h-2 overflow-hidden rounded-full">
+              <div
+                className="from-primary h-full bg-gradient-to-r to-green-600"
                 style={{ width: `${engagementData.avgScrollDepth}%` }}
               />
             </div>
@@ -208,11 +210,9 @@ export const ConversionMonitor: React.FC = () => {
           <CardContent>
             <div className="flex items-end gap-2">
               <div className="text-3xl font-bold">68%</div>
-              <Users className="h-5 w-5 text-muted-foreground mb-1" />
+              <Users className="text-muted-foreground mb-1 h-5 w-5" />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
-              Partner application form
-            </p>
+            <p className="text-muted-foreground mt-2 text-xs">Partner application form</p>
           </CardContent>
         </Card>
 
@@ -223,9 +223,9 @@ export const ConversionMonitor: React.FC = () => {
           <CardContent>
             <div className="flex items-end gap-2">
               <div className="text-3xl font-bold">42%</div>
-              <BarChart3 className="h-5 w-5 text-muted-foreground mb-1" />
+              <BarChart3 className="text-muted-foreground mb-1 h-5 w-5" />
             </div>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-muted-foreground mt-2 text-xs">
               Of searches result in listing views
             </p>
           </CardContent>
@@ -253,5 +253,5 @@ export const ConversionMonitor: React.FC = () => {
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};

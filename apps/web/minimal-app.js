@@ -6,7 +6,7 @@ app.get('/', (req, res) => {
   res.json({
     message: 'Warehouse Network API',
     status: 'running',
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
   });
 });
 

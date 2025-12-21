@@ -1,30 +1,30 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import prisma from '../../lib/prisma'
-import type { Operator } from '@prisma/client'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, CheckCircle, XCircle, Clock, Building2 } from 'lucide-react'
-import Link from 'next/link'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import prisma from '../../lib/prisma';
+import type { Operator } from '@prisma/client';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { ArrowLeft, CheckCircle, XCircle, Clock, Building2 } from 'lucide-react';
+import Link from 'next/link';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]';
 
 interface AdminOperatorApplicationsProps {
-  applications: Operator[]
+  applications: Operator[];
 }
 
 const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ applications }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return // Do nothing while loading
-    if (!session) router.push('/login') // If not authenticated, redirect
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized') // If not a super admin, redirect
-  }, [session, status, router])
+    if (status === 'loading') return; // Do nothing while loading
+    if (!session) router.push('/login'); // If not authenticated, redirect
+    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized'); // If not a super admin, redirect
+  }, [session, status, router]);
 
   const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {
     try {
@@ -50,7 +50,7 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
   };
 
   if (status === 'loading' || !session || session.user.role !== 'SUPER_ADMIN') {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -58,8 +58,11 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
       <div className="container mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/admin/dashboard" className="inline-flex items-center text-sm text-gray-600 hover:text-gray-900 mb-4">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <Link
+            href="/admin/dashboard"
+            className="mb-4 inline-flex items-center text-sm text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Link>
           <h1 className="text-3xl font-bold tracking-tight">Operator Applications</h1>
@@ -72,13 +75,13 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
         <div className="grid gap-6">
           {applications.length === 0 ? (
             <Card>
-              <CardContent className="text-center py-8">
-                <Building2 className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+              <CardContent className="py-8 text-center">
+                <Building2 className="mx-auto mb-4 h-12 w-12 text-gray-400" />
                 <p className="text-gray-600">No operator applications to review</p>
               </CardContent>
             </Card>
           ) : (
-            applications.map((app) => (
+            applications.map(app => (
               <Card key={app.id} className="overflow-hidden">
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
@@ -90,9 +93,11 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
                     </div>
                     <Badge
                       variant={
-                        app.status === 'APPROVED' ? 'default' :
-                        app.status === 'REJECTED' ? 'destructive' :
-                        'secondary'
+                        app.status === 'APPROVED'
+                          ? 'default'
+                          : app.status === 'REJECTED'
+                            ? 'destructive'
+                            : 'secondary'
                       }
                       className="flex items-center gap-1"
                     >
@@ -104,7 +109,7 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 gap-4 text-sm md:grid-cols-2">
                     <div>
                       <p className="font-medium text-gray-500">Primary Contact</p>
                       <p className="mt-1">{app.primaryContact}</p>
@@ -125,12 +130,12 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
 
                   {/* Action Buttons */}
                   {app.status === 'PENDING' && (
-                    <div className="flex gap-3 pt-4 border-t">
+                    <div className="flex gap-3 border-t pt-4">
                       <Button
                         onClick={() => handleUpdateStatus(app.id, 'APPROVED')}
                         className="flex-1"
                       >
-                        <CheckCircle className="h-4 w-4 mr-2" />
+                        <CheckCircle className="mr-2 h-4 w-4" />
                         Approve Application
                       </Button>
                       <Button
@@ -138,15 +143,16 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
                         onClick={() => handleUpdateStatus(app.id, 'REJECTED')}
                         className="flex-1"
                       >
-                        <XCircle className="h-4 w-4 mr-2" />
+                        <XCircle className="mr-2 h-4 w-4" />
                         Reject Application
                       </Button>
                     </div>
                   )}
 
                   {app.status !== 'PENDING' && (
-                    <div className="pt-4 border-t text-sm text-gray-600">
-                      Application {app.status.toLowerCase()} on {new Date(app.updatedAt || app.createdAt).toLocaleDateString()}
+                    <div className="border-t pt-4 text-sm text-gray-600">
+                      Application {app.status.toLowerCase()} on{' '}
+                      {new Date(app.updatedAt || app.createdAt).toLocaleDateString()}
                     </div>
                   )}
                 </CardContent>
@@ -160,13 +166,12 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
 };
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const applications = await prisma.operator.findMany()
+  const applications = await prisma.operator.findMany();
   return {
     props: {
       applications: JSON.parse(JSON.stringify(applications)), // Serialize date objects
     },
-  }
-}
+  };
+};
 
-export default AdminOperatorApplications
-
+export default AdminOperatorApplications;

@@ -78,7 +78,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0',
     environment: process.env.NODE_ENV || 'production',
-    uptime: process.uptime()
+    uptime: process.uptime(),
   });
 });
 
@@ -91,13 +91,13 @@ app.get('/api/status', (req, res) => {
       security: 'Multi-layer Scanning',
       deployment: 'Blue-Green Strategy',
       monitoring: 'Prometheus + Grafana',
-      infrastructure: 'Terraform IaC'
+      infrastructure: 'Terraform IaC',
     },
     deployment: {
       version: process.env.npm_package_version || '1.0.0',
       environment: process.env.NODE_ENV || 'production',
-      timestamp: new Date().toISOString()
-    }
+      timestamp: new Date().toISOString(),
+    },
   });
 });
 

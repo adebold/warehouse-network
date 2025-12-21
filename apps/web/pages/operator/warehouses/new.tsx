@@ -1,11 +1,11 @@
-import type { NextPage } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import type { NextPage } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
 
 const NewWarehouse: NextPage = () => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -13,24 +13,24 @@ const NewWarehouse: NextPage = () => {
     capacity: 0,
     supportedGoods: '',
     dockAccessInstructions: '',
-  })
+  });
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+    const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
       [name]: name === 'capacity' ? parseInt(value, 10) : value,
-    }))
-  }
+    }));
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/operator/warehouses', {
@@ -39,23 +39,23 @@ const NewWarehouse: NextPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        router.push('/operator/warehouses')
+        router.push('/operator/warehouses');
       } else {
-        const errorData = await response.json()
-        console.error('Failed to create warehouse', errorData)
-        alert('Failed to create warehouse')
+        const errorData = await response.json();
+        console.error('Failed to create warehouse', errorData);
+        alert('Failed to create warehouse');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while creating the warehouse.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while creating the warehouse.');
     }
-  }
+  };
 
   if (status === 'loading' || !session || session.user.role !== 'OPERATOR_ADMIN') {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -64,13 +64,7 @@ const NewWarehouse: NextPage = () => {
       <form onSubmit={handleSubmit}>
         <div>
           <label htmlFor="name">Warehouse Name</label>
-          <input
-            type="text"
-            id="name"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-          />
+          <input type="text" id="name" name="name" value={formData.name} onChange={handleChange} />
         </div>
         <div>
           <label htmlFor="address">Address</label>
@@ -121,8 +115,9 @@ const NewWarehouse: NextPage = () => {
           />
         </div>
         <button type="submit">Register Warehouse</button>
-      </form>    </div>
-  )
-}
+      </form>{' '}
+    </div>
+  );
+};
 
-export default NewWarehouse
+export default NewWarehouse;

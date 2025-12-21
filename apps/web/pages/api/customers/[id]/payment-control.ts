@@ -2,18 +2,15 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/pages/api/auth/[...nextauth]';
 import { PrismaClient } from '@prisma/client';
-import { 
-  lockCustomerAccount, 
-  unlockCustomerAccount, 
-  canUserOverrideLock 
+import {
+  lockCustomerAccount,
+  unlockCustomerAccount,
+  canUserOverrideLock,
 } from '@/lib/payment-control';
 
 const prisma = new PrismaClient();
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
 
   if (!session) {
@@ -27,9 +24,12 @@ export default async function handler(
   }
 
   // Check if user has permission to manage payment controls
-  const hasPermission = ['SUPER_ADMIN', 'FINANCE_ADMIN', 'OPERATOR_ADMIN', 'WAREHOUSE_STAFF'].includes(
-    session.user.role
-  );
+  const hasPermission = [
+    'SUPER_ADMIN',
+    'FINANCE_ADMIN',
+    'OPERATOR_ADMIN',
+    'WAREHOUSE_STAFF',
+  ].includes(session.user.role);
 
   if (!hasPermission) {
     return res.status(403).json({ error: 'Insufficient permissions' });
@@ -96,8 +96,9 @@ export default async function handler(
           return res.status(200).json({ success: true, message: 'Account unlocked successfully' });
         } else if (action === 'updatePayment') {
           // Update payment information
-          const { paymentStatus, overdueAmount, totalOutstanding, paymentDueDate } = updatePaymentInfo;
-          
+          const { paymentStatus, overdueAmount, totalOutstanding, paymentDueDate } =
+            updatePaymentInfo;
+
           await prisma.customer.update({
             where: { id: customerId },
             data: {

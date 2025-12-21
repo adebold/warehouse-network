@@ -30,6 +30,7 @@ This report analyzes the UI consistency and styling patterns across key pages in
 ### 2. Missing UI Components and Incomplete Pages
 
 #### Inventory Page (`/pages/app/inventory.tsx`)
+
 - **Critical**: Completely unstyled table with no Tailwind classes
 - No card wrapper or consistent layout structure
 - No loading states or empty states
@@ -39,6 +40,7 @@ This report analyzes the UI consistency and styling patterns across key pages in
 ### 3. Hard-coded Colors Instead of Design Tokens
 
 Found in multiple locations:
+
 - `bg-gray-50` in admin/customer dashboards (should use `bg-muted`)
 - `bg-gray-100` and `hover:bg-gray-100` in button hover states
 - `text-gray-600` in loading states
@@ -54,6 +56,7 @@ Found in multiple locations:
 ### 5. Missing Shared Layout Components
 
 No shared layout components for:
+
 - Authenticated pages layout
 - Dashboard layouts (admin/customer/operator)
 - Consistent headers/footers
@@ -94,38 +97,50 @@ No shared layout components for:
 ## Specific Page Issues
 
 ### Homepage (`/pages/index.tsx`)
+
 ✅ **Good**: Well-structured, uses design tokens, responsive
-❌ **Issues**: 
+❌ **Issues**:
+
 - Uses external image URLs (should be local/optimized)
 - Some hard-coded values in stats sections
 
 ### Login Page (`/pages/login.tsx`)
+
 ✅ **Good**: Clean design, uses Card components
 ❌ **Issues**:
+
 - Gradient background doesn't match other pages
 - Form inputs use custom styles instead of a shared Input component
 
 ### Search Page (`/pages/search.tsx`)
+
 ✅ **Good**: Uses Card components, responsive grid
 ❌ **Issues**:
+
 - Filter dropdowns use raw HTML instead of Select component
 - Pagination uses hard-coded styles
 
 ### Admin Dashboard (`/pages/admin/dashboard.tsx`)
+
 ❌ **Critical Issues**:
+
 - Uses `bg-gray-50` instead of design tokens
 - Raw buttons with inline hover states
 - No consistent layout wrapper
 - Status indicators use hard-coded colors
 
 ### Customer Dashboard (`/pages/customer/dashboard.tsx`)
+
 ❌ **Same issues as Admin Dashboard**:
+
 - Duplicate code structure
 - Hard-coded colors
 - Missing shared dashboard layout
 
 ### Inventory Page (`/pages/app/inventory.tsx`)
+
 ❌ **Most Critical**:
+
 - Completely unstyled
 - No UI components used
 - No responsive design
@@ -145,6 +160,7 @@ No shared layout components for:
 ### 2. Standardize Color Usage
 
 Replace all hard-coded colors:
+
 - `bg-gray-50` → `bg-muted/50` or `bg-background`
 - `bg-gray-100` → `bg-muted`
 - `text-gray-600` → `text-muted-foreground`
@@ -166,6 +182,7 @@ Replace all hard-coded colors:
 ### 5. Fix the Inventory Page
 
 Complete rewrite needed with:
+
 - Proper layout structure
 - Styled table using Card components
 - Loading and empty states
@@ -175,6 +192,7 @@ Complete rewrite needed with:
 ### 6. Design Token Enhancements
 
 Extend the Tailwind config with:
+
 - Consistent spacing scale
 - Animation presets
 - Shadow variants

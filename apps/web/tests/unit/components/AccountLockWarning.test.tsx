@@ -107,7 +107,7 @@ describe('AccountLockWarning', () => {
         json: async () => ({
           isLocked: true,
           lockReason: 'Overdue payment',
-          overdueAmount: 250.50,
+          overdueAmount: 250.5,
         }),
       });
     });
@@ -131,7 +131,7 @@ describe('AccountLockWarning', () => {
           json: async () => ({
             isLocked: true,
             lockReason: 'Overdue payment',
-            overdueAmount: 250.50,
+            overdueAmount: 250.5,
           }),
         })
         .mockResolvedValueOnce({
@@ -165,7 +165,7 @@ describe('AccountLockWarning', () => {
           ok: true,
           json: async () => ({
             isLocked: true,
-            overdueAmount: 250.50,
+            overdueAmount: 250.5,
           }),
         })
         .mockResolvedValueOnce({

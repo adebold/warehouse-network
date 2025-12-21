@@ -12,46 +12,43 @@ interface HealthCheck {
   version: string;
 }
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse<HealthCheck>
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse<HealthCheck>) {
   if (req.method !== 'GET') {
     return res.status(405).json({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       services: { database: 'disconnected' },
       uptime: process.uptime(),
-      version: process.env.npm_package_version || '1.0.0'
+      version: process.env.npm_package_version || '1.0.0',
     });
   }
 
   try {
     // Check database connection
     await prisma.$queryRaw`SELECT 1`;
-    
+
     const healthCheck: HealthCheck = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
       services: {
-        database: 'connected'
+        database: 'connected',
       },
       uptime: process.uptime(),
-      version: process.env.npm_package_version || '1.0.0'
+      version: process.env.npm_package_version || '1.0.0',
     };
 
     res.status(200).json(healthCheck);
   } catch (error) {
     console.error('Health check failed:', error);
-    
+
     const healthCheck: HealthCheck = {
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
       services: {
-        database: 'disconnected'
+        database: 'disconnected',
       },
       uptime: process.uptime(),
-      version: process.env.npm_package_version || '1.0.0'
+      version: process.env.npm_package_version || '1.0.0',
     };
 
     res.status(503).json(healthCheck);

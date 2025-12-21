@@ -1,52 +1,49 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { stripe } from '../../../lib/stripe'
-import prisma from '../../../lib/prisma'
-import getRawBody from 'raw-body'
-import type { Stripe } from 'stripe'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { stripe } from '../../../lib/stripe';
+import prisma from '../../../lib/prisma';
+import getRawBody from 'raw-body';
+import type { Stripe } from 'stripe';
 
 export const config = {
   api: {
     bodyParser: false,
   },
-}
+};
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const rawBody = await getRawBody(req)
-  const sig = req.headers['stripe-signature'] as string
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const rawBody = await getRawBody(req);
+  const sig = req.headers['stripe-signature'] as string;
 
-  let event: Stripe.Event
+  let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
-    return res.status(400).send(`Webhook Error: ${err.message}`)
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   if (event.type === 'account.updated') {
-    const account = event.data.object as Stripe.Account
+    const account = event.data.object as Stripe.Account;
     if (account.charges_enabled) {
       // TODO: Add stripeAccountId and stripeOnboardingComplete fields to Operator model
       // await prisma.operator.update({
       //   where: { stripeAccountId: account.id },
       //   data: { stripeOnboardingComplete: true },
       // })
-      console.log('Stripe account updated:', account.id)
+      console.log('Stripe account updated:', account.id);
     }
   } else if (event.type === 'checkout.session.completed') {
-    const session = event.data.object as Stripe.Checkout.Session
-    const { quoteId, customerId } = session.metadata as { quoteId: string; customerId: string }
+    const session = event.data.object as Stripe.Checkout.Session;
+    const { quoteId, customerId } = session.metadata as { quoteId: string; customerId: string };
 
     // Retrieve the quote to get its currency and amount
     const quote = await prisma.quote.findUnique({
       where: { id: quoteId },
-    })
+    });
 
     if (!quote) {
-      console.error(`Quote with ID ${quoteId} not found for completed checkout session.`)
-      return res.status(400).send('Quote not found.')
+      console.error(`Quote with ID ${quoteId} not found for completed checkout session.`);
+      return res.status(400).send('Quote not found.');
     }
 
     // TODO: Add Deposit model to schema
@@ -60,14 +57,14 @@ export default async function handler(
     //     status: session.payment_status,
     //   },
     // })
-    console.log('Checkout session completed:', session.id)
+    console.log('Checkout session completed:', session.id);
 
     // Update quote status to DEPOSIT_PAID
     await prisma.quote.update({
       where: { id: quoteId },
       data: { status: 'DEPOSIT_PAID' },
-    })
+    });
   }
 
-  res.status(200).json({ received: true })
+  res.status(200).json({ received: true });
 }

@@ -54,18 +54,21 @@ warehouse-network/
 ### Environment Configuration
 
 **Development:**
+
 - Auto-deployment on push to `develop` branch
 - 1 replica, minimal resources
 - Debug mode enabled
 - No TLS requirement
 
 **Staging:**
+
 - Auto-deployment on push to `staging` branch
 - 2 replicas with HPA (2-5)
 - Security scanning enabled
 - TLS enabled
 
 **Production:**
+
 - Manual deployment via PR
 - 3 replicas with HPA (3-20)
 - Strict security scanning
@@ -122,7 +125,8 @@ export REGION="us-central1"
 
 ### Deployment Flow
 
-1. **Development**: 
+1. **Development**:
+
    ```
    git push origin develop
    → GitHub Actions builds image
@@ -130,14 +134,15 @@ export REGION="us-central1"
    → ArgoCD auto-syncs to cluster
    ```
 
-2. **Staging**: 
+2. **Staging**:
+
    ```
    git push origin staging
    → Similar to dev + security scanning
    → ArgoCD auto-syncs to cluster
    ```
 
-3. **Production**: 
+3. **Production**:
    ```
    git tag v1.0.0 && git push --tags
    → GitHub Actions builds image

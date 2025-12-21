@@ -120,6 +120,7 @@ terraform apply
 ```
 
 Creates:
+
 - Cloud SQL PostgreSQL database
 - Redis instance
 - Secret Manager secrets
@@ -132,10 +133,10 @@ Creates:
 - Build Docker image with multi-stage optimization
 - Push to Google Container Registry
 - Deploy to Cloud Run with:
-  - 2 CPU cores, 2GB memory
-  - Auto-scaling 1-100 instances
-  - Health checks and monitoring
-  - Environment-specific configuration
+    - 2 CPU cores, 2GB memory
+    - Auto-scaling 1-100 instances
+    - Health checks and monitoring
+    - Environment-specific configuration
 ```
 
 ## Manual Deployment (Emergency)
@@ -163,12 +164,14 @@ gcloud run deploy warehouse-network-app \
 ## Environment Management
 
 ### Production Environment
+
 - **URL**: https://warehouse-network-app-easyreno-demo-20251219144606.us-central1.run.app
 - **Database**: Cloud SQL PostgreSQL 15
 - **Cache**: Redis 7.0
 - **Monitoring**: Cloud Monitoring + Logging
 
 ### Staging Environment (PR Previews)
+
 - **URL**: https://warehouse-network-app-staging-pr-{number}-easyreno-demo-20251219144606.us-central1.run.app
 - **Auto-cleanup**: On PR close
 - **Resources**: Lower CPU/memory allocation
@@ -176,6 +179,7 @@ gcloud run deploy warehouse-network-app \
 ## Monitoring and Alerting
 
 ### Health Checks
+
 ```bash
 # Application health
 curl https://warehouse-network-app-easyreno-demo-20251219144606.us-central1.run.app/api/health
@@ -190,6 +194,7 @@ curl https://warehouse-network-app-easyreno-demo-20251219144606.us-central1.run.
 ```
 
 ### Key Metrics
+
 - Response time < 200ms
 - Error rate < 1%
 - Availability > 99.9%
@@ -199,12 +204,14 @@ curl https://warehouse-network-app-easyreno-demo-20251219144606.us-central1.run.
 ## Security Features
 
 ### Container Security
+
 - Non-root user execution
 - Minimal Alpine base image
 - Security vulnerability scanning
 - Regular dependency updates
 
 ### Application Security
+
 - JWT authentication
 - HTTPS enforcement
 - Security headers (HSTS, CSP, etc.)
@@ -212,6 +219,7 @@ curl https://warehouse-network-app-easyreno-demo-20251219144606.us-central1.run.
 - Rate limiting
 
 ### Infrastructure Security
+
 - Private networking
 - Encrypted storage
 - Secret management
@@ -222,6 +230,7 @@ curl https://warehouse-network-app-easyreno-demo-20251219144606.us-central1.run.
 ### Common Issues
 
 1. **Build Failures**
+
 ```bash
 # Check GitHub Actions logs
 # Verify Docker build locally
@@ -229,6 +238,7 @@ docker build -f apps/web/Dockerfile.production .
 ```
 
 2. **Database Connection Issues**
+
 ```bash
 # Check Cloud SQL instance status
 gcloud sql instances describe warehouse-network-production
@@ -238,12 +248,14 @@ gcloud sql connect warehouse-network-production --user=warehouse
 ```
 
 3. **Redis Connection Issues**
+
 ```bash
 # Check Redis instance
 gcloud redis instances describe warehouse-network-production --region=us-central1
 ```
 
 4. **Deployment Failures**
+
 ```bash
 # Check Cloud Run logs
 gcloud logs read --service=warehouse-network-app --limit=50
@@ -252,18 +264,21 @@ gcloud logs read --service=warehouse-network-app --limit=50
 ## Performance Optimization
 
 ### Docker Image Optimization
+
 - Multi-stage builds
 - Layer caching
 - Minimal dependencies
 - Security scanning
 
 ### Application Performance
+
 - Next.js optimizations
 - Database connection pooling
 - Redis caching strategy
 - CDN integration ready
 
 ### Infrastructure Performance
+
 - Auto-scaling configuration
 - CPU/Memory optimization
 - Regional deployment
@@ -272,12 +287,14 @@ gcloud logs read --service=warehouse-network-app --limit=50
 ## Disaster Recovery
 
 ### Backup Strategy
+
 - Automated database backups (7-day retention)
 - Infrastructure as Code (Terraform)
 - Container image versioning
 - Configuration in Git
 
 ### Recovery Procedures
+
 1. Infrastructure recovery via Terraform
 2. Application deployment via GitHub Actions
 3. Database restore from backup
@@ -286,12 +303,14 @@ gcloud logs read --service=warehouse-network-app --limit=50
 ## Cost Optimization
 
 ### Resource Management
+
 - CPU idle scaling
 - Memory optimization
 - Auto-scaling thresholds
 - Spot instance usage for builds
 
 ### Monitoring Costs
+
 ```bash
 # Check current usage
 gcloud billing accounts list
@@ -301,7 +320,7 @@ gcloud billing projects describe easyreno-demo-20251219144606
 ## Next Steps
 
 1. **Set up monitoring dashboards**
-2. **Configure alerting rules** 
+2. **Configure alerting rules**
 3. **Implement Blue/Green deployments**
 4. **Add performance testing**
 5. **Set up disaster recovery testing**

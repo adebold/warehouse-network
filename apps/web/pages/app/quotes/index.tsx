@@ -1,31 +1,31 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import type { RFQ } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../api/auth/[...nextauth]'
-import Link from 'next/link'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import type { RFQ } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../api/auth/[...nextauth]';
+import Link from 'next/link';
 
 interface RFQsProps {
-  rfqs: RFQ[]
+  rfqs: RFQ[];
 }
 
 const RFQs: NextPage<RFQsProps> = ({ rfqs }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
     if (session?.user?.role !== 'CUSTOMER_ADMIN' && session?.user?.role !== 'CUSTOMER_USER') {
-      router.push('/unauthorized')
+      router.push('/unauthorized');
     }
-  }, [session, status, router])
+  }, [session, status, router]);
 
   if (status === 'loading' || !session) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -54,29 +54,32 @@ const RFQs: NextPage<RFQsProps> = ({ rfqs }) => {
         </tbody>
       </table>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
-  if (!session || (session.user?.role !== 'CUSTOMER_ADMIN' && session.user?.role !== 'CUSTOMER_USER')) {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+  if (
+    !session ||
+    (session.user?.role !== 'CUSTOMER_ADMIN' && session.user?.role !== 'CUSTOMER_USER')
+  ) {
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
   if (!session.user.customerId) {
-    return { props: { rfqs: [] } }
+    return { props: { rfqs: [] } };
   }
 
   const rfqs = await prisma.rFQ.findMany({
     where: { customerId: session.user.customerId },
-  })
+  });
 
   return {
     props: {
       rfqs: JSON.parse(JSON.stringify(rfqs)),
     },
-  }
-}
+  };
+};
 
-export default RFQs
+export default RFQs;

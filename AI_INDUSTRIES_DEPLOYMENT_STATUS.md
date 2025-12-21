@@ -26,6 +26,7 @@ The builds are failing in the `aindustries-warehouse` project. This appears to b
 Since you own both organizations and have removed the policies:
 
 ### Option 1: Use the Console
+
 1. Go to: https://console.cloud.google.com/run?project=warehouse-network-20251220
 2. Click on `warehouse-frontend`
 3. Click "Permissions" tab
@@ -33,9 +34,11 @@ Since you own both organizations and have removed the policies:
 5. Your app will be PUBLIC immediately
 
 ### Option 2: Deploy to Working Project
+
 The app is already deployed to `warehouse-network-20251220`. Just need to make it public.
 
 ### Option 3: Fix AI Industries Build
+
 We can debug why builds are failing in the AI Industries project.
 
 ## 📊 Summary

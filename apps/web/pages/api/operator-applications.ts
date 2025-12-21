@@ -1,16 +1,13 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '../../lib/prisma'
-import { operatorApplicationSchema } from '../../lib/schemas'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import prisma from '../../lib/prisma';
+import { operatorApplicationSchema } from '../../lib/schemas';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
-      const validation = operatorApplicationSchema.safeParse(req.body)
+      const validation = operatorApplicationSchema.safeParse(req.body);
       if (!validation.success) {
-        return res.status(400).json({ errors: validation.error.issues })
+        return res.status(400).json({ errors: validation.error.issues });
       }
 
       const {
@@ -21,7 +18,7 @@ export default async function handler(
         warehouseCount,
         goodsCategories,
         insurance,
-      } = validation.data
+      } = validation.data;
 
       // TODO: Assumes a single platform, create it if it doesn't exist
       let platform = await prisma.platform.findFirst();
@@ -42,15 +39,15 @@ export default async function handler(
           insuranceAcknowledged: insurance,
           platformId: platform.id,
         },
-      })
+      });
 
-      res.status(201).json(operator)
+      res.status(201).json(operator);
     } catch (error) {
-      console.error(error)
-      res.status(500).json({ message: 'An unexpected error occurred.' })
+      console.error(error);
+      res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {
-    res.setHeader('Allow', ['POST'])
-    res.status(405).end(`Method ${req.method} Not Allowed`)
+    res.setHeader('Allow', ['POST']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

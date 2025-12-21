@@ -1,5 +1,5 @@
 {
-  "name": "warehouse-network-web",
+  "name": "@warehouse-network/web",
   "version": "1.0.0",
   "private": true,
   "scripts": {
@@ -24,9 +24,12 @@
     "db:studio": "prisma studio",
     "analyze": "cross-env ANALYZE=true npm run build",
     "docker:build": "docker build -t warehouse-frontend .",
-    "docker:run": "docker run -p 3000:3000 warehouse-frontend"
+    "docker:run": "docker run -p 3000:3000 warehouse-frontend",
+    "clean": "rm -rf .next dist node_modules/.cache",
+    "security:scan": "eslint . --ext .ts,.tsx -c ../../.eslintrc.json --rule 'security/detect-object-injection: error'"
   },
   "dependencies": {
+    "@warehouse/types": "file:../../packages/types",
     "@next/bundle-analyzer": "^14.0.4",
     "@prisma/client": "^5.7.1",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -45,6 +48,10 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.0.5",
+    "dompurify": "^3.0.6",
+    "isomorphic-dompurify": "^2.9.0",
+    "zod": "^3.22.4",
     "@playwright/test": "^1.40.1",
     "@types/jest": "^29.5.8",
     "@types/node": "^20.10.5",

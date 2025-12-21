@@ -26,18 +26,21 @@ This directory contains the GitOps configuration for the Warehouse application u
 ## Environments
 
 ### Development
+
 - Namespace: `warehouse-dev`
 - URL: https://dev.warehouse.example.com
 - Auto-sync: Enabled
 - Replicas: 1
 
 ### Staging
+
 - Namespace: `warehouse-staging`
 - URL: https://staging.warehouse.example.com
 - Auto-sync: Enabled
 - Replicas: 2
 
 ### Production
+
 - Namespace: `warehouse-prod`
 - URL: https://warehouse.com
 - Auto-sync: Disabled (manual approval required)
@@ -46,17 +49,20 @@ This directory contains the GitOps configuration for the Warehouse application u
 ## Deployment Process
 
 ### Development
+
 1. Push to `develop` branch
 2. GitHub Actions builds and pushes image
 3. ArgoCD automatically syncs changes
 
 ### Staging
+
 1. Push to `staging` branch
 2. GitHub Actions builds and pushes image
 3. Security scanning performed
 4. ArgoCD automatically syncs changes
 
 ### Production
+
 1. Create version tag (e.g., `v1.0.0`)
 2. GitHub Actions builds and pushes image
 3. Security scanning with strict requirements
@@ -66,12 +72,14 @@ This directory contains the GitOps configuration for the Warehouse application u
 ## ArgoCD Setup
 
 1. Install ArgoCD:
+
 ```bash
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 ```
 
 2. Apply app-of-apps:
+
 ```bash
 kubectl apply -f .gitops/argocd/app-of-apps.yaml
 ```

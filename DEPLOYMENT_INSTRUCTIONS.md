@@ -1,6 +1,7 @@
 # 🚀 Cloud Run Deployment Instructions
 
 ## Current Status
+
 - ✅ GCP Project: `warehouse-adebold-202512191452`
 - ✅ APIs Enabled: Cloud Run, Cloud Build, Container Registry, Cloud SQL
 - ❌ Deployments: Failed due to complex Next.js build requirements
@@ -21,6 +22,7 @@ vercel
 ```
 
 **Pros:**
+
 - One-command deployment
 - Automatic builds and optimization
 - Free SSL certificates
@@ -30,6 +32,7 @@ vercel
 ## Option 2: Fix Cloud Run Deployment
 
 The build failures are due to:
+
 1. Complex dependencies during Docker build
 2. Missing environment variables during build time
 3. Prisma client generation issues
@@ -37,6 +40,7 @@ The build failures are due to:
 ### Quick Fix:
 
 1. **Build locally first:**
+
 ```bash
 cd apps/web
 npm install
@@ -44,6 +48,7 @@ npm run build
 ```
 
 2. **Create production Dockerfile:**
+
 ```dockerfile
 FROM node:18-alpine
 WORKDIR /app
@@ -55,6 +60,7 @@ CMD ["npm", "start"]
 ```
 
 3. **Build and push Docker image:**
+
 ```bash
 # Build locally
 docker build -t gcr.io/warehouse-adebold-202512191452/warehouse-app .

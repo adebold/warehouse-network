@@ -1,6 +1,7 @@
 # AI Industries - Company Structure & Projects
 
 ## 🏢 Parent Company: AI Industries
+
 - **Domain**: aindustries.co
 - **Organization ID**: 178614569132
 - **Admin**: alexdebold@aindustries.co
@@ -8,18 +9,21 @@
 ## 📊 Project Portfolio
 
 ### 1. Warehouse Network
+
 - **Project ID**: `aindustries-warehouse`
 - **Purpose**: B2B warehouse management platform
 - **P&L**: Separate tracking
 - **Status**: Setting up deployment
 
 ### 2. EasyReno
+
 - **Project ID**: TBD (to be created)
 - **Purpose**: Home renovation platform
 - **P&L**: Separate tracking
 - **Status**: Planning
 
 ### 3. Other Projects
+
 - Additional projects to be launched under AI Industries umbrella
 - Each with separate P&L tracking
 - Centralized billing under AI Industries

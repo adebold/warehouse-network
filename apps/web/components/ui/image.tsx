@@ -1,25 +1,25 @@
-import React, { useState } from 'react'
-import { cn } from '@/lib/utils'
+import React, { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface ImageProps extends React.ImgHTMLAttributes<HTMLImageElement> {
-  fallback?: string
-  onLoadingComplete?: () => void
+  fallback?: string;
+  onLoadingComplete?: () => void;
 }
 
 export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
   ({ className, fallback, onLoadingComplete, onError, ...props }, ref) => {
-    const [error, setError] = useState(false)
-    const [loaded, setLoaded] = useState(false)
+    const [error, setError] = useState(false);
+    const [loaded, setLoaded] = useState(false);
 
     const handleError = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      setError(true)
-      onError?.(e)
-    }
+      setError(true);
+      onError?.(e);
+    };
 
     const handleLoad = () => {
-      setLoaded(true)
-      onLoadingComplete?.()
-    }
+      setLoaded(true);
+      onLoadingComplete?.();
+    };
 
     if (error && fallback) {
       return (
@@ -28,43 +28,40 @@ export const Image = React.forwardRef<HTMLImageElement, ImageProps>(
           className={className}
           src={fallback}
           alt={props.alt}
-          onError={(e) => {
+          onError={e => {
             // If fallback also fails, hide the image
-            e.currentTarget.style.display = 'none'
+            e.currentTarget.style.display = 'none';
           }}
         />
-      )
+      );
     }
 
     return (
       <>
         {!loaded && (
-          <div 
-            className={cn(
-              "animate-pulse bg-muted",
-              className
-            )}
-            style={{ aspectRatio: props.width && props.height ? `${props.width}/${props.height}` : undefined }}
+          <div
+            className={cn('bg-muted animate-pulse', className)}
+            style={{
+              aspectRatio:
+                props.width && props.height ? `${props.width}/${props.height}` : undefined,
+            }}
           />
         )}
         <img
           ref={ref}
-          className={cn(
-            className,
-            !loaded && 'sr-only'
-          )}
+          className={cn(className, !loaded && 'sr-only')}
           onError={handleError}
           onLoad={handleLoad}
           {...props}
         />
       </>
-    )
+    );
   }
-)
+);
 
-Image.displayName = 'Image'
+Image.displayName = 'Image';
 
 // Placeholder image generator
 export function getPlaceholderImage(width: number, height: number, text?: string) {
-  return `https://via.placeholder.com/${width}x${height}?text=${encodeURIComponent(text || 'Image')}`
+  return `https://via.placeholder.com/${width}x${height}?text=${encodeURIComponent(text || 'Image')}`;
 }

@@ -1,16 +1,16 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import prisma from '@/lib/prisma'
+import { NextApiRequest, NextApiResponse } from 'next';
+import prisma from '@/lib/prisma';
 
 export interface AccountLockCheck {
-  allowed: boolean
-  reason?: string
+  allowed: boolean;
+  reason?: string;
   customer?: {
-    id: string
-    name: string
-    accountStatus: string
-    paymentStatus: string
-    lockReason?: string
-  }
+    id: string;
+    name: string;
+    accountStatus: string;
+    paymentStatus: string;
+    lockReason?: string;
+  };
 }
 
 export async function checkAccountLock(
@@ -26,14 +26,14 @@ export async function checkAccountLock(
         accountStatus: true,
         paymentStatus: true,
         lockReason: true,
-      }
-    })
+      },
+    });
 
     if (!customer) {
       return {
         allowed: false,
-        reason: 'Customer not found'
-      }
+        reason: 'Customer not found',
+      };
     }
 
     // Check if account is locked
@@ -42,16 +42,16 @@ export async function checkAccountLock(
         RECEIVE: 'receive new inventory',
         RELEASE: 'release inventory',
         CREATE_RFQ: 'create new RFQs',
-        CREATE_ORDER: 'create new orders'
-      }
+        CREATE_ORDER: 'create new orders',
+      };
 
       return {
         allowed: false,
         reason: `Account is locked. Customer cannot ${operationMessages[operation]}. ${
           customer.lockReason ? `Reason: ${customer.lockReason}` : ''
         }`,
-        customer
-      }
+        customer,
+      };
     }
 
     // Check if account is suspended
@@ -61,8 +61,8 @@ export async function checkAccountLock(
         return {
           allowed: false,
           reason: 'Account is suspended. Limited operations only.',
-          customer
-        }
+          customer,
+        };
       }
     }
 
@@ -71,20 +71,20 @@ export async function checkAccountLock(
       return {
         allowed: false,
         reason: 'Cannot receive new inventory due to delinquent payment status.',
-        customer
-      }
+        customer,
+      };
     }
 
     return {
       allowed: true,
-      customer
-    }
+      customer,
+    };
   } catch (error) {
-    console.error('Error checking account lock:', error)
+    console.error('Error checking account lock:', error);
     return {
       allowed: false,
-      reason: 'Error checking account status'
-    }
+      reason: 'Error checking account status',
+    };
   }
 }
 
@@ -95,28 +95,28 @@ export function withAccountLockCheck(
 ) {
   return async (req: NextApiRequest, res: NextApiResponse) => {
     // Extract customerId from various possible locations
-    const customerId = req.body.customerId || req.query.customerId || req.body.customer?.id
+    const customerId = req.body.customerId || req.query.customerId || req.body.customer?.id;
 
     if (!customerId) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Customer ID is required',
-        error: 'MISSING_CUSTOMER_ID' 
-      })
+        error: 'MISSING_CUSTOMER_ID',
+      });
     }
 
-    const lockCheck = await checkAccountLock(customerId, operation)
+    const lockCheck = await checkAccountLock(customerId, operation);
 
     if (!lockCheck.allowed) {
-      return res.status(403).json({ 
+      return res.status(403).json({
         message: lockCheck.reason,
         error: 'ACCOUNT_LOCKED',
-        customer: lockCheck.customer
-      })
+        customer: lockCheck.customer,
+      });
     }
 
     // Add the lock check result to the request for use in the handler
-    (req as any).accountLockCheck = lockCheck
+    (req as any).accountLockCheck = lockCheck;
 
-    return handler(req, res)
-  }
+    return handler(req, res);
+  };
 }

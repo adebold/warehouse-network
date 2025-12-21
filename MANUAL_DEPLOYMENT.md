@@ -7,12 +7,15 @@ Since automated deployment requires elevated permissions, here are the manual st
 Go to [Google Cloud Console](https://console.cloud.google.com) and:
 
 ### A. Create/Select Project
+
 1. Create a new project or use existing: `warehouse-network-app`
 2. Enable billing on the project
 3. Note your PROJECT_ID
 
 ### B. Enable APIs
+
 Navigate to APIs & Services > Library and enable:
+
 - Cloud Run API
 - Cloud Build API
 - Cloud SQL Admin API
@@ -68,17 +71,20 @@ Go to Secret Manager and create:
 
 1. Open Cloud Shell in your project
 2. Clone your repository:
+
 ```bash
 git clone https://github.com/your-username/warehouse-network.git
 cd warehouse-network
 ```
 
 3. Build the image:
+
 ```bash
 gcloud builds submit --tag gcr.io/[PROJECT-ID]/warehouse-network-web:latest apps/web/
 ```
 
 4. Deploy to Cloud Run:
+
 ```bash
 gcloud run deploy warehouse-network-web \
   --image gcr.io/[PROJECT-ID]/warehouse-network-web:latest \
@@ -96,16 +102,19 @@ gcloud run deploy warehouse-network-web \
 ### Option B: Using Dockerfile Locally
 
 1. Set up gcloud authentication with application default:
+
 ```bash
 gcloud auth application-default login
 ```
 
 2. Configure Docker to use gcloud:
+
 ```bash
 gcloud auth configure-docker
 ```
 
 3. Build and push:
+
 ```bash
 docker build -t gcr.io/[PROJECT-ID]/warehouse-network-web:latest -f apps/web/Dockerfile .
 docker push gcr.io/[PROJECT-ID]/warehouse-network-web:latest

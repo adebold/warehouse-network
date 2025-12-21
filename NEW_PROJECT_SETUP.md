@@ -3,11 +3,13 @@
 ## Why Create a New Project?
 
 Your current project (`easyreno-poc-202512161545`) has organization policies that:
+
 - ❌ Block public access (`allUsers` IAM policy)
 - ❌ Require authentication for all services
 - ❌ Make it complex to share with customers/demo
 
 A personal project without organization restrictions will allow:
+
 - ✅ Public access to your web app
 - ✅ Easy customer demos
 - ✅ Simpler deployment process
@@ -145,6 +147,7 @@ gcloud run deploy warehouse-app \
 5. **Full Control**: You own the project completely
 
 ## Estimated Costs (Same as Before)
+
 - Cloud Run: $0-15/month (scale-to-zero)
 - Cloud SQL: $7-10/month (if needed)
 - **Total**: ~$15-25/month

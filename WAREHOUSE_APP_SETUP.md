@@ -3,10 +3,12 @@
 ## Steps to Create Dedicated Warehouse App Account
 
 ### 1. Create Gmail Account
+
 - **Email**: warehouseapp2024@gmail.com (or similar)
 - **Purpose**: Dedicated account for warehouse application deployment
 
 ### 2. Set Up Google Cloud Project
+
 After creating the Gmail account:
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com)
@@ -20,6 +22,7 @@ After creating the Gmail account:
    ```
 
 ### 3. Create Service Account for GitHub Actions
+
 ```bash
 # Create service account
 gcloud iam service-accounts create github-actions \
@@ -40,6 +43,7 @@ gcloud iam service-accounts keys create github-actions-key.json \
 ```
 
 ### 4. Configure GitHub Secrets
+
 Add these secrets to your GitHub repository:
 
 ```bash
@@ -54,6 +58,7 @@ gh secret set NEXTAUTH_SECRET --body "$(openssl rand -base64 32)"
 ```
 
 ### 5. Update GitHub Actions Workflow
+
 The deploy-gcp.yml workflow will now work with proper authentication:
 
 ```yaml
@@ -64,6 +69,7 @@ The deploy-gcp.yml workflow will now work with proper authentication:
 ```
 
 ## Benefits
+
 - ✅ No organizational policy restrictions
 - ✅ Full control over service accounts
 - ✅ Automated CI/CD deployment
@@ -71,7 +77,9 @@ The deploy-gcp.yml workflow will now work with proper authentication:
 - ✅ Free tier eligibility ($300 credit)
 
 ## Quick Deploy Command
+
 Once set up, deployment is automatic on push to main, or manual:
+
 ```bash
 gh workflow run deploy-gcp.yml
 ```

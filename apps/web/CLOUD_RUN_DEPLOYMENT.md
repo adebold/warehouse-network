@@ -62,17 +62,20 @@ STRIPE_WEBHOOK_SECRET: Your Stripe webhook secret
 ## Best Practices for Next.js on Cloud Run
 
 ### 1. Dockerfile Optimization
+
 - Use multi-stage builds to reduce image size
 - Explicitly set `--platform=linux/amd64` in FROM statements
 - Use `node:18-alpine` for smaller images
 - Copy only necessary files for production
 
 ### 2. Next.js Configuration
+
 - Enable `output: 'standalone'` in next.config.js ✅ (already configured)
 - Use `HOSTNAME: "0.0.0.0"` for Cloud Run compatibility
 - Disable telemetry with `NEXT_TELEMETRY_DISABLED=1`
 
 ### 3. Cloud Run Settings
+
 - Min instances: 0 (for cost optimization)
 - Max instances: 100 (adjust based on load)
 - Memory: 1Gi (minimum for Next.js + Prisma)
@@ -80,14 +83,17 @@ STRIPE_WEBHOOK_SECRET: Your Stripe webhook secret
 - Concurrency: 250 (default, adjust based on app)
 
 ### 4. Security Headers
+
 ✅ Already configured in next.config.js with comprehensive CSP and security headers
 
 ### 5. Database Connections
+
 - Use Cloud SQL Proxy for secure connections
 - Set connection pool limits appropriate for Cloud Run
 - Use connection string with SSL enabled
 
 ### 6. Build Optimization
+
 - Use `.dockerignore` to exclude unnecessary files
 - Cache node_modules layer effectively
 - Separate production and dev dependencies
@@ -95,16 +101,19 @@ STRIPE_WEBHOOK_SECRET: Your Stripe webhook secret
 ## Monitoring & Debugging
 
 ### Check Build Logs
+
 ```bash
 gcloud builds log <BUILD_ID>
 ```
 
 ### Check Service Logs
+
 ```bash
 gcloud run services logs read warehouse-network-web --region us-central1
 ```
 
 ### Verify Image Architecture
+
 ```bash
 docker manifest inspect gcr.io/easyreno-poc-202512161545/warehouse-network-web:latest
 ```
@@ -112,12 +121,14 @@ docker manifest inspect gcr.io/easyreno-poc-202512161545/warehouse-network-web:l
 ## Troubleshooting
 
 ### If builds still create multi-arch images:
+
 1. Ensure Docker Desktop has "Use containerd for pulling and storing images" disabled
 2. Clear Docker build cache: `docker builder prune -a`
 3. Use the simple cloudbuild.yaml without buildx
 4. Build locally with explicit platform flag
 
 ### If deployment fails:
+
 1. Check Cloud Run logs for startup errors
 2. Verify all environment variables are set
 3. Ensure database is accessible from Cloud Run

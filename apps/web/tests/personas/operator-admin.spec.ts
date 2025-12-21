@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Operator Admin Persona', () => {
-  test('should accept terms, configure profile, invite user, register warehouse, configure pricing, and initiate Stripe onboarding', async ({ page }) => {
+  test('should accept terms, configure profile, invite user, register warehouse, configure pricing, and initiate Stripe onboarding', async ({
+    page,
+  }) => {
     // Navigate to welcome page and accept terms (if applicable)
     await page.goto('/operator/welcome');
     if (await page.getByRole('button', { name: 'Accept Terms & Conditions' }).isVisible()) {

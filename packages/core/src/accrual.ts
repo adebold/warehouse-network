@@ -1,5 +1,5 @@
-import prisma from '../../db/src/client'
-import { ChargeCategory, SkidStatus } from '@prisma/client'
+import prisma from '../../db/src/client';
+import { ChargeCategory, SkidStatus } from '@prisma/client';
 
 export async function runDailyAccrual() {
   const jobRun = await prisma.jobRun.create({
@@ -7,7 +7,7 @@ export async function runDailyAccrual() {
       jobName: 'DailyAccrual',
       status: 'RUNNING',
     },
-  })
+  });
 
   try {
     const activeSkids = await prisma.skid.findMany({
@@ -23,20 +23,20 @@ export async function runDailyAccrual() {
           },
         },
       },
-    })
+    });
 
-    const chargeLines = []
+    const chargeLines = [];
     for (const skid of activeSkids) {
       if (!skid.warehouse || skid.warehouse.pricingRules.length === 0) {
-        console.warn(`Skid ${skid.id} has no warehouse or no storage pricing rule. Skipping.`)
-        continue
+        console.warn(`Skid ${skid.id} has no warehouse or no storage pricing rule. Skipping.`);
+        continue;
       }
 
-      const storageRule = skid.warehouse.pricingRules[0] // Assuming one storage rule per warehouse
+      const storageRule = skid.warehouse.pricingRules[0]; // Assuming one storage rule per warehouse
 
       // Calculate daily storage charge
-      const amount = storageRule.price // Price is per skid per day
-      const currency = 'USD' // TODO: Get currency from warehouse/platform settings
+      const amount = storageRule.price; // Price is per skid per day
+      const currency = 'USD'; // TODO: Get currency from warehouse/platform settings
 
       const chargeLine = await prisma.chargeLine.create({
         data: {
@@ -45,22 +45,28 @@ export async function runDailyAccrual() {
           amount,
           currency,
         },
-      })
-      chargeLines.push(chargeLine)
+      });
+      chargeLines.push(chargeLine);
     }
 
     await prisma.jobRun.update({
       where: { id: jobRun.id },
-      data: { status: 'SUCCESS', finishedAt: new Date(), details: { processedSkids: activeSkids.length, createdChargeLines: chargeLines.length } },
-    })
+      data: {
+        status: 'SUCCESS',
+        finishedAt: new Date(),
+        details: { processedSkids: activeSkids.length, createdChargeLines: chargeLines.length },
+      },
+    });
 
-    console.log(`Daily accrual completed. Processed ${activeSkids.length} skids, created ${chargeLines.length} charge lines.`)
+    console.log(
+      `Daily accrual completed. Processed ${activeSkids.length} skids, created ${chargeLines.length} charge lines.`
+    );
   } catch (error: any) {
     await prisma.jobRun.update({
       where: { id: jobRun.id },
       data: { status: 'FAILED', finishedAt: new Date(), details: { error: error.message } },
-    })
-    console.error('Daily accrual failed:', error)
-    throw error
+    });
+    console.error('Daily accrual failed:', error);
+    throw error;
   }
 }

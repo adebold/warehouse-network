@@ -1,8 +1,8 @@
-import prisma from '../../db/src/client'
-import { OperatorLedgerEntryType, PayoutStatus } from '@prisma/client'
-import { stripe } from '../../integrations/src/stripe'
+import prisma from '../../db/src/client';
+import { OperatorLedgerEntryType, PayoutStatus } from '@prisma/client';
+import { stripe } from '../../integrations/src/stripe';
 
-const PLATFORM_TAKE_RATE = 0.10 // 10%
+const PLATFORM_TAKE_RATE = 0.1; // 10%
 
 export async function processPayouts() {
   const jobRun = await prisma.jobRun.create({
@@ -10,7 +10,7 @@ export async function processPayouts() {
       jobName: 'ProcessPayouts',
       status: 'RUNNING',
     },
-  })
+  });
 
   try {
     const operators = await prisma.operator.findMany({
@@ -21,37 +21,37 @@ export async function processPayouts() {
       include: {
         ledger: true,
       },
-    })
+    });
 
-    const payouts = []
+    const payouts = [];
     for (const operator of operators) {
-      const balanceByCurrency: { [currency: string]: number } = {}
+      const balanceByCurrency: { [currency: string]: number } = {};
 
       // Calculate current balance for each currency
       for (const entry of operator.ledger) {
         if (!balanceByCurrency[entry.currency]) {
-          balanceByCurrency[entry.currency] = 0
+          balanceByCurrency[entry.currency] = 0;
         }
         if (entry.type === OperatorLedgerEntryType.CHARGE) {
-          balanceByCurrency[entry.currency] += entry.amount
+          balanceByCurrency[entry.currency] += entry.amount;
         } else if (entry.type === OperatorLedgerEntryType.PAYOUT) {
-          balanceByCurrency[entry.currency] -= entry.amount
+          balanceByCurrency[entry.currency] -= entry.amount;
         } else if (entry.type === OperatorLedgerEntryType.ADJUSTMENT) {
-          balanceByCurrency[entry.currency] += entry.amount
+          balanceByCurrency[entry.currency] += entry.amount;
         }
       }
 
       for (const currency in balanceByCurrency) {
-        let payableAmount = balanceByCurrency[currency]
-        if (payableAmount <= 0) continue
+        let payableAmount = balanceByCurrency[currency];
+        if (payableAmount <= 0) continue;
 
         // Apply platform take rate (if needed, this depends on how charge lines are created)
         // For simplicity, assuming charge lines are gross and platform takes a cut from operator's share
         // This logic needs careful consideration based on exact business model
-        const platformCut = payableAmount * PLATFORM_TAKE_RATE
-        payableAmount -= platformCut
-        
-        if (payableAmount <= 0) continue
+        const platformCut = payableAmount * PLATFORM_TAKE_RATE;
+        payableAmount -= platformCut;
+
+        if (payableAmount <= 0) continue;
 
         // Create a new payout record
         const payout = await prisma.payout.create({
@@ -61,7 +61,7 @@ export async function processPayouts() {
             currency: currency,
             status: PayoutStatus.PENDING,
           },
-        })
+        });
 
         // Record payout in operator's ledger
         await prisma.operatorLedgerEntry.create({
@@ -72,7 +72,7 @@ export async function processPayouts() {
             currency: currency,
             description: `Payout for ${currency} balance`,
           },
-        })
+        });
 
         // Send payout via Stripe
         // This requires operator's Stripe Connect Account ID
@@ -86,7 +86,7 @@ export async function processPayouts() {
                 payoutId: payout.id,
                 operatorId: operator.id,
               },
-            })
+            });
 
             await prisma.payout.update({
               where: { id: payout.id },
@@ -95,31 +95,37 @@ export async function processPayouts() {
                 stripePayoutId: transfer.id,
                 processedAt: new Date(),
               },
-            })
+            });
           } catch (stripeError: any) {
-            console.error(`Stripe payout failed for operator ${operator.id}:`, stripeError)
+            console.error(`Stripe payout failed for operator ${operator.id}:`, stripeError);
             await prisma.payout.update({
               where: { id: payout.id },
               data: { status: PayoutStatus.FAILED, processedAt: new Date() },
-            })
+            });
           }
         }
-        payouts.push(payout)
+        payouts.push(payout);
       }
     }
 
     await prisma.jobRun.update({
       where: { id: jobRun.id },
-      data: { status: 'SUCCESS', finishedAt: new Date(), details: { processedOperators: operators.length, createdPayouts: payouts.length } },
-    })
+      data: {
+        status: 'SUCCESS',
+        finishedAt: new Date(),
+        details: { processedOperators: operators.length, createdPayouts: payouts.length },
+      },
+    });
 
-    console.log(`Payout processing completed. Processed ${operators.length} operators, created ${payouts.length} payouts.`)
+    console.log(
+      `Payout processing completed. Processed ${operators.length} operators, created ${payouts.length} payouts.`
+    );
   } catch (error: any) {
     await prisma.jobRun.update({
       where: { id: jobRun.id },
       data: { status: 'FAILED', finishedAt: new Date(), details: { error: error.message } },
-    })
-    console.error('Payout processing failed:', error)
-    throw error
+    });
+    console.error('Payout processing failed:', error);
+    throw error;
   }
 }

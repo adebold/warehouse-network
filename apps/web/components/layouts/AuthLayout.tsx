@@ -1,20 +1,20 @@
-import React from 'react'
-import Link from 'next/link'
-import { Building2 } from 'lucide-react'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
+import React from 'react';
+import Link from 'next/link';
+import { Building2 } from 'lucide-react';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
 
 interface AuthLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export function AuthLayout({ children }: AuthLayoutProps) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/10 via-primary/5 to-background flex flex-col">
+    <div className="from-primary/10 via-primary/5 to-background flex min-h-screen flex-col bg-gradient-to-br">
       {/* Header */}
       <header className="p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
+        <div className="mx-auto flex max-w-7xl items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
-            <Building2 className="h-8 w-8 text-primary" />
+            <Building2 className="text-primary h-8 w-8" />
             <span className="text-xl font-bold">Warehouse Network</span>
           </Link>
           <ThemeToggle />
@@ -22,15 +22,13 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       </header>
 
       {/* Main content */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-        <div className="w-full max-w-md">
-          {children}
-        </div>
+      <main className="flex flex-1 items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full max-w-md">{children}</div>
       </main>
 
       {/* Footer */}
       <footer className="p-4 sm:p-6">
-        <div className="max-w-7xl mx-auto text-center text-sm text-muted-foreground">
+        <div className="text-muted-foreground mx-auto max-w-7xl text-center text-sm">
           <p>© 2024 Warehouse Network. All rights reserved.</p>
           <div className="mt-2 space-x-4">
             <Link href="/terms" className="hover:text-foreground transition-colors">
@@ -46,5 +44,5 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         </div>
       </footer>
     </div>
-  )
+  );
 }

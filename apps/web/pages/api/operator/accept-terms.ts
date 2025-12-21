@@ -1,17 +1,14 @@
-import type { NextApiRequest, NextApiResponse } from 'next'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../auth/[...nextauth]'
-import prisma from '../../../lib/prisma'
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../auth/[...nextauth]';
+import prisma from '../../../lib/prisma';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PUT') {
-    const session = await getServerSession(req, res, authOptions)
+    const session = await getServerSession(req, res, authOptions);
 
     if (!session || session.user?.role !== 'OPERATOR_ADMIN') {
-      return res.status(403).json({ message: 'Forbidden' })
+      return res.status(403).json({ message: 'Forbidden' });
     }
 
     try {
@@ -19,10 +16,10 @@ export default async function handler(
       // For now, we'll find an operator based on the user's email or other identifier
       const operators = await prisma.operator.findMany({
         where: { primaryContact: session.user.email ?? '' },
-      })
+      });
 
       if (operators.length === 0) {
-        return res.status(404).json({ message: 'Operator not found for this user.' })
+        return res.status(404).json({ message: 'Operator not found for this user.' });
       }
 
       const operator = await prisma.operator.update({
@@ -31,15 +28,15 @@ export default async function handler(
           termsAccepted: true,
           termsAcceptedAt: new Date(),
         },
-      })
+      });
 
-      res.status(200).json({ message: 'Terms accepted successfully.' })
+      res.status(200).json({ message: 'Terms accepted successfully.' });
     } catch (error) {
-      console.error(error)
-      res.status(500).json({ message: 'An unexpected error occurred.' })
+      console.error(error);
+      res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {
-    res.setHeader('Allow', ['PUT'])
-    res.status(405).end(`Method ${req.method} Not Allowed`)
+    res.setHeader('Allow', ['PUT']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

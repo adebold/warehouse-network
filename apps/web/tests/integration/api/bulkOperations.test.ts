@@ -15,7 +15,7 @@ jest.mock('../../../lib/prisma', () => ({
     auditLog: {
       create: jest.fn(),
     },
-    $transaction: jest.fn((cb) => cb(prisma)),
+    $transaction: jest.fn(cb => cb(prisma)),
   },
 }));
 jest.mock('../../../lib/services/notificationService');
@@ -69,7 +69,7 @@ describe('/api/admin/customers/bulk', () => {
       const userIds = ['user1', 'user2', 'user3'];
       const reason = 'Bulk lock - overdue payments';
 
-      const mockUsers = userIds.map((id) => ({
+      const mockUsers = userIds.map(id => ({
         id,
         email: `${id}@example.com`,
         isLocked: false,
@@ -187,7 +187,7 @@ describe('/api/admin/customers/bulk', () => {
     it('should successfully unlock multiple accounts', async () => {
       const userIds = ['user1', 'user2', 'user3'];
 
-      const mockUsers = userIds.map((id) => ({
+      const mockUsers = userIds.map(id => ({
         id,
         email: `${id}@example.com`,
         isLocked: true,
@@ -322,15 +322,17 @@ describe('/api/admin/customers/bulk', () => {
       });
 
       // Verify individual reminders were sent
-      expect(
-        notificationService.sendPaymentReminderNotification
-      ).toHaveBeenCalledTimes(2);
-      expect(
-        notificationService.sendPaymentReminderNotification
-      ).toHaveBeenCalledWith('user1', 10, 100);
-      expect(
-        notificationService.sendPaymentReminderNotification
-      ).toHaveBeenCalledWith('user2', 20, 200);
+      expect(notificationService.sendPaymentReminderNotification).toHaveBeenCalledTimes(2);
+      expect(notificationService.sendPaymentReminderNotification).toHaveBeenCalledWith(
+        'user1',
+        10,
+        100
+      );
+      expect(notificationService.sendPaymentReminderNotification).toHaveBeenCalledWith(
+        'user2',
+        20,
+        200
+      );
 
       // Verify audit log
       expect(prisma.auditLog.create).toHaveBeenCalledWith({
@@ -376,12 +378,12 @@ describe('/api/admin/customers/bulk', () => {
       await handler(req, res);
 
       // Should only send reminder to user1
-      expect(
-        notificationService.sendPaymentReminderNotification
-      ).toHaveBeenCalledTimes(1);
-      expect(
-        notificationService.sendPaymentReminderNotification
-      ).toHaveBeenCalledWith('user1', 10, 100);
+      expect(notificationService.sendPaymentReminderNotification).toHaveBeenCalledTimes(1);
+      expect(notificationService.sendPaymentReminderNotification).toHaveBeenCalledWith(
+        'user1',
+        10,
+        100
+      );
     });
   });
 
@@ -477,9 +479,7 @@ describe('/api/admin/customers/bulk', () => {
     });
 
     it('should rollback on transaction failure', async () => {
-      (prisma.$transaction as jest.Mock).mockRejectedValue(
-        new Error('Transaction failed')
-      );
+      (prisma.$transaction as jest.Mock).mockRejectedValue(new Error('Transaction failed'));
 
       const { req, res } = createMocks({
         method: 'POST',

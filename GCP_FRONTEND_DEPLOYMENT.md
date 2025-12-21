@@ -39,6 +39,7 @@ gcloud run services describe warehouse-frontend \
 ## 🎯 What Happens When Build Completes
 
 Your frontend will be:
+
 - **Publicly accessible** (no authentication required)
 - **Auto-scaling** with Cloud Run
 - **HTTPS enabled** automatically
@@ -49,6 +50,7 @@ Your frontend will be:
 We have backup options ready:
 
 ### Option 1: Firebase Hosting (Fastest)
+
 ```bash
 npm install -g firebase-tools
 firebase login
@@ -57,6 +59,7 @@ firebase deploy
 ```
 
 ### Option 2: Static Export + Cloud Storage
+
 ```bash
 # Build static export
 npm run build && npm run export
@@ -68,6 +71,7 @@ gsutil web set -m index.html -e 404.html gs://warehouse-frontend-static
 ```
 
 ### Option 3: Vercel (One-Click)
+
 ```bash
 npx vercel --prod
 ```
@@ -75,6 +79,7 @@ npx vercel --prod
 ## 📋 Your Application Features
 
 All these features are ready to deploy:
+
 - ✅ **Design System**: 15+ custom UI components
 - ✅ **Payment Controls**: Account locking system
 - ✅ **Authentication**: NextAuth with JWT
@@ -85,6 +90,7 @@ All these features are ready to deploy:
 ## 🚀 Live URL (When Ready)
 
 Once the build completes, your app will be available at:
+
 ```
 https://warehouse-frontend-[hash]-uc.a.run.app
 ```

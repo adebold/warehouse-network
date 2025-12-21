@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Customer User Persona', () => {
-  test('should view inventory but be denied access to create RFQs, disputes, and admin pages', async ({ page }) => {
+  test('should view inventory but be denied access to create RFQs, disputes, and admin pages', async ({
+    page,
+  }) => {
     // Navigate to inventory
     await page.goto('/app/inventory');
     await expect(page.locator('h1')).toHaveText('Your Inventory');

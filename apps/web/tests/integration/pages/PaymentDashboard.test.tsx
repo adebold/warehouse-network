@@ -188,7 +188,7 @@ describe('Payment Dashboard Page', () => {
   describe('Date Range Filter', () => {
     it('should filter data by date range', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -217,7 +217,7 @@ describe('Payment Dashboard Page', () => {
 
       await user.clear(startDateInput);
       await user.type(startDateInput, '2024-01-01');
-      
+
       await user.clear(endDateInput);
       await user.type(endDateInput, '2024-01-15');
 
@@ -235,7 +235,7 @@ describe('Payment Dashboard Page', () => {
 
     it('should show preset date ranges', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock).mockResolvedValue({
         ok: true,
         json: async () => mockDashboardData,
@@ -299,7 +299,7 @@ describe('Payment Dashboard Page', () => {
 
     it('should navigate to payment details on row click', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => mockDashboardData,
@@ -329,7 +329,7 @@ describe('Payment Dashboard Page', () => {
 
       await waitFor(() => {
         const overdueSection = screen.getByText('Overdue Breakdown').closest('section');
-        
+
         within(overdueSection!).getByText('1-7 days');
         within(overdueSection!).getByText('15 accounts');
         within(overdueSection!).getByText('$10,000');
@@ -377,7 +377,7 @@ describe('Payment Dashboard Page', () => {
   describe('Export and Actions', () => {
     it('should export dashboard data', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock)
         .mockResolvedValueOnce({
           ok: true,
@@ -389,7 +389,7 @@ describe('Payment Dashboard Page', () => {
         });
 
       global.URL.createObjectURL = jest.fn(() => 'blob:url');
-      
+
       render(<PaymentDashboard />);
 
       await waitFor(() => {
@@ -413,7 +413,7 @@ describe('Payment Dashboard Page', () => {
 
     it('should navigate to customer management', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => mockDashboardData,
@@ -433,7 +433,7 @@ describe('Payment Dashboard Page', () => {
 
     it('should navigate to overdue report', async () => {
       const user = userEvent.setup();
-      
+
       (fetch as jest.Mock).mockResolvedValueOnce({
         ok: true,
         json: async () => mockDashboardData,

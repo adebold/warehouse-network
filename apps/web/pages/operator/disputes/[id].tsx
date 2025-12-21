@@ -1,30 +1,30 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { Dispute, Skid } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { Dispute, Skid } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface OperatorDisputeDetailsProps {
-  dispute: Dispute & { skids: { skid: Skid }[] }
+  dispute: Dispute & { skids: { skid: Skid }[] };
 }
 
 const OperatorDisputeDetails: NextPage<OperatorDisputeDetailsProps> = ({ dispute }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [resolution, setResolution] = useState(dispute.resolution || '')
-  const [disputeStatus, setDisputeStatus] = useState(dispute.status)
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [resolution, setResolution] = useState(dispute.resolution || '');
+  const [disputeStatus, setDisputeStatus] = useState(dispute.status);
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
   const handleSubmitResolution = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch(`/api/operator/disputes/${dispute.id}`, {
@@ -33,23 +33,23 @@ const OperatorDisputeDetails: NextPage<OperatorDisputeDetailsProps> = ({ dispute
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ resolution, status: disputeStatus }),
-      })
+      });
 
       if (response.ok) {
-        router.replace(router.asPath)
+        router.replace(router.asPath);
       } else {
-        const errorData = await response.json()
-        console.error('Failed to update dispute', errorData)
-        alert('Failed to update dispute')
+        const errorData = await response.json();
+        console.error('Failed to update dispute', errorData);
+        alert('Failed to update dispute');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while updating the dispute.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while updating the dispute.');
     }
-  }
+  };
 
   if (status === 'loading' || !session || session.user.role !== 'OPERATOR_ADMIN') {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -95,15 +95,15 @@ const OperatorDisputeDetails: NextPage<OperatorDisputeDetailsProps> = ({ dispute
         <button type="submit">Submit Resolution</button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
-  const { id } = context.params || {}
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
+  const { id } = context.params || {};
 
   if (!session || session.user?.role !== 'OPERATOR_ADMIN') {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
   const dispute = await prisma.dispute.findUnique({
@@ -111,17 +111,17 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     include: {
       skids: { include: { skid: true } },
     },
-  })
+  });
 
   if (!dispute || dispute.operatorId !== session.user.operatorId) {
-    return { notFound: true }
+    return { notFound: true };
   }
 
   return {
     props: {
       dispute: JSON.parse(JSON.stringify(dispute)),
     },
-  }
-}
+  };
+};
 
-export default OperatorDisputeDetails
+export default OperatorDisputeDetails;

@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/router'
-import { useSession } from 'next-auth/react'
-import { DashboardLayout } from '@/components/layouts/DashboardLayout'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import {
   Card,
   CardContent,
@@ -9,13 +9,13 @@ import {
   CardHeader,
   CardTitle,
   CardFooter,
-} from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -24,7 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'
+} from '@/components/ui/dialog';
 import {
   ArrowLeft,
   Lock,
@@ -40,92 +40,92 @@ import {
   XCircle,
   FileText,
   Truck,
-} from 'lucide-react'
-import { formatDistanceToNow } from 'date-fns'
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 interface CustomerDetail {
-  id: string
-  name: string
-  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED'
-  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT'
-  lockReason?: string
-  lockedAt?: string
-  lockedBy?: string
-  paymentDueDate?: string
-  overdueAmount: number
-  totalOutstanding: number
-  createdAt: string
-  updatedAt: string
+  id: string;
+  name: string;
+  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT';
+  lockReason?: string;
+  lockedAt?: string;
+  lockedBy?: string;
+  paymentDueDate?: string;
+  overdueAmount: number;
+  totalOutstanding: number;
+  createdAt: string;
+  updatedAt: string;
   _count: {
-    skids: number
-    rfqs: number
-    disputes: number
-    deposits: number
-    releaseRequests: number
-  }
+    skids: number;
+    rfqs: number;
+    disputes: number;
+    deposits: number;
+    releaseRequests: number;
+  };
   users: Array<{
-    id: string
-    name: string
-    email: string
-    role: string
-  }>
+    id: string;
+    name: string;
+    email: string;
+    role: string;
+  }>;
   lockHistory: Array<{
-    id: string
-    action: 'LOCKED' | 'UNLOCKED'
-    reason?: string
-    overrideReason?: string
-    timestamp: string
+    id: string;
+    action: 'LOCKED' | 'UNLOCKED';
+    reason?: string;
+    overrideReason?: string;
+    timestamp: string;
     performedBy: {
-      name: string
-      email: string
-    }
-  }>
+      name: string;
+      email: string;
+    };
+  }>;
   activeSkids?: Array<{
-    id: string
-    trackingNumber: string
-    status: string
-    weight: number
-    createdAt: string
-  }>
+    id: string;
+    trackingNumber: string;
+    status: string;
+    weight: number;
+    createdAt: string;
+  }>;
 }
 
 export default function CustomerDetailPage() {
-  const { data: session } = useSession()
-  const router = useRouter()
-  const { id } = router.query
-  const [customer, setCustomer] = useState<CustomerDetail | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [showLockDialog, setShowLockDialog] = useState(false)
-  const [lockReason, setLockReason] = useState('')
-  const [overrideReason, setOverrideReason] = useState('')
-  const [actionLoading, setActionLoading] = useState(false)
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { id } = router.query;
+  const [customer, setCustomer] = useState<CustomerDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [showLockDialog, setShowLockDialog] = useState(false);
+  const [lockReason, setLockReason] = useState('');
+  const [overrideReason, setOverrideReason] = useState('');
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     if (id) {
-      fetchCustomerDetail()
+      fetchCustomerDetail();
     }
-  }, [id])
+  }, [id]);
 
   const fetchCustomerDetail = async () => {
     try {
-      const response = await fetch(`/api/admin/customers/${id}`)
+      const response = await fetch(`/api/admin/customers/${id}`);
       if (response.ok) {
-        const data = await response.json()
-        setCustomer(data)
+        const data = await response.json();
+        setCustomer(data);
       }
     } catch (error) {
-      console.error('Error fetching customer detail:', error)
+      console.error('Error fetching customer detail:', error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleLockUnlock = async () => {
-    if (!customer) return
-    
-    setActionLoading(true)
+    if (!customer) return;
+
+    setActionLoading(true);
     try {
-      const action = customer.accountStatus === 'LOCKED' ? 'unlock' : 'lock'
+      const action = customer.accountStatus === 'LOCKED' ? 'unlock' : 'lock';
       const response = await fetch(`/api/admin/customers/${id}/lock`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,24 +134,26 @@ export default function CustomerDetailPage() {
           reason: lockReason || undefined,
           overrideReason: overrideReason || undefined,
         }),
-      })
-      
+      });
+
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json();
         if (data.warnings && (data.warnings.pendingReleases > 0 || data.warnings.activeSkids > 0)) {
-          alert(`Warning: This customer has ${data.warnings.activeSkids} active skids and ${data.warnings.pendingReleases} pending release requests.`)
+          alert(
+            `Warning: This customer has ${data.warnings.activeSkids} active skids and ${data.warnings.pendingReleases} pending release requests.`
+          );
         }
-        fetchCustomerDetail()
-        setShowLockDialog(false)
-        setLockReason('')
-        setOverrideReason('')
+        fetchCustomerDetail();
+        setShowLockDialog(false);
+        setLockReason('');
+        setOverrideReason('');
       }
     } catch (error) {
-      console.error('Error updating account lock:', error)
+      console.error('Error updating account lock:', error);
     } finally {
-      setActionLoading(false)
+      setActionLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
@@ -172,7 +174,7 @@ export default function CustomerDetailPage() {
           </div>
         </div>
       </DashboardLayout>
-    )
+    );
   }
 
   if (!customer) {
@@ -184,7 +186,7 @@ export default function CustomerDetailPage() {
           <AlertDescription>Customer not found</AlertDescription>
         </Alert>
       </DashboardLayout>
-    )
+    );
   }
 
   return (
@@ -192,10 +194,7 @@ export default function CustomerDetailPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={() => router.push('/admin/customers')}
-            >
+            <Button variant="ghost" onClick={() => router.push('/admin/customers')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Customers
             </Button>
@@ -208,18 +207,13 @@ export default function CustomerDetailPage() {
             )}
           </div>
           <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/admin/customers/${id}/history`)}
-            >
+            <Button variant="outline" onClick={() => router.push(`/admin/customers/${id}/history`)}>
               <History className="mr-2 h-4 w-4" />
               Lock History
             </Button>
             <Dialog open={showLockDialog} onOpenChange={setShowLockDialog}>
               <DialogTrigger asChild>
-                <Button
-                  variant={customer.accountStatus === 'LOCKED' ? 'success' : 'destructive'}
-                >
+                <Button variant={customer.accountStatus === 'LOCKED' ? 'success' : 'destructive'}>
                   {customer.accountStatus === 'LOCKED' ? (
                     <>
                       <Unlock className="mr-2 h-4 w-4" />
@@ -252,7 +246,7 @@ export default function CustomerDetailPage() {
                     <Input
                       id="reason"
                       value={lockReason}
-                      onChange={(e) => setLockReason(e.target.value)}
+                      onChange={e => setLockReason(e.target.value)}
                       placeholder={
                         customer.accountStatus === 'LOCKED'
                           ? 'e.g., Payment received, Issue resolved'
@@ -266,7 +260,7 @@ export default function CustomerDetailPage() {
                       <Input
                         id="override"
                         value={overrideReason}
-                        onChange={(e) => setOverrideReason(e.target.value)}
+                        onChange={e => setOverrideReason(e.target.value)}
                         placeholder="Administrative override reason"
                       />
                     </div>
@@ -299,9 +293,9 @@ export default function CustomerDetailPage() {
             <Ban className="h-4 w-4" />
             <AlertTitle>Account Locked</AlertTitle>
             <AlertDescription>
-              This account was locked on {new Date(customer.lockedAt!).toLocaleDateString()} 
-              {customer.lockReason && ` due to: ${customer.lockReason}`}. 
-              The customer cannot receive new inventory or release existing skids until the account is unlocked.
+              This account was locked on {new Date(customer.lockedAt!).toLocaleDateString()}
+              {customer.lockReason && ` due to: ${customer.lockReason}`}. The customer cannot
+              receive new inventory or release existing skids until the account is unlocked.
             </AlertDescription>
           </Alert>
         )}
@@ -318,8 +312,11 @@ export default function CustomerDetailPage() {
                   <span className="text-muted-foreground">Status</span>
                   <Badge
                     variant={
-                      customer.accountStatus === 'ACTIVE' ? 'success' :
-                      customer.accountStatus === 'SUSPENDED' ? 'warning' : 'destructive'
+                      customer.accountStatus === 'ACTIVE'
+                        ? 'success'
+                        : customer.accountStatus === 'SUSPENDED'
+                          ? 'warning'
+                          : 'destructive'
                     }
                   >
                     {customer.accountStatus}
@@ -347,8 +344,11 @@ export default function CustomerDetailPage() {
                   <span className="text-muted-foreground">Status</span>
                   <Badge
                     variant={
-                      customer.paymentStatus === 'CURRENT' ? 'success' :
-                      customer.paymentStatus === 'OVERDUE' ? 'warning' : 'destructive'
+                      customer.paymentStatus === 'CURRENT'
+                        ? 'success'
+                        : customer.paymentStatus === 'OVERDUE'
+                          ? 'warning'
+                          : 'destructive'
                     }
                   >
                     {customer.paymentStatus}
@@ -356,7 +356,9 @@ export default function CustomerDetailPage() {
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-muted-foreground">Outstanding</span>
-                  <span className={`font-medium ${customer.totalOutstanding > 0 ? 'text-destructive' : ''}`}>
+                  <span
+                    className={`font-medium ${customer.totalOutstanding > 0 ? 'text-destructive' : ''}`}
+                  >
                     ${customer.totalOutstanding.toFixed(2)}
                   </span>
                 </div>
@@ -406,27 +408,31 @@ export default function CustomerDetailPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {customer.lockHistory.slice(0, 5).map((entry) => (
+                {customer.lockHistory.slice(0, 5).map(entry => (
                   <div key={entry.id} className="flex items-start space-x-4">
-                    <div className={`mt-1 rounded-full p-1 ${
-                      entry.action === 'LOCKED' ? 'bg-destructive/10' : 'bg-success/10'
-                    }`}>
+                    <div
+                      className={`mt-1 rounded-full p-1 ${
+                        entry.action === 'LOCKED' ? 'bg-destructive/10' : 'bg-success/10'
+                      }`}
+                    >
                       {entry.action === 'LOCKED' ? (
-                        <Lock className={`h-4 w-4 ${
-                          entry.action === 'LOCKED' ? 'text-destructive' : 'text-success'
-                        }`} />
+                        <Lock
+                          className={`h-4 w-4 ${
+                            entry.action === 'LOCKED' ? 'text-destructive' : 'text-success'
+                          }`}
+                        />
                       ) : (
-                        <Unlock className="h-4 w-4 text-success" />
+                        <Unlock className="text-success h-4 w-4" />
                       )}
                     </div>
                     <div className="flex-1 space-y-1">
                       <p className="text-sm font-medium">
                         Account {entry.action.toLowerCase()} by {entry.performedBy.name}
                       </p>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-muted-foreground text-sm">
                         {entry.reason || 'No reason provided'}
                       </p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {formatDistanceToNow(new Date(entry.timestamp))} ago
                       </p>
                     </div>
@@ -447,5 +453,5 @@ export default function CustomerDetailPage() {
         )}
       </div>
     </DashboardLayout>
-  )
+  );
 }

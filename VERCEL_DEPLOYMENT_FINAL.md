@@ -5,6 +5,7 @@
 ### Option 1: Deploy via GitHub (Recommended - No CLI needed!)
 
 1. **Push your code to GitHub:**
+
    ```bash
    git add .
    git commit -m "Ready for Vercel deployment"
@@ -29,6 +30,7 @@
 ### Option 2: Deploy via CLI
 
 1. **Login to Vercel:**
+
    ```bash
    npx vercel login
    ```
@@ -42,6 +44,7 @@
 ### Quick Fixes Before Deployment:
 
 If you get build errors, run:
+
 ```bash
 # Install missing dependencies
 npm install date-fns bcryptjs --save
@@ -51,12 +54,14 @@ find . -name "*.ts" -o -name "*.tsx" | xargs sed -i '' "s/'bcryptjs'/'bcrypt'/g"
 ```
 
 ### Free Database Options:
+
 - **Vercel Postgres**: One-click in Vercel dashboard
 - **Supabase**: https://supabase.com
 - **Neon**: https://neon.tech
 - **PlanetScale**: https://planetscale.com
 
 ### After Deployment:
+
 ```bash
 # Push database schema
 npx prisma db push

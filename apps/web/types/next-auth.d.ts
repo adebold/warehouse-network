@@ -1,30 +1,30 @@
-import NextAuth, { DefaultSession } from 'next-auth'
-import { JWT } from 'next-auth/jwt'
+import NextAuth, { DefaultSession } from 'next-auth';
+import { JWT } from 'next-auth/jwt';
 
 declare module 'next-auth' {
   interface User {
-    id: string
-    role: string
-    customerId?: string | null
+    id: string;
+    role: string;
+    customerId?: string | null;
   }
 
   interface Session {
     user: {
-      id: string
-      role: string
-      warehouseId?: string
-      customerId?: string | null
-      operatorId?: string | null
-    } & DefaultSession['user']
+      id: string;
+      role: string;
+      warehouseId?: string;
+      customerId?: string | null;
+      operatorId?: string | null;
+    } & DefaultSession['user'];
   }
 }
 
 declare module 'next-auth/jwt' {
   interface JWT {
-    id: string
-    role: string
-    warehouseId?: string
-    customerId?: string | null
-    operatorId?: string | null
+    id: string;
+    role: string;
+    warehouseId?: string;
+    customerId?: string | null;
+    operatorId?: string | null;
   }
 }

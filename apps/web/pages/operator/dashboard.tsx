@@ -1,41 +1,41 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import type { Operator } from '@prisma/client'
-import prisma from '../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect } from 'react';
+import type { Operator } from '@prisma/client';
+import prisma from '../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../api/auth/[...nextauth]';
 
 interface OperatorDashboardProps {
-  operator: Operator
+  operator: Operator;
 }
 
 const OperatorDashboard: NextPage<OperatorDashboardProps> = ({ operator }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
   const handleStripeConnect = async () => {
     try {
       const response = await fetch('/api/operator/stripe/connect-onboarding', {
         method: 'POST',
-      })
-      const { url } = await response.json()
-      router.push(url)
+      });
+      const { url } = await response.json();
+      router.push(url);
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while connecting to Stripe.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while connecting to Stripe.');
     }
-  }
+  };
 
   if (status === 'loading' || !session || session.user.role !== 'OPERATOR_ADMIN') {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -49,30 +49,30 @@ const OperatorDashboard: NextPage<OperatorDashboardProps> = ({ operator }) => {
       )}
       <p>Welcome to your dashboard. More features coming soon!</p>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session || session.user?.role !== 'OPERATOR_ADMIN') {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
   const user = await prisma.user.findUnique({
     where: { email: session.user.email ?? '' },
     include: { operatorUser: { include: { operator: true } } },
-  })
+  });
 
   if (!user?.operatorUser) {
-    return { notFound: true }
+    return { notFound: true };
   }
 
   return {
     props: {
       operator: JSON.parse(JSON.stringify(user.operatorUser.operator)),
     },
-  }
-}
+  };
+};
 
-export default OperatorDashboard
+export default OperatorDashboard;

@@ -375,10 +375,10 @@ describe('Customer Management Page', () => {
       await user.click(selectAllCheckbox);
 
       // All customer checkboxes should be selected
-      const customerCheckboxes = screen.getAllByRole('checkbox').filter(
-        (cb) => cb !== selectAllCheckbox
-      );
-      customerCheckboxes.forEach((checkbox) => {
+      const customerCheckboxes = screen
+        .getAllByRole('checkbox')
+        .filter(cb => cb !== selectAllCheckbox);
+      customerCheckboxes.forEach(checkbox => {
         expect(checkbox).toBeChecked();
       });
 
@@ -578,10 +578,7 @@ describe('Customer Management Page', () => {
       await user.click(nextButton);
 
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          expect.stringContaining('page=2'),
-          expect.any(Object)
-        );
+        expect(fetch).toHaveBeenCalledWith(expect.stringContaining('page=2'), expect.any(Object));
       });
     });
   });
@@ -607,7 +604,7 @@ describe('Customer Management Page', () => {
 
       // Mock URL.createObjectURL
       global.URL.createObjectURL = jest.fn(() => 'blob:url');
-      
+
       const user = userEvent.setup();
       render(<CustomerManagement />);
 
@@ -619,10 +616,7 @@ describe('Customer Management Page', () => {
       await user.click(exportButton);
 
       await waitFor(() => {
-        expect(fetch).toHaveBeenCalledWith(
-          '/api/admin/customers/export',
-          expect.any(Object)
-        );
+        expect(fetch).toHaveBeenCalledWith('/api/admin/customers/export', expect.any(Object));
       });
     });
   });

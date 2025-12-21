@@ -93,9 +93,7 @@ describe('/api/admin/customers/[id]/lock', () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
       (prisma.user.update as jest.Mock).mockResolvedValue(mockUpdatedUser);
-      (notificationService.sendAccountLockNotification as jest.Mock).mockResolvedValue(
-        undefined
-      );
+      (notificationService.sendAccountLockNotification as jest.Mock).mockResolvedValue(undefined);
 
       const { req, res } = createMocks({
         method: 'POST',
@@ -264,9 +262,7 @@ describe('/api/admin/customers/[id]/lock', () => {
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
       (prisma.user.update as jest.Mock).mockResolvedValue(mockUpdatedUser);
-      (notificationService.sendAccountUnlockNotification as jest.Mock).mockResolvedValue(
-        undefined
-      );
+      (notificationService.sendAccountUnlockNotification as jest.Mock).mockResolvedValue(undefined);
 
       const { req, res } = createMocks({
         method: 'DELETE',
@@ -295,9 +291,7 @@ describe('/api/admin/customers/[id]/lock', () => {
       });
 
       // Verify notification was sent
-      expect(notificationService.sendAccountUnlockNotification).toHaveBeenCalledWith(
-        customerId
-      );
+      expect(notificationService.sendAccountUnlockNotification).toHaveBeenCalledWith(customerId);
 
       // Verify audit log was created
       expect(prisma.auditLog.create).toHaveBeenCalledWith({

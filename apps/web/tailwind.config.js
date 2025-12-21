@@ -1,4 +1,4 @@
-const { tokens } = require('./lib/design-system/tokens')
+const { tokens } = require('./lib/design-system/tokens');
 
 /** @type {import('tailwindcss').Config} */
 module.exports = {
@@ -102,8 +102,8 @@ module.exports = {
         'slide-in-from-bottom': 'slide-in-from-bottom 0.2s ease-out',
         'slide-in-from-left': 'slide-in-from-left 0.2s ease-out',
         'slide-in-from-right': 'slide-in-from-right 0.2s ease-out',
-        'spin': 'spin 1s linear infinite',
-        'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        spin: 'spin 1s linear infinite',
+        pulse: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       keyframes: {
         'accordion-down': {
@@ -152,4 +152,4 @@ module.exports = {
     require('@tailwindcss/typography'),
     require('tailwindcss-animate'),
   ],
-}
+};

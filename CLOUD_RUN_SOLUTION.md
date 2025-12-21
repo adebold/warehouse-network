@@ -138,6 +138,7 @@ gcloud run deploy warehouse-app \
 1. **Use Local Development**: The app is fully functional locally. You can use it with Cloud SQL Proxy for production data access.
 
 2. **Wait for Build Completion**: The `warehouse-final` deployment is currently building. Check status with:
+
    ```bash
    gcloud run services list --region us-central1
    ```

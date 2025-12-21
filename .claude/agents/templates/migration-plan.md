@@ -28,10 +28,13 @@ hooks:
 # Claude Flow Commands to Agent System Migration Plan
 
 ## Overview
+
 This document provides a comprehensive migration plan to convert existing .claude/commands to the new agent-based system. Each command is mapped to an equivalent agent with defined roles, responsibilities, capabilities, and tool access restrictions.
 
 ## Agent Definition Format
+
 Each agent uses YAML frontmatter with the following structure:
+
 ```yaml
 ---
 role: agent-type
@@ -48,9 +51,9 @@ tools:
   restricted:
     - restricted-tool
 triggers:
-  - pattern: "regex pattern"
+  - pattern: 'regex pattern'
     priority: high|medium|low
-  - keyword: "activation keyword"
+  - keyword: 'activation keyword'
 ---
 ```
 
@@ -59,7 +62,9 @@ triggers:
 ### 1. Coordination Agents
 
 #### Swarm Initializer Agent
+
 **Command**: `.claude/commands/coordination/init.md`
+
 ```yaml
 ---
 role: coordinator
@@ -84,14 +89,16 @@ tools:
     - Write
     - Edit
 triggers:
-  - pattern: "init.*swarm|create.*swarm|setup.*agents"
+  - pattern: 'init.*swarm|create.*swarm|setup.*agents'
     priority: high
-  - keyword: "swarm-init"
+  - keyword: 'swarm-init'
 ---
 ```
 
 #### Agent Spawner
+
 **Command**: `.claude/commands/coordination/spawn.md`
+
 ```yaml
 ---
 role: coordinator
@@ -116,14 +123,16 @@ tools:
     - Write
     - Edit
 triggers:
-  - pattern: "spawn.*agent|create.*agent|add.*agent"
+  - pattern: 'spawn.*agent|create.*agent|add.*agent'
     priority: high
-  - keyword: "agent-spawn"
+  - keyword: 'agent-spawn'
 ---
 ```
 
 #### Task Orchestrator
+
 **Command**: `.claude/commands/coordination/orchestrate.md`
+
 ```yaml
 ---
 role: orchestrator
@@ -152,16 +161,18 @@ tools:
     - Write
     - Edit
 triggers:
-  - pattern: "orchestrate|coordinate.*task|manage.*workflow"
+  - pattern: 'orchestrate|coordinate.*task|manage.*workflow'
     priority: high
-  - keyword: "orchestrate"
+  - keyword: 'orchestrate'
 ---
 ```
 
 ### 2. GitHub Integration Agents
 
 #### PR Manager Agent
+
 **Command**: `.claude/commands/github/pr-manager.md`
+
 ```yaml
 ---
 role: github-specialist
@@ -179,7 +190,7 @@ capabilities:
   - status-tracking
 tools:
   allowed:
-    - Bash  # For gh CLI commands
+    - Bash # For gh CLI commands
     - mcp__claude-flow__swarm_init
     - mcp__claude-flow__agent_spawn
     - mcp__claude-flow__task_orchestrate
@@ -187,17 +198,19 @@ tools:
     - TodoWrite
     - Read
   restricted:
-    - Write  # Should use gh CLI for GitHub operations
+    - Write # Should use gh CLI for GitHub operations
     - Edit
 triggers:
-  - pattern: "pr|pull.?request|merge.*request"
+  - pattern: 'pr|pull.?request|merge.*request'
     priority: high
-  - keyword: "pr-manager"
+  - keyword: 'pr-manager'
 ---
 ```
 
 #### Code Review Swarm Agent
+
 **Command**: `.claude/commands/github/code-review-swarm.md`
+
 ```yaml
 ---
 role: reviewer
@@ -215,7 +228,7 @@ capabilities:
   - report-generation
 tools:
   allowed:
-    - Bash  # For gh CLI
+    - Bash # For gh CLI
     - Read
     - Grep
     - mcp__claude-flow__swarm_init
@@ -226,14 +239,16 @@ tools:
     - Write
     - Edit
 triggers:
-  - pattern: "review.*code|code.*review|check.*pr"
+  - pattern: 'review.*code|code.*review|check.*pr'
     priority: high
-  - keyword: "code-review"
+  - keyword: 'code-review'
 ---
 ```
 
 #### Release Manager Agent
+
 **Command**: `.claude/commands/github/release-manager.md`
+
 ```yaml
 ---
 role: release-coordinator
@@ -258,19 +273,21 @@ tools:
     - mcp__claude-flow__task_orchestrate
     - TodoWrite
   restricted:
-    - Write  # Use version control for releases
+    - Write # Use version control for releases
     - Edit
 triggers:
-  - pattern: "release|deploy|tag.*version|create.*release"
+  - pattern: 'release|deploy|tag.*version|create.*release'
     priority: high
-  - keyword: "release-manager"
+  - keyword: 'release-manager'
 ---
 ```
 
 ### 3. SPARC Methodology Agents
 
 #### SPARC Orchestrator Agent
+
 **Command**: `.claude/commands/sparc/orchestrator.md`
+
 ```yaml
 ---
 role: sparc-coordinator
@@ -300,14 +317,16 @@ tools:
     - Write
     - Edit
 triggers:
-  - pattern: "sparc.*orchestrat|coordinate.*sparc"
+  - pattern: 'sparc.*orchestrat|coordinate.*sparc'
     priority: high
-  - keyword: "sparc-orchestrator"
+  - keyword: 'sparc-orchestrator'
 ---
 ```
 
 #### SPARC Coder Agent
+
 **Command**: `.claude/commands/sparc/coder.md`
+
 ```yaml
 ---
 role: implementer
@@ -333,16 +352,18 @@ tools:
     - mcp__claude-flow__sparc_mode
     - TodoWrite
   restricted:
-    - mcp__claude-flow__swarm_init  # Focus on implementation
+    - mcp__claude-flow__swarm_init # Focus on implementation
 triggers:
-  - pattern: "implement|code|develop|build.*feature"
+  - pattern: 'implement|code|develop|build.*feature'
     priority: high
-  - keyword: "sparc-coder"
+  - keyword: 'sparc-coder'
 ---
 ```
 
 #### SPARC Tester Agent
+
 **Command**: `.claude/commands/sparc/tester.md`
+
 ```yaml
 ---
 role: quality-assurance
@@ -370,16 +391,18 @@ tools:
   restricted:
     - mcp__claude-flow__swarm_init
 triggers:
-  - pattern: "test|verify|validate|check.*quality"
+  - pattern: 'test|verify|validate|check.*quality'
     priority: high
-  - keyword: "sparc-tester"
+  - keyword: 'sparc-tester'
 ---
 ```
 
 ### 4. Analysis Agents
 
 #### Performance Analyzer Agent
+
 **Command**: `.claude/commands/analysis/performance-bottlenecks.md`
+
 ```yaml
 ---
 role: analyst
@@ -408,14 +431,16 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "analyze.*performance|bottleneck|slow.*execution"
+  - pattern: 'analyze.*performance|bottleneck|slow.*execution'
     priority: high
-  - keyword: "performance-analyzer"
+  - keyword: 'performance-analyzer'
 ---
 ```
 
 #### Token Efficiency Analyst Agent
+
 **Command**: `.claude/commands/analysis/token-efficiency.md`
+
 ```yaml
 ---
 role: analyst
@@ -443,16 +468,18 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "token.*usage|analyze.*cost|efficiency.*report"
+  - pattern: 'token.*usage|analyze.*cost|efficiency.*report'
     priority: medium
-  - keyword: "token-analyzer"
+  - keyword: 'token-analyzer'
 ---
 ```
 
 ### 5. Memory Management Agents
 
 #### Memory Coordinator Agent
+
 **Command**: `.claude/commands/memory/usage.md`
+
 ```yaml
 ---
 role: memory-manager
@@ -480,14 +507,16 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "memory|remember|store.*context|retrieve.*data"
+  - pattern: 'memory|remember|store.*context|retrieve.*data'
     priority: high
-  - keyword: "memory-manager"
+  - keyword: 'memory-manager'
 ---
 ```
 
 #### Neural Pattern Agent
+
 **Command**: `.claude/commands/memory/neural.md`
+
 ```yaml
 ---
 role: ai-specialist
@@ -515,16 +544,18 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "neural|ai.*pattern|cognitive|machine.*learning"
+  - pattern: 'neural|ai.*pattern|cognitive|machine.*learning'
     priority: high
-  - keyword: "neural-patterns"
+  - keyword: 'neural-patterns'
 ---
 ```
 
 ### 6. Automation Agents
 
 #### Smart Agent Coordinator
+
 **Command**: `.claude/commands/automation/smart-agents.md`
+
 ```yaml
 ---
 role: automation-specialist
@@ -552,14 +583,16 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "smart.*agent|auto.*spawn|intelligent.*coordination"
+  - pattern: 'smart.*agent|auto.*spawn|intelligent.*coordination'
     priority: high
-  - keyword: "smart-agents"
+  - keyword: 'smart-agents'
 ---
 ```
 
 #### Self-Healing Coordinator Agent
+
 **Command**: `.claude/commands/automation/self-healing.md`
+
 ```yaml
 ---
 role: reliability-engineer
@@ -581,21 +614,23 @@ tools:
     - mcp__claude-flow__health_check
     - mcp__claude-flow__error_analysis
     - mcp__claude-flow__diagnostic_run
-    - Bash  # For system commands
+    - Bash # For system commands
   restricted:
-    - Write  # Prevent accidental file modifications during recovery
+    - Write # Prevent accidental file modifications during recovery
     - Edit
 triggers:
-  - pattern: "self.*heal|auto.*recover|fault.*toleran|system.*health"
+  - pattern: 'self.*heal|auto.*recover|fault.*toleran|system.*health'
     priority: high
-  - keyword: "self-healing"
+  - keyword: 'self-healing'
 ---
 ```
 
 ### 7. Optimization Agents
 
 #### Parallel Execution Optimizer Agent
+
 **Command**: `.claude/commands/optimization/parallel-execution.md`
+
 ```yaml
 ---
 role: optimizer
@@ -622,14 +657,16 @@ tools:
     - Write
     - Edit
 triggers:
-  - pattern: "parallel|concurrent|simultaneous|batch.*execution"
+  - pattern: 'parallel|concurrent|simultaneous|batch.*execution'
     priority: high
-  - keyword: "parallel-optimizer"
+  - keyword: 'parallel-optimizer'
 ---
 ```
 
 #### Auto-Topology Optimizer Agent
+
 **Command**: `.claude/commands/optimization/auto-topology.md`
+
 ```yaml
 ---
 role: optimizer
@@ -657,16 +694,18 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "topology|optimize.*swarm|network.*structure"
+  - pattern: 'topology|optimize.*swarm|network.*structure'
     priority: medium
-  - keyword: "topology-optimizer"
+  - keyword: 'topology-optimizer'
 ---
 ```
 
 ### 8. Monitoring Agents
 
 #### Swarm Monitor Agent
+
 **Command**: `.claude/commands/monitoring/status.md`
+
 ```yaml
 ---
 role: monitor
@@ -694,30 +733,34 @@ tools:
     - Edit
     - Bash
 triggers:
-  - pattern: "monitor|status|health.*check|swarm.*status"
+  - pattern: 'monitor|status|health.*check|swarm.*status'
     priority: medium
-  - keyword: "swarm-monitor"
+  - keyword: 'swarm-monitor'
 ---
 ```
 
 ## Implementation Guidelines
 
 ### 1. Agent Activation
+
 - Agents are activated by pattern matching in user messages
 - Higher priority patterns take precedence
 - Multiple agents can be activated for complex tasks
 
 ### 2. Tool Restrictions
+
 - Each agent has specific allowed and restricted tools
 - Restrictions ensure agents stay within their domain
 - Critical operations require specialized agents
 
 ### 3. Inter-Agent Communication
+
 - Agents communicate through shared memory
 - Task orchestrator coordinates multi-agent workflows
 - Results are aggregated by coordinator agents
 
 ### 4. Migration Steps
+
 1. Create `.claude/agents/` directory structure
 2. Convert each command to agent definition format
 3. Update activation patterns for natural language
@@ -725,6 +768,7 @@ triggers:
 5. Implement gradual rollout with fallbacks
 
 ### 5. Backwards Compatibility
+
 - Keep command files during transition
 - Map command invocations to agent activations
 - Provide migration warnings for deprecated commands
@@ -732,6 +776,7 @@ triggers:
 ## Monitoring Migration Success
 
 ### Key Metrics
+
 - Agent activation accuracy
 - Task completion rates
 - Inter-agent coordination efficiency
@@ -739,6 +784,7 @@ triggers:
 - Performance improvements
 
 ### Validation Criteria
+
 - All commands have equivalent agents
 - No functionality loss during migration
 - Improved natural language understanding

@@ -1,29 +1,29 @@
-import type { NextPage } from 'next'
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import { useAnalytics } from '@/hooks/useAnalytics'
-import { trackConversion, logEvent } from '@/lib/analytics'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { 
-  Building2, 
-  TrendingUp, 
-  Shield, 
-  Zap, 
-  Check, 
-  ArrowRight, 
+import type { NextPage } from 'next';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { trackConversion, logEvent } from '@/lib/analytics';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Building2,
+  TrendingUp,
+  Shield,
+  Zap,
+  Check,
+  ArrowRight,
   DollarSign,
   Users,
   BarChart3,
   Clock,
   Star,
-  ChevronRight
-} from 'lucide-react'
+  ChevronRight,
+} from 'lucide-react';
 
 const BecomeAPartner: NextPage = () => {
-  const router = useRouter()
-  const { trackCTA, formTracking } = useAnalytics()
+  const router = useRouter();
+  const { trackCTA, formTracking } = useAnalytics();
   const [formData, setFormData] = useState({
     legalName: '',
     registrationDetails: '',
@@ -34,28 +34,30 @@ const BecomeAPartner: NextPage = () => {
     warehouseCount: 0,
     goodsCategories: '',
     insurance: false,
-  })
-  const [lastInteractedField, setLastInteractedField] = useState<string>('')
+  });
+  const [lastInteractedField, setLastInteractedField] = useState<string>('');
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const target = e.target
-    const value = target.type === 'checkbox' && 'checked' in target ? target.checked : target.value
-    setFormData(prev => ({ ...prev, [target.name]: value }))
-    
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const target = e.target;
+    const value = target.type === 'checkbox' && 'checked' in target ? target.checked : target.value;
+    setFormData(prev => ({ ...prev, [target.name]: value }));
+
     // Track field interaction
-    setLastInteractedField(target.name)
-    formTracking.field('partner_application', target.name)
-  }
+    setLastInteractedField(target.name);
+    formTracking.field('partner_application', target.name);
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // Track form submission
-    formTracking.submit('partner_application')
+    formTracking.submit('partner_application');
     trackConversion('partner_application_submit', {
       warehouseCount: formData.warehouseCount,
-      regions: formData.operatingRegions
-    })
+      regions: formData.operatingRegions,
+    });
 
     try {
       const response = await fetch('/api/operator-applications', {
@@ -64,61 +66,63 @@ const BecomeAPartner: NextPage = () => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
         // Track successful conversion
         trackConversion('partner_signup_complete', {
           value: calculateEstimatedRevenue(formData.warehouseCount),
-          warehouseCount: formData.warehouseCount
-        })
-        router.push('/operator/welcome')
+          warehouseCount: formData.warehouseCount,
+        });
+        router.push('/operator/welcome');
       } else {
-        formTracking.error('partner_application', 'submission_failed')
-        alert('Application submission failed. Please try again.')
+        formTracking.error('partner_application', 'submission_failed');
+        alert('Application submission failed. Please try again.');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      formTracking.error('partner_application', 'network_error')
-      alert('An error occurred while submitting the application.')
+      console.error('An error occurred:', error);
+      formTracking.error('partner_application', 'network_error');
+      alert('An error occurred while submitting the application.');
     }
-  }
-  
+  };
+
   // Calculate estimated monthly revenue based on warehouse count
   const calculateEstimatedRevenue = (count: number): number => {
-    const avgRevenuePerWarehouse = 18500
-    const countValue = typeof count === 'string' ? parseInt(count) : count
-    if (countValue === 1) return avgRevenuePerWarehouse
-    if (countValue <= 5) return avgRevenuePerWarehouse * 3
-    if (countValue <= 10) return avgRevenuePerWarehouse * 7
-    return avgRevenuePerWarehouse * 15
-  }
-  
+    const avgRevenuePerWarehouse = 18500;
+    const countValue = typeof count === 'string' ? parseInt(count) : count;
+    if (countValue === 1) return avgRevenuePerWarehouse;
+    if (countValue <= 5) return avgRevenuePerWarehouse * 3;
+    if (countValue <= 10) return avgRevenuePerWarehouse * 7;
+    return avgRevenuePerWarehouse * 15;
+  };
+
   // Track form starts
   useEffect(() => {
-    formTracking.start('partner_application')
-    
+    formTracking.start('partner_application');
+
     // Track form abandonment on unmount
     return () => {
       if (lastInteractedField && !formData.email) {
-        formTracking.abandon('partner_application', lastInteractedField)
+        formTracking.abandon('partner_application', lastInteractedField);
       }
-    }
-  }, [])
+    };
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center">
-              <Building2 className="h-8 w-8 text-primary" />
+              <Building2 className="text-primary h-8 w-8" />
               <span className="ml-2 text-xl font-bold">Warehouse Network</span>
             </Link>
             <nav className="flex items-center space-x-4">
               <Link href="/login">
-                <Button variant="outline" size="sm">Sign In</Button>
+                <Button variant="outline" size="sm">
+                  Sign In
+                </Button>
               </Link>
             </nav>
           </div>
@@ -128,60 +132,62 @@ const BecomeAPartner: NextPage = () => {
       {/* Hero Section */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 z-0">
-          <img 
+          <img
             src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
             alt="Warehouse interior"
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/70" />
+          <div className="from-background via-background/90 to-background/70 absolute inset-0 bg-gradient-to-r" />
         </div>
-        
-        <div className="relative container mx-auto px-4 py-24 sm:px-6 lg:px-8">
+
+        <div className="container relative mx-auto px-4 py-24 sm:px-6 lg:px-8">
           <div className="max-w-2xl">
             <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
               Turn Your Empty Space Into
               <span className="text-primary"> Steady Revenue</span>
             </h1>
-            <p className="mt-6 text-xl text-muted-foreground">
-              Join Canada's fastest-growing warehouse marketplace. List your property in minutes 
-              and connect with pre-qualified businesses looking for space.
+            <p className="text-muted-foreground mt-6 text-xl">
+              Join Canada's fastest-growing warehouse marketplace. List your property in minutes and
+              connect with pre-qualified businesses looking for space.
             </p>
-            
+
             {/* Value Props */}
             <div className="mt-8 space-y-3">
               <div className="flex items-center">
-                <Check className="h-5 w-5 text-green-600 mr-3" />
+                <Check className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-lg">Average 95% occupancy rate within 30 days</span>
               </div>
               <div className="flex items-center">
-                <Check className="h-5 w-5 text-green-600 mr-3" />
+                <Check className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-lg">Get 15-20% higher rates than traditional leasing</span>
               </div>
               <div className="flex items-center">
-                <Check className="h-5 w-5 text-green-600 mr-3" />
+                <Check className="mr-3 h-5 w-5 text-green-600" />
                 <span className="text-lg">Automated payments and tenant management</span>
               </div>
             </div>
 
-            <div className="mt-10 flex flex-col sm:flex-row gap-4">
-              <Button 
-                size="lg" 
-                className="text-lg px-8" 
+            <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+              <Button
+                size="lg"
+                className="px-8 text-lg"
                 onClick={() => {
-                  trackCTA('start_earning_now', 'hero')()
-                  document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' })
+                  trackCTA('start_earning_now', 'hero')();
+                  document
+                    .getElementById('application-form')
+                    ?.scrollIntoView({ behavior: 'smooth' });
                 }}
               >
                 Start Earning Now
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="text-lg px-8"
+              <Button
+                size="lg"
+                variant="outline"
+                className="px-8 text-lg"
                 onClick={() => {
-                  trackCTA('calculate_revenue', 'hero')()
-                  logEvent('Calculator', 'open', 'partner_hero')
+                  trackCTA('calculate_revenue', 'hero')();
+                  logEvent('Calculator', 'open', 'partner_hero');
                 }}
               >
                 Calculate Your Revenue
@@ -192,40 +198,43 @@ const BecomeAPartner: NextPage = () => {
       </section>
 
       {/* Partner Success Story */}
-      <section className="py-16 bg-muted/50">
+      <section className="bg-muted/50 py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <Card className="overflow-hidden">
             <div className="grid md:grid-cols-2">
               <div className="relative h-64 md:h-auto">
-                <img 
+                <img
                   src="https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
                   alt="Success story"
-                  className="w-full h-full object-cover"
+                  className="h-full w-full object-cover"
                 />
               </div>
               <CardContent className="p-8 md:p-12">
-                <div className="flex items-center mb-4">
-                  {[1,2,3,4,5].map(i => (
+                <div className="mb-4 flex items-center">
+                  {[1, 2, 3, 4, 5].map(i => (
                     <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
-                <h3 className="text-2xl font-bold mb-4">
+                <h3 className="mb-4 text-2xl font-bold">
                   "We went from 60% to 98% occupancy in just 6 weeks"
                 </h3>
-                <p className="text-lg text-muted-foreground mb-6">
-                  Warehouse Network transformed our underutilized 50,000 sq ft facility into a 
-                  profitable multi-tenant operation. The platform handles everything from tenant 
-                  screening to payments. We're now earning 40% more than with our previous single tenant.
+                <p className="text-muted-foreground mb-6 text-lg">
+                  Warehouse Network transformed our underutilized 50,000 sq ft facility into a
+                  profitable multi-tenant operation. The platform handles everything from tenant
+                  screening to payments. We're now earning 40% more than with our previous single
+                  tenant.
                 </p>
                 <div className="flex items-center">
-                  <img 
+                  <img
                     src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
                     alt="Partner"
-                    className="w-12 h-12 rounded-full mr-4"
+                    className="mr-4 h-12 w-12 rounded-full"
                   />
                   <div>
                     <p className="font-semibold">Robert Mitchell</p>
-                    <p className="text-sm text-muted-foreground">Premium Logistics Properties, Toronto</p>
+                    <p className="text-muted-foreground text-sm">
+                      Premium Logistics Properties, Toronto
+                    </p>
                   </div>
                 </div>
               </CardContent>
@@ -237,9 +246,9 @@ const BecomeAPartner: NextPage = () => {
       {/* Benefits Grid */}
       <section className="py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold tracking-tight">Why Partners Choose Us</h2>
-            <p className="mt-4 text-lg text-muted-foreground">
+            <p className="text-muted-foreground mt-4 text-lg">
               Everything you need to maximize your warehouse revenue
             </p>
           </div>
@@ -247,43 +256,46 @@ const BecomeAPartner: NextPage = () => {
           <div className="grid gap-8 md:grid-cols-3">
             <Card className="relative overflow-hidden">
               <CardHeader>
-                <DollarSign className="h-10 w-10 text-primary mb-4" />
+                <DollarSign className="text-primary mb-4 h-10 w-10" />
                 <CardTitle>Higher Revenue</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Our dynamic pricing algorithm ensures you get 15-20% higher rates than traditional leasing.
+                  Our dynamic pricing algorithm ensures you get 15-20% higher rates than traditional
+                  leasing.
                 </p>
-                <p className="text-2xl font-bold text-primary">+$2.50/sq ft</p>
-                <p className="text-sm text-muted-foreground">Average rate increase</p>
+                <p className="text-primary text-2xl font-bold">+$2.50/sq ft</p>
+                <p className="text-muted-foreground text-sm">Average rate increase</p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden">
               <CardHeader>
-                <Users className="h-10 w-10 text-primary mb-4" />
+                <Users className="text-primary mb-4 h-10 w-10" />
                 <CardTitle>Quality Tenants</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  All businesses are pre-screened with verified insurance and financial stability checks.
+                  All businesses are pre-screened with verified insurance and financial stability
+                  checks.
                 </p>
-                <p className="text-2xl font-bold text-primary">0.2%</p>
-                <p className="text-sm text-muted-foreground">Default rate</p>
+                <p className="text-primary text-2xl font-bold">0.2%</p>
+                <p className="text-muted-foreground text-sm">Default rate</p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden">
               <CardHeader>
-                <Zap className="h-10 w-10 text-primary mb-4" />
+                <Zap className="text-primary mb-4 h-10 w-10" />
                 <CardTitle>Zero Hassle</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground mb-4">
-                  Automated contracts, payments, and tenant communications. You focus on your business.
+                  Automated contracts, payments, and tenant communications. You focus on your
+                  business.
                 </p>
-                <p className="text-2xl font-bold text-primary">2 hours</p>
-                <p className="text-sm text-muted-foreground">Saved per week</p>
+                <p className="text-primary text-2xl font-bold">2 hours</p>
+                <p className="text-muted-foreground text-sm">Saved per week</p>
               </CardContent>
             </Card>
           </div>
@@ -291,23 +303,23 @@ const BecomeAPartner: NextPage = () => {
       </section>
 
       {/* Revenue Calculator */}
-      <section className="py-24 bg-gradient-to-br from-primary/10 to-transparent">
+      <section className="from-primary/10 bg-gradient-to-br to-transparent py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto">
-            <BarChart3 className="h-16 w-16 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl font-bold tracking-tight mb-4">
+          <div className="mx-auto max-w-3xl text-center">
+            <BarChart3 className="text-primary mx-auto mb-6 h-16 w-16" />
+            <h2 className="mb-4 text-3xl font-bold tracking-tight">
               Your warehouse could be earning
             </h2>
-            <p className="text-5xl font-bold text-primary mb-2">$18,500/month</p>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-primary mb-2 text-5xl font-bold">$18,500/month</p>
+            <p className="text-muted-foreground mb-8 text-lg">
               Based on 10,000 sq ft at average market rates
             </p>
-            <Button 
-              size="lg" 
-              className="text-lg px-8"
+            <Button
+              size="lg"
+              className="px-8 text-lg"
               onClick={() => {
-                trackCTA('custom_estimate', 'revenue_calculator')()
-                trackConversion('revenue_calculator_interest', { estimated_revenue: 18500 })
+                trackCTA('custom_estimate', 'revenue_calculator')();
+                trackConversion('revenue_calculator_interest', { estimated_revenue: 18500 });
               }}
             >
               Get Your Custom Estimate
@@ -320,10 +332,10 @@ const BecomeAPartner: NextPage = () => {
       {/* Application Form */}
       <section id="application-form" className="py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-12">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-12 text-center">
               <h2 className="text-3xl font-bold tracking-tight">Start Your Application</h2>
-              <p className="mt-4 text-lg text-muted-foreground">
+              <p className="text-muted-foreground mt-4 text-lg">
                 Takes less than 5 minutes. Get approved within 24 hours.
               </p>
             </div>
@@ -331,9 +343,7 @@ const BecomeAPartner: NextPage = () => {
             <Card>
               <CardHeader>
                 <CardTitle>Business Information</CardTitle>
-                <CardDescription>
-                  Tell us about your warehouse operation
-                </CardDescription>
+                <CardDescription>Tell us about your warehouse operation</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -349,7 +359,7 @@ const BecomeAPartner: NextPage = () => {
                         required
                         value={formData.legalName}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                         placeholder="ABC Logistics Inc."
                       />
                     </div>
@@ -364,7 +374,7 @@ const BecomeAPartner: NextPage = () => {
                         name="registrationDetails"
                         value={formData.registrationDetails}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                         placeholder="123456789"
                       />
                     </div>
@@ -380,7 +390,7 @@ const BecomeAPartner: NextPage = () => {
                         required
                         value={formData.primaryContact}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                         placeholder="John Smith"
                       />
                     </div>
@@ -396,7 +406,7 @@ const BecomeAPartner: NextPage = () => {
                         required
                         value={formData.email}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                         placeholder="john@company.com"
                       />
                     </div>
@@ -412,7 +422,7 @@ const BecomeAPartner: NextPage = () => {
                         required
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                         placeholder="+1 (416) 555-0123"
                       />
                     </div>
@@ -427,7 +437,7 @@ const BecomeAPartner: NextPage = () => {
                         required
                         value={formData.warehouseCount}
                         onChange={handleChange}
-                        className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                       >
                         <option value="">Select...</option>
                         <option value="1">1 property</option>
@@ -449,7 +459,7 @@ const BecomeAPartner: NextPage = () => {
                       required
                       value={formData.operatingRegions}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                       placeholder="Greater Toronto Area, Hamilton, Ottawa"
                     />
                   </div>
@@ -465,7 +475,7 @@ const BecomeAPartner: NextPage = () => {
                       required
                       value={formData.goodsCategories}
                       onChange={handleChange}
-                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                      className="focus:ring-primary w-full rounded-lg border px-3 py-2 focus:outline-none focus:ring-2"
                       placeholder="General merchandise, Electronics, Food (dry), etc."
                     />
                   </div>
@@ -478,22 +488,22 @@ const BecomeAPartner: NextPage = () => {
                         name="insurance"
                         checked={formData.insurance}
                         onChange={handleChange}
-                        className="mt-1 mr-3"
+                        className="mr-3 mt-1"
                         required
                       />
                       <label htmlFor="insurance" className="text-sm">
-                        I confirm that our facilities carry appropriate commercial insurance including 
-                        general liability coverage of at least $2 million
+                        I confirm that our facilities carry appropriate commercial insurance
+                        including general liability coverage of at least $2 million
                       </label>
                     </div>
                   </div>
 
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <div className="flex items-center mb-2">
-                      <Shield className="h-5 w-5 text-green-600 mr-2" />
+                  <div className="bg-muted/50 rounded-lg p-4">
+                    <div className="mb-2 flex items-center">
+                      <Shield className="mr-2 h-5 w-5 text-green-600" />
                       <span className="font-semibold">What happens next?</span>
                     </div>
-                    <ul className="text-sm text-muted-foreground space-y-1 ml-7">
+                    <ul className="text-muted-foreground ml-7 space-y-1 text-sm">
                       <li>• We'll review your application within 24 hours</li>
                       <li>• Complete a quick onboarding call (15 minutes)</li>
                       <li>• List your properties and start earning</li>
@@ -512,9 +522,9 @@ const BecomeAPartner: NextPage = () => {
       </section>
 
       {/* Trust Badges */}
-      <section className="py-16 border-t">
+      <section className="border-t py-16">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-wrap justify-center items-center gap-8 opacity-60">
+          <div className="flex flex-wrap items-center justify-center gap-8 opacity-60">
             <div className="text-center">
               <p className="text-2xl font-bold">500+</p>
               <p className="text-sm">Active Partners</p>
@@ -538,25 +548,33 @@ const BecomeAPartner: NextPage = () => {
       {/* Footer */}
       <footer className="border-t py-12">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="flex items-center mb-4 md:mb-0">
-              <Building2 className="h-6 w-6 text-primary" />
+          <div className="flex flex-col items-center justify-between md:flex-row">
+            <div className="mb-4 flex items-center md:mb-0">
+              <Building2 className="text-primary h-6 w-6" />
               <span className="ml-2 font-bold">Warehouse Network</span>
             </div>
-            <nav className="flex gap-6 text-sm text-muted-foreground">
-              <Link href="/about" className="hover:text-foreground">About</Link>
-              <Link href="/contact" className="hover:text-foreground">Contact</Link>
-              <Link href="/terms" className="hover:text-foreground">Terms</Link>
-              <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+            <nav className="text-muted-foreground flex gap-6 text-sm">
+              <Link href="/about" className="hover:text-foreground">
+                About
+              </Link>
+              <Link href="/contact" className="hover:text-foreground">
+                Contact
+              </Link>
+              <Link href="/terms" className="hover:text-foreground">
+                Terms
+              </Link>
+              <Link href="/privacy" className="hover:text-foreground">
+                Privacy
+              </Link>
             </nav>
           </div>
-          <div className="mt-8 text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground mt-8 text-center text-sm">
             © 2025 Warehouse Network. All rights reserved.
           </div>
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};
 
-export default BecomeAPartner
+export default BecomeAPartner;

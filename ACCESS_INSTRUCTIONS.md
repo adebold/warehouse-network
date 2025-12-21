@@ -3,6 +3,7 @@
 ## The 403 Forbidden Error Explained
 
 Your service is **successfully deployed and running**! The 403 error means:
+
 - ✅ Cloud Run service is active
 - ✅ Application is responding
 - ❌ But it requires authentication (due to Google Cloud organization policies)
@@ -12,21 +13,24 @@ Your service is **successfully deployed and running**! The 403 error means:
 ### Option 1: Authenticated Access (Recommended)
 
 1. **Re-authenticate with Google Cloud:**
+
    ```bash
    gcloud auth login
    ```
 
 2. **Get your identity token:**
+
    ```bash
    TOKEN=$(gcloud auth print-identity-token)
    ```
 
 3. **Access your app with authentication:**
+
    ```bash
    # Using curl
    curl -H "Authorization: Bearer $TOKEN" \
      https://warehouse-app-mesh-3yuo5fgbja-uc.a.run.app
-   
+
    # Or open in browser with extension
    # Install ModHeader Chrome extension
    # Add header: Authorization: Bearer [YOUR_TOKEN]
@@ -64,7 +68,7 @@ app.use('*', (req, res) => {
       res.status(500).send('Auth failed');
       return;
     }
-    
+
     const options = {
       hostname: 'warehouse-app-mesh-3yuo5fgbja-uc.a.run.app',
       path: req.originalUrl,
@@ -75,7 +79,7 @@ app.use('*', (req, res) => {
         'host': 'warehouse-app-mesh-3yuo5fgbja-uc.a.run.app'
       }
     };
-    
+
     const proxy = https.request(options, (response) => {
       res.status(response.statusCode);
       Object.entries(response.headers).forEach(([key, value]) => {
@@ -83,7 +87,7 @@ app.use('*', (req, res) => {
       });
       response.pipe(res);
     });
-    
+
     req.pipe(proxy);
   });
 });
@@ -105,6 +109,7 @@ node proxy-server.js
 ## 🔍 Check Service Status
 
 1. **Verify the service is running:**
+
    ```bash
    gcloud run services describe warehouse-app-mesh \
      --region=us-central1 \
@@ -123,6 +128,7 @@ node proxy-server.js
 ## 🏢 Organization Policy Note
 
 Your Google Cloud organization has security policies that:
+
 - ✅ Protect services from unauthorized public access
 - ❌ Prevent setting `allUsers` IAM policy
 - ✅ Require authenticated access with Google identity

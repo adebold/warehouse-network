@@ -1,9 +1,11 @@
 # Warehouse Network - Standalone Project Setup
 
 ## 🏢 Project Overview
+
 Setting up Warehouse Network as an independent GCP project with its own P&L tracking.
 
 ## 🎯 Business Rationale
+
 - **Independent P&L**: Track costs and revenue separately
 - **Resource Isolation**: Dedicated resources and quotas
 - **Billing Clarity**: Clear cost attribution
@@ -129,6 +131,7 @@ cd apps/web
 ## 💰 Cost Estimation
 
 ### Monthly Costs (Estimated)
+
 - **Cloud Run**: $0-50 (with free tier)
 - **Cloud SQL**: $10-50 (db-f1-micro)
 - **Cloud Build**: $0-20 (300 free minutes)
@@ -136,6 +139,7 @@ cd apps/web
 - **Total**: ~$50-100/month
 
 ### Cost Optimization
+
 1. Use Cloud Run minimum instances = 0
 2. Schedule Cloud SQL to stop during off-hours
 3. Enable Cloud CDN for static assets
@@ -144,6 +148,7 @@ cd apps/web
 ## 📊 Monitoring & Reporting
 
 ### Set Up Budget Alerts
+
 ```bash
 gcloud billing budgets create \
   --billing-account=${BILLING_ACCOUNT_ID} \
@@ -155,6 +160,7 @@ gcloud billing budgets create \
 ```
 
 ### P&L Tracking
+
 1. Export billing data to BigQuery
 2. Create Data Studio dashboard
 3. Track:

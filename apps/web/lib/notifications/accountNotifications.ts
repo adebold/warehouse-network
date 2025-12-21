@@ -1,68 +1,69 @@
-import { Customer, User, AccountLockHistory } from '@prisma/client'
-import { sendEmail } from '../email'
-import prisma from '../prisma'
+import { Customer, User, AccountLockHistory } from '@prisma/client';
+import { sendEmail } from '../email';
+import prisma from '../prisma';
 
 interface NotificationData {
-  customer: Customer
-  action: 'LOCKED' | 'UNLOCKED'
-  reason?: string
-  performedBy: User
+  customer: Customer;
+  action: 'LOCKED' | 'UNLOCKED';
+  reason?: string;
+  performedBy: User;
 }
 
 export async function sendAccountLockNotification(data: NotificationData) {
-  const { customer, action, reason, performedBy } = data
+  const { customer, action, reason, performedBy } = data;
 
   // Get customer users to notify
   const customerUsers = await prisma.user.findMany({
     where: {
       customerId: customer.id,
-      role: { in: ['CUSTOMER_ADMIN', 'CUSTOMER_USER'] }
-    }
-  })
+      role: { in: ['CUSTOMER_ADMIN', 'CUSTOMER_USER'] },
+    },
+  });
 
   // Prepare email content
-  const subject = action === 'LOCKED' 
-    ? '⚠️ Your Warehouse Network Account Has Been Locked'
-    : '✅ Your Warehouse Network Account Has Been Unlocked'
+  const subject =
+    action === 'LOCKED'
+      ? '⚠️ Your Warehouse Network Account Has Been Locked'
+      : '✅ Your Warehouse Network Account Has Been Unlocked';
 
-  const htmlContent = generateEmailHtml(data)
-  const textContent = generateEmailText(data)
+  const htmlContent = generateEmailHtml(data);
+  const textContent = generateEmailText(data);
 
   // Send emails to all customer users
-  const emailPromises = customerUsers.map(user => 
+  const emailPromises = customerUsers.map(user =>
     sendEmail({
       to: user.email,
       subject,
       html: htmlContent,
       text: textContent,
     })
-  )
+  );
 
   // Send notification to warehouse operators
   const operators = await prisma.user.findMany({
     where: {
       role: { in: ['ADMIN', 'OPERATOR'] },
-      NOT: { id: performedBy.id } // Don't notify the person who performed the action
-    }
-  })
+      NOT: { id: performedBy.id }, // Don't notify the person who performed the action
+    },
+  });
 
-  const operatorSubject = `Account ${action.toLowerCase()}: ${customer.name}`
-  const operatorHtml = generateOperatorEmailHtml(data)
+  const operatorSubject = `Account ${action.toLowerCase()}: ${customer.name}`;
+  const operatorHtml = generateOperatorEmailHtml(data);
 
   const operatorPromises = operators.map(operator =>
     sendEmail({
       to: operator.email,
       subject: operatorSubject,
       html: operatorHtml,
-      text: `${customer.name}'s account was ${action.toLowerCase()} by ${performedBy.name}. Reason: ${reason || 'Not specified'}`
+      text: `${customer.name}'s account was ${action.toLowerCase()} by ${performedBy.name}. Reason: ${reason || 'Not specified'}`,
     })
-  )
+  );
 
-  await Promise.all([...emailPromises, ...operatorPromises])
+  await Promise.all([...emailPromises, ...operatorPromises]);
 }
 
 function generateEmailHtml(data: NotificationData): string {
-  const { customer, action, reason } = data
+  const { customer, action, reason } = data;
 
   if (action === 'LOCKED') {
     return `
@@ -126,7 +127,7 @@ function generateEmailHtml(data: NotificationData): string {
           </div>
         </body>
       </html>
-    `
+    `;
   } else {
     return `
       <!DOCTYPE html>
@@ -176,12 +177,12 @@ function generateEmailHtml(data: NotificationData): string {
           </div>
         </body>
       </html>
-    `
+    `;
   }
 }
 
 function generateEmailText(data: NotificationData): string {
-  const { customer, action, reason } = data
+  const { customer, action, reason } = data;
 
   if (action === 'LOCKED') {
     return `
@@ -210,7 +211,7 @@ Visit your account: ${process.env.NEXTAUTH_URL}/app/dashboard
 If you believe this is an error, please contact support immediately.
 
 © 2024 Warehouse Network
-    `.trim()
+    `.trim();
   } else {
     return `
 Dear ${customer.name},
@@ -229,12 +230,12 @@ Thank you for resolving any outstanding issues.
 Access your account: ${process.env.NEXTAUTH_URL}/app/dashboard
 
 © 2024 Warehouse Network
-    `.trim()
+    `.trim();
   }
 }
 
 function generateOperatorEmailHtml(data: NotificationData): string {
-  const { customer, action, reason, performedBy } = data
+  const { customer, action, reason, performedBy } = data;
 
   return `
     <!DOCTYPE html>
@@ -269,7 +270,7 @@ function generateOperatorEmailHtml(data: NotificationData): string {
         </div>
       </body>
     </html>
-  `
+  `;
 }
 
 // Send payment reminder notifications
@@ -277,12 +278,13 @@ export async function sendPaymentReminderNotification(customer: Customer, daysOv
   const customerUsers = await prisma.user.findMany({
     where: {
       customerId: customer.id,
-      role: { in: ['CUSTOMER_ADMIN', 'CUSTOMER_USER'] }
-    }
-  })
+      role: { in: ['CUSTOMER_ADMIN', 'CUSTOMER_USER'] },
+    },
+  });
 
-  const urgency = daysOverdue > 30 ? 'Final Notice' : daysOverdue > 15 ? 'Second Notice' : 'Payment Reminder'
-  const subject = `${urgency}: Payment Overdue - $${customer.overdueAmount.toFixed(2)}`
+  const urgency =
+    daysOverdue > 30 ? 'Final Notice' : daysOverdue > 15 ? 'Second Notice' : 'Payment Reminder';
+  const subject = `${urgency}: Payment Overdue - $${customer.overdueAmount.toFixed(2)}`;
 
   const html = `
     <!DOCTYPE html>
@@ -317,14 +319,18 @@ export async function sendPaymentReminderNotification(customer: Customer, daysOv
             <p>Your payment is now <strong>${daysOverdue} days overdue</strong>. 
             ${daysOverdue > 15 ? 'To avoid service interruption and account restrictions, please submit payment immediately.' : 'Please submit payment at your earliest convenience to avoid service interruption.'}</p>
             
-            ${daysOverdue > 20 ? `
+            ${
+              daysOverdue > 20
+                ? `
               <p style="color: #dc2626;"><strong>Warning:</strong> If payment is not received within 5 business days, your account may be locked, preventing:</p>
               <ul style="color: #dc2626;">
                 <li>New inventory receipts</li>
                 <li>Release of existing inventory</li>
                 <li>New orders and RFQs</li>
               </ul>
-            ` : ''}
+            `
+                : ''
+            }
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${process.env.NEXTAUTH_URL}/app/payments" class="button">Make Payment</a>
@@ -335,7 +341,7 @@ export async function sendPaymentReminderNotification(customer: Customer, daysOv
         </div>
       </body>
     </html>
-  `
+  `;
 
   await Promise.all(
     customerUsers.map(user =>
@@ -343,8 +349,8 @@ export async function sendPaymentReminderNotification(customer: Customer, daysOv
         to: user.email,
         subject,
         html,
-        text: `${urgency}: Your account has an overdue balance of $${customer.overdueAmount.toFixed(2)}. Please submit payment to avoid service interruption.`
+        text: `${urgency}: Your account has an overdue balance of $${customer.overdueAmount.toFixed(2)}. Please submit payment to avoid service interruption.`,
       })
     )
-  )
+  );
 }

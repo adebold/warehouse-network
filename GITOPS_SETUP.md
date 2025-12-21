@@ -21,6 +21,7 @@ This warehouse network application uses a comprehensive GitOps CI/CD pipeline wi
 ## Environment Structure
 
 ### 1. Development Environment
+
 - **Trigger**: Push to `develop` branch
 - **Auto-deploy**: Yes
 - **Database**: Local PostgreSQL
@@ -28,6 +29,7 @@ This warehouse network application uses a comprehensive GitOps CI/CD pipeline wi
 - **URL**: `https://warehouse-dev-[project].us-central1.run.app`
 
 ### 2. Staging Environment
+
 - **Trigger**: Push to `staging` branch
 - **Auto-deploy**: Yes (with integration tests)
 - **Database**: Staging PostgreSQL
@@ -35,6 +37,7 @@ This warehouse network application uses a comprehensive GitOps CI/CD pipeline wi
 - **URL**: `https://warehouse-staging-[project].us-central1.run.app`
 
 ### 3. Production Environment
+
 - **Trigger**: Push to `main` branch
 - **Auto-deploy**: Manual approval required
 - **Database**: Production PostgreSQL
@@ -44,12 +47,14 @@ This warehouse network application uses a comprehensive GitOps CI/CD pipeline wi
 ## Quick Start
 
 ### 1. Clone and Setup
+
 ```bash
 git clone https://github.com/adebold/warehouse-network.git
 cd warehouse-network
 ```
 
 ### 2. Local Development
+
 ```bash
 cd docker/dev
 cp .env.example .env
@@ -57,6 +62,7 @@ docker-compose up
 ```
 
 Access:
+
 - App: http://localhost:3000
 - Database Admin: http://localhost:8080
 
@@ -86,12 +92,15 @@ DATABASE_URL_PROD=postgresql://...
 In GitHub Settings → Environments:
 
 **Development:**
+
 - No protection rules (auto-deploy)
 
 **Staging:**
+
 - Auto-deploy with integration tests
 
 **Production:**
+
 - Required reviewers (minimum 1)
 - Restrict pushes to protected branches
 - Wait timer: 5 minutes
@@ -99,6 +108,7 @@ In GitHub Settings → Environments:
 ## CI/CD Pipeline Features
 
 ### ✅ Continuous Integration
+
 - Automated testing (unit, integration, e2e)
 - Code quality checks (ESLint, Prettier)
 - Type checking (TypeScript)
@@ -106,18 +116,21 @@ In GitHub Settings → Environments:
 - Dependency vulnerability checks
 
 ### ✅ Multi-Environment Deployments
+
 - Environment-specific Docker builds
 - Automated staging deployments
 - Manual production approvals
 - Health check verification
 
 ### ✅ GitOps Operations
+
 - Automated rollbacks
 - Blue-green deployments
 - Canary releases (production)
 - Infrastructure as code
 
 ### ✅ Monitoring & Observability
+
 - Application health checks
 - Performance monitoring
 - Error tracking
@@ -126,18 +139,21 @@ In GitHub Settings → Environments:
 ## Deployment Workflow
 
 ### Development Workflow
+
 1. Create feature branch from `develop`
 2. Make changes and push
 3. Create PR to `develop`
 4. After merge, auto-deploy to dev environment
 
 ### Staging Workflow
+
 1. Create PR from `develop` to `staging`
 2. After merge, auto-deploy to staging
 3. Run integration tests
 4. Manual testing and validation
 
 ### Production Workflow
+
 1. Create PR from `staging` to `main`
 2. After merge, await manual approval
 3. Deploy to production with monitoring
@@ -147,10 +163,12 @@ In GitHub Settings → Environments:
 ## Rollback Procedures
 
 ### Automatic Rollbacks
+
 - Health check failures trigger automatic rollback
 - Failed deployments revert to previous version
 
 ### Manual Rollbacks
+
 ```bash
 # Via GitHub Actions
 1. Go to Actions → Rollback Deployment
@@ -166,18 +184,21 @@ gcloud run services update-traffic warehouse-prod \
 ## Security Best Practices
 
 ### Container Security
+
 - Multi-stage Docker builds
 - Non-root user execution
 - Minimal base images (Alpine Linux)
 - Regular security scanning
 
 ### Environment Security
+
 - Separate GCP projects per environment
 - IAM least-privilege access
 - Environment-specific service accounts
 - Secret management via Google Secret Manager
 
 ### Pipeline Security
+
 - Branch protection rules
 - Required code reviews
 - Signed commits (optional)
@@ -186,16 +207,19 @@ gcloud run services update-traffic warehouse-prod \
 ## Monitoring & Alerts
 
 ### Health Checks
+
 - Application: `/api/health`
 - Database connectivity
 - External service dependencies
 
 ### Performance Monitoring
+
 - Response time tracking
 - Error rate monitoring
 - Resource utilization
 
 ### Alerting
+
 - Deployment failures
 - Health check failures
 - Performance degradation
@@ -206,6 +230,7 @@ gcloud run services update-traffic warehouse-prod \
 ### Common Issues
 
 **1. Build Failures**
+
 ```bash
 # Check build logs
 gh run list --limit 5
@@ -213,18 +238,21 @@ gh run view [run-id] --log
 ```
 
 **2. Deployment Failures**
+
 ```bash
 # Check Cloud Run logs
 gcloud logging read "resource.type=cloud_run_revision" --limit 50
 ```
 
 **3. Permission Issues**
+
 ```bash
 # Verify service account permissions
 gcloud projects get-iam-policy [project-id]
 ```
 
 ### Support Contacts
+
 - DevOps Team: devops@ai-industries.com
 - Platform Team: platform@ai-industries.com
 - On-call: pager@ai-industries.com

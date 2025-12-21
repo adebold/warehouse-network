@@ -16,7 +16,7 @@ const adminUser = {
 
 // Mock payment data
 const testPayment = {
-  amount: 1500.00,
+  amount: 1500.0,
   cardNumber: '4242424242424242',
   expiryDate: '12/25',
   cvv: '123',
@@ -47,7 +47,7 @@ async function setupTestCustomerWithOverdue(page: Page) {
   await page.goto('/admin/customers');
   await page.fill('input[placeholder*="Search"]', testCustomer.email);
   await page.waitForTimeout(500);
-  
+
   // Set overdue amount through admin interface
   const customerRow = page.locator(`tr:has-text("${testCustomer.email}")`);
   await customerRow.locator('button[title="Edit"]').click();
@@ -55,14 +55,14 @@ async function setupTestCustomerWithOverdue(page: Page) {
   await page.fill('input[name="daysOverdue"]', '15');
   await page.click('button:has-text("Save")');
   await page.waitForTimeout(500);
-  
+
   await page.click('button[aria-label="Logout"]');
 }
 
 test.describe('Payment Submission Flow', () => {
   test.beforeAll(async ({ browser }) => {
     const page = await browser.newPage();
-    
+
     // Create test customer
     await page.goto('/register');
     await page.fill('input[name="email"]', testCustomer.email);
@@ -74,10 +74,10 @@ test.describe('Payment Submission Flow', () => {
     await page.click('button[type="submit"]');
     await page.waitForURL('/app/dashboard');
     await page.click('button[aria-label="Logout"]');
-    
+
     // Setup overdue amount
     await setupTestCustomerWithOverdue(page);
-    
+
     await page.close();
   });
 
@@ -169,7 +169,7 @@ test.describe('Payment Submission Flow', () => {
 
     // Enable custom amount
     await page.click('input[type="checkbox"][name="customAmount"]');
-    
+
     // Enter partial payment
     await page.fill('input[name="amount"]', partialPayment.toString());
 
@@ -183,7 +183,9 @@ test.describe('Payment Submission Flow', () => {
     await page.click('button:has-text("Submit Payment")');
 
     // Should see success for partial payment
-    await expect(page.locator('.toast-success')).toContainText(`Payment of $${partialPayment} successful`);
+    await expect(page.locator('.toast-success')).toContainText(
+      `Payment of $${partialPayment} successful`
+    );
 
     // Should still see remaining balance warning
     await expect(page.locator('.alert-warning')).toBeVisible();
@@ -215,7 +217,7 @@ test.describe('Payment Submission Flow', () => {
     const downloadPromise = page.waitForEvent('download');
     await page.click('button:has-text("Download Receipt")');
     const download = await downloadPromise;
-    
+
     // Verify download
     expect(download.suggestedFilename()).toContain('receipt');
     expect(download.suggestedFilename()).toContain('.pdf');
@@ -262,10 +264,12 @@ test.describe('Payment Submission Flow', () => {
 
     // Retry payment
     await page.click('button:has-text("Try Again")');
-    
+
     // Should maintain form data
-    await expect(page.locator('input[name="cardholderName"]')).toHaveValue(testPayment.cardholderName);
-    
+    await expect(page.locator('input[name="cardholderName"]')).toHaveValue(
+      testPayment.cardholderName
+    );
+
     // Use different card
     await page.fill('input[name="cardNumber"]', '5555555555554444'); // Different test card
     await page.click('button:has-text("Submit Payment")');
@@ -285,9 +289,12 @@ test.describe('Payment Submission Flow', () => {
     await adminPage.waitForTimeout(500);
 
     const customerRow = adminPage.locator(`tr:has-text("${testCustomer.email}")`);
-    
+
     // Lock account with payment-related reason
-    const isLocked = await customerRow.locator('.badge:has-text("Locked")').isVisible().catch(() => false);
+    const isLocked = await customerRow
+      .locator('.badge:has-text("Locked")')
+      .isVisible()
+      .catch(() => false);
     if (!isLocked) {
       await customerRow.locator('button[title="Lock account"]').click();
       await adminPage.fill('textarea[name="reason"]', 'Overdue payment - $1500');
@@ -339,7 +346,7 @@ test.describe('Payment Submission Flow', () => {
 
     // Navigate to payments
     await page.click('a[href="/app/payments"]');
-    
+
     // Click schedule payment
     await page.click('button:has-text("Schedule Payment")');
 
@@ -410,10 +417,10 @@ test.describe('Payment Submission Flow', () => {
 
     // Test quick pay with saved method
     await page.click('button:has-text("Pay Now")');
-    
+
     // Should prefill saved card
     await expect(page.locator('text=Using card ending in 4444')).toBeVisible();
-    
+
     // Only need to confirm
     await page.fill('input[name="amount"]', '100');
     await page.click('button:has-text("Confirm Payment")');
@@ -439,7 +446,7 @@ test.describe('Payment Submission Flow', () => {
     // Should open payment form with invoice details
     await expect(page.locator('h2:has-text("Pay Invoice")')).toBeVisible();
     await expect(page.locator('text=Invoice #')).toBeVisible();
-    
+
     // Amount should be prefilled
     const amountInput = page.locator('input[name="amount"]');
     await expect(amountInput).toBeDisabled();
@@ -456,7 +463,9 @@ test.describe('Payment Submission Flow', () => {
 
     // Invoice should now show as paid
     await page.reload();
-    await expect(page.locator('tr:has(text:has-text("Invoice #")):has(text:has-text("Paid"))')).toBeVisible();
+    await expect(
+      page.locator('tr:has(text:has-text("Invoice #")):has(text:has-text("Paid"))')
+    ).toBeVisible();
   });
 });
 
@@ -478,19 +487,19 @@ test.describe('Admin Payment Management', () => {
 
     // Should see payment details
     await expect(page.locator('h2:has-text("Payment Details")')).toBeVisible();
-    
+
     // Admin actions available
     await expect(page.locator('button:has-text("Refund")')).toBeVisible();
     await expect(page.locator('button:has-text("Void")')).toBeVisible();
-    
+
     // Test refund
     await page.click('button:has-text("Refund")');
-    
+
     // Refund form
     await expect(page.locator('h3:has-text("Process Refund")')).toBeVisible();
     await page.fill('input[name="refundAmount"]', '50');
     await page.fill('textarea[name="reason"]', 'E2E test partial refund');
-    
+
     await page.click('button:has-text("Process Refund")');
 
     // Should see success
@@ -512,11 +521,11 @@ test.describe('Admin Payment Management', () => {
 
     // Export reconciliation report
     await page.click('button:has-text("Export Report")');
-    
+
     const downloadPromise = page.waitForEvent('download');
     await page.click('text=Export as Excel');
     const download = await downloadPromise;
-    
+
     expect(download.suggestedFilename()).toContain('reconciliation');
     expect(download.suggestedFilename()).toMatch(/\.xlsx?$/);
   });

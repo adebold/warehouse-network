@@ -1,46 +1,55 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useState, useEffect } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/router'
-import prisma from '../lib/prisma'
-import type { Warehouse } from '@prisma/client'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import prisma from '../lib/prisma';
+import type { Warehouse } from '@prisma/client';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Building2, MapPin, Package, Filter, Search, ChevronLeft, Star, Loader2 } from 'lucide-react'
-import { useAnalytics } from '@/hooks/useAnalytics'
-import { trackEcommerce, trackProductImpressions } from '@/lib/analytics'
+} from '@/components/ui/select';
+import {
+  Building2,
+  MapPin,
+  Package,
+  Filter,
+  Search,
+  ChevronLeft,
+  Star,
+  Loader2,
+} from 'lucide-react';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { trackEcommerce, trackProductImpressions } from '@/lib/analytics';
 
 interface SearchResultsProps {
-  warehouses: Warehouse[]
+  warehouses: Warehouse[];
 }
 
 const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
-  const router = useRouter()
-  const { location, skidCount } = router.query
-  const [showFilters, setShowFilters] = useState(false)
-  const [sortBy, setSortBy] = useState('relevance')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const { location, skidCount } = router.query;
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState('relevance');
+  const [isLoading, setIsLoading] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="bg-background min-h-screen">
       {/* Header */}
-      <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <header className="bg-background/95 supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center space-x-4">
               <Link href="/" className="flex items-center">
-                <ChevronLeft className="h-5 w-5 mr-1" />
+                <ChevronLeft className="mr-1 h-5 w-5" />
                 <span className="hidden sm:inline">Back</span>
               </Link>
-              <Building2 className="h-8 w-8 text-primary" />
+              <Building2 className="text-primary h-8 w-8" />
               <span className="text-xl font-bold">Search Results</span>
             </div>
             <div className="flex items-center space-x-4">
@@ -50,7 +59,7 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
                 onClick={() => setShowFilters(!showFilters)}
                 className="flex items-center"
               >
-                <Filter className="h-4 w-4 mr-2" />
+                <Filter className="mr-2 h-4 w-4" />
                 Filters
               </Button>
               <Link href="/">
@@ -62,14 +71,14 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
       </header>
 
       {/* Search Summary */}
-      <div className="border-b bg-muted/50">
+      <div className="bg-muted/50 border-b">
         <div className="container mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div className="flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
             <div>
               <h1 className="text-2xl font-bold">
                 {warehouses.length} Warehouse{warehouses.length !== 1 ? 's' : ''} Found
               </h1>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-muted-foreground text-sm">
                 {location && `Near ${location}`}
                 {location && skidCount && ' • '}
                 {skidCount && `${skidCount}+ pallet capacity`}
@@ -92,11 +101,11 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
 
       {/* Filters Sidebar (Mobile/Desktop responsive) */}
       {showFilters && (
-        <div className="border-b bg-muted/30">
+        <div className="bg-muted/30 border-b">
           <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               <div>
-                <label className="text-sm font-medium mb-1 block">Price Range</label>
+                <label className="mb-1 block text-sm font-medium">Price Range</label>
                 <Select defaultValue="any">
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -110,7 +119,7 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Size</label>
+                <label className="mb-1 block text-sm font-medium">Size</label>
                 <Select defaultValue="any">
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -124,7 +133,7 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Features</label>
+                <label className="mb-1 block text-sm font-medium">Features</label>
                 <Select defaultValue="any">
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -138,7 +147,7 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium mb-1 block">Availability</label>
+                <label className="mb-1 block text-sm font-medium">Availability</label>
                 <Select defaultValue="any">
                   <SelectTrigger className="w-full">
                     <SelectValue />
@@ -159,105 +168,95 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8 sm:px-6 lg:px-8">
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="text-primary h-8 w-8 animate-spin" />
           </div>
         )}
         {!isLoading && (
-        <div className="grid gap-6 lg:grid-cols-2">
-          {warehouses.length === 0 ? (
-            <div className="lg:col-span-2 text-center py-12">
-              <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h2 className="text-xl font-semibold mb-2">No warehouses found</h2>
-              <p className="text-muted-foreground mb-6">
-                Try adjusting your search criteria or browse all available warehouses.
-              </p>
-              <Link href="/">
-                <Button>Start New Search</Button>
-              </Link>
-            </div>
-          ) : (
-            warehouses.map(warehouse => (
-              <Card 
-                key={warehouse.id} 
-                className="hover:shadow-lg transition-shadow cursor-pointer"
-                data-testid="warehouse-card"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-xl">{warehouse.name}</CardTitle>
-                      <CardDescription className="flex items-center mt-1">
-                        <MapPin className="h-4 w-4 mr-1" />
-                        {warehouse.address}
-                      </CardDescription>
-                    </div>
-                    <div className="text-right">
-                      <div className="flex items-center text-warning">
-                        <Star className="h-4 w-4 fill-current" />
-                        <span className="ml-1 text-sm">4.5</span>
+          <div className="grid gap-6 lg:grid-cols-2">
+            {warehouses.length === 0 ? (
+              <div className="py-12 text-center lg:col-span-2">
+                <Package className="text-muted-foreground mx-auto mb-4 h-12 w-12" />
+                <h2 className="mb-2 text-xl font-semibold">No warehouses found</h2>
+                <p className="text-muted-foreground mb-6">
+                  Try adjusting your search criteria or browse all available warehouses.
+                </p>
+                <Link href="/">
+                  <Button>Start New Search</Button>
+                </Link>
+              </div>
+            ) : (
+              warehouses.map(warehouse => (
+                <Card
+                  key={warehouse.id}
+                  className="cursor-pointer transition-shadow hover:shadow-lg"
+                  data-testid="warehouse-card"
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-xl">{warehouse.name}</CardTitle>
+                        <CardDescription className="mt-1 flex items-center">
+                          <MapPin className="mr-1 h-4 w-4" />
+                          {warehouse.address}
+                        </CardDescription>
                       </div>
-                      <p className="text-xs text-muted-foreground">(23 reviews)</p>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Capacity</span>
-                      <span className="font-medium">{warehouse.capacity} pallets</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Available</span>
-                      <span className="font-medium text-success">
-                        {Math.floor(warehouse.capacity * 0.4)} pallets
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Price</span>
-                      <span className="font-medium">$12.50/pallet/month</span>
-                    </div>
-                    <div className="pt-2">
-                      <p className="text-sm text-muted-foreground mb-2">Supported Goods:</p>
-                      <div className="flex flex-wrap gap-1">
-                        {warehouse.supportedGoods?.split(',').map((good, idx) => (
-                          <span 
-                            key={idx}
-                            className="px-2 py-1 bg-muted text-xs rounded-full"
-                          >
-                            {good.trim()}
-                          </span>
-                        ))}
+                      <div className="text-right">
+                        <div className="text-warning flex items-center">
+                          <Star className="h-4 w-4 fill-current" />
+                          <span className="ml-1 text-sm">4.5</span>
+                        </div>
+                        <p className="text-muted-foreground text-xs">(23 reviews)</p>
                       </div>
                     </div>
-                    <div className="flex gap-2 pt-4">
-                      <Link href={`/warehouse/${warehouse.id}`} className="flex-1">
-                        <Button 
-                          className="w-full" 
-                          data-testid="view-details"
-                        >
-                          View Details
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-sm">Capacity</span>
+                        <span className="font-medium">{warehouse.capacity} pallets</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-sm">Available</span>
+                        <span className="text-success font-medium">
+                          {Math.floor(warehouse.capacity * 0.4)} pallets
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-sm">Price</span>
+                        <span className="font-medium">$12.50/pallet/month</span>
+                      </div>
+                      <div className="pt-2">
+                        <p className="text-muted-foreground mb-2 text-sm">Supported Goods:</p>
+                        <div className="flex flex-wrap gap-1">
+                          {warehouse.supportedGoods?.split(',').map((good, idx) => (
+                            <span key={idx} className="bg-muted rounded-full px-2 py-1 text-xs">
+                              {good.trim()}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex gap-2 pt-4">
+                        <Link href={`/warehouse/${warehouse.id}`} className="flex-1">
+                          <Button className="w-full" data-testid="view-details">
+                            View Details
+                          </Button>
+                        </Link>
+                        <Button variant="outline" className="flex-1" data-testid="add-to-compare">
+                          Compare
                         </Button>
-                      </Link>
-                      <Button 
-                        variant="outline" 
-                        className="flex-1"
-                        data-testid="add-to-compare"
-                      >
-                        Compare
-                      </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          )}
-        </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+          </div>
         )}
 
         {/* Pagination */}
         {warehouses.length > 0 && (
-          <div className="flex justify-center mt-8 space-x-2">
+          <div className="mt-8 flex justify-center space-x-2">
             <Button variant="outline" size="sm" disabled>
               Previous
             </Button>
@@ -278,19 +277,19 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t mt-16">
+      <footer className="mt-16 border-t">
         <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
-          <div className="text-center text-sm text-muted-foreground">
+          <div className="text-muted-foreground text-center text-sm">
             © 2025 Warehouse Network. All rights reserved.
           </div>
         </div>
       </footer>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { location, skidCount } = context.query
+export const getServerSideProps: GetServerSideProps = async context => {
+  const { location, skidCount } = context.query;
 
   const warehouses = await prisma.warehouse.findMany({
     where: {
@@ -304,7 +303,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         gte: parseInt(String(skidCount), 10) || 0,
       },
     },
-  })
+  });
 
   // TODO: Implement advanced matching heuristics (price, proximity, SLA, etc.)
 
@@ -312,7 +311,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       warehouses: JSON.parse(JSON.stringify(warehouses)),
     },
-  }
-}
+  };
+};
 
-export default SearchResults
+export default SearchResults;

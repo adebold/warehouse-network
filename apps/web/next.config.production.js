@@ -6,7 +6,7 @@ const nextConfig = {
   poweredByHeader: false,
   generateEtags: false,
   compress: true,
-  
+
   // Image optimization for production
   images: {
     remotePatterns: [

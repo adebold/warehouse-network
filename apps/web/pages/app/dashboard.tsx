@@ -1,46 +1,46 @@
-import { useEffect } from 'react'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import type { NextPage } from 'next'
+import { useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import type { NextPage } from 'next';
 
 const Dashboard: NextPage = () => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return
-    
+    if (status === 'loading') return;
+
     if (!session) {
-      router.push('/login')
-      return
+      router.push('/login');
+      return;
     }
 
     // Redirect based on user role
     switch (session.user?.role) {
       case 'SUPER_ADMIN':
-        router.push('/admin/dashboard')
-        break
+        router.push('/admin/dashboard');
+        break;
       case 'OPERATOR_ADMIN':
       case 'WAREHOUSE_STAFF':
-        router.push('/operator/dashboard')
-        break
+        router.push('/operator/dashboard');
+        break;
       case 'CUSTOMER_ADMIN':
       case 'CUSTOMER_USER':
-        router.push('/customer/dashboard')
-        break
+        router.push('/customer/dashboard');
+        break;
       default:
-        router.push('/')
+        router.push('/');
     }
-  }, [session, status, router])
+  }, [session, status, router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
+    <div className="bg-background flex min-h-screen items-center justify-center">
       <div className="text-center">
-        <h2 className="text-xl font-semibold mb-2">Redirecting...</h2>
+        <h2 className="mb-2 text-xl font-semibold">Redirecting...</h2>
         <p className="text-muted-foreground">Please wait while we load your dashboard.</p>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Dashboard
+export default Dashboard;

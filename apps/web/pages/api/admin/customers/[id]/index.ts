@@ -1,19 +1,16 @@
-import { NextApiRequest, NextApiResponse } from 'next'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]'
-import prisma from '@/lib/prisma'
+import { NextApiRequest, NextApiResponse } from 'next';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '../../../auth/[...nextauth]';
+import prisma from '@/lib/prisma';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  const session = await getServerSession(req, res, authOptions)
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const session = await getServerSession(req, res, authOptions);
 
   if (!session || (session.user.role !== 'admin' && session.user.role !== 'operator')) {
-    return res.status(401).json({ message: 'Unauthorized' })
+    return res.status(401).json({ message: 'Unauthorized' });
   }
 
-  const { id } = req.query
+  const { id } = req.query;
 
   if (req.method === 'GET') {
     try {
@@ -26,7 +23,7 @@ export default async function handler(
               name: true,
               email: true,
               role: true,
-            }
+            },
           },
           _count: {
             select: {
@@ -35,11 +32,11 @@ export default async function handler(
               disputes: true,
               deposits: true,
               releaseRequests: true,
-            }
+            },
           },
           lockHistory: {
             orderBy: {
-              timestamp: 'desc'
+              timestamp: 'desc',
             },
             take: 10,
             include: {
@@ -47,15 +44,15 @@ export default async function handler(
                 select: {
                   name: true,
                   email: true,
-                }
-              }
-            }
+                },
+              },
+            },
           },
           skids: {
             where: {
               status: {
-                in: ['STORED', 'RECEIVING']
-              }
+                in: ['STORED', 'RECEIVING'],
+              },
             },
             select: {
               id: true,
@@ -66,24 +63,24 @@ export default async function handler(
             },
             take: 5,
             orderBy: {
-              createdAt: 'desc'
-            }
-          }
-        }
-      })
+              createdAt: 'desc',
+            },
+          },
+        },
+      });
 
       if (!customer) {
-        return res.status(404).json({ message: 'Customer not found' })
+        return res.status(404).json({ message: 'Customer not found' });
       }
 
-      return res.status(200).json(customer)
+      return res.status(200).json(customer);
     } catch (error) {
-      console.error('Error fetching customer:', error)
-      return res.status(500).json({ message: 'Internal server error' })
+      console.error('Error fetching customer:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   } else if (req.method === 'PATCH') {
     try {
-      const { paymentStatus, paymentDueDate, overdueAmount, totalOutstanding } = req.body
+      const { paymentStatus, paymentDueDate, overdueAmount, totalOutstanding } = req.body;
 
       const updatedCustomer = await prisma.customer.update({
         where: { id: String(id) },
@@ -92,16 +89,16 @@ export default async function handler(
           paymentDueDate: paymentDueDate ? new Date(paymentDueDate) : undefined,
           overdueAmount,
           totalOutstanding,
-        }
-      })
+        },
+      });
 
-      return res.status(200).json(updatedCustomer)
+      return res.status(200).json(updatedCustomer);
     } catch (error) {
-      console.error('Error updating customer:', error)
-      return res.status(500).json({ message: 'Internal server error' })
+      console.error('Error updating customer:', error);
+      return res.status(500).json({ message: 'Internal server error' });
     }
   } else {
-    res.setHeader('Allow', ['GET', 'PATCH'])
-    res.status(405).end(`Method ${req.method} Not Allowed`)
+    res.setHeader('Allow', ['GET', 'PATCH']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }

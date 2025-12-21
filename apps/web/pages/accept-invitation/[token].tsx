@@ -1,21 +1,21 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useState } from 'react'
-import { useRouter } from 'next/router'
-import prisma from '../../lib/prisma'
-import type { Invitation } from '@prisma/client'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
+import prisma from '../../lib/prisma';
+import type { Invitation } from '@prisma/client';
 
 interface AcceptInvitationProps {
-  invitation: Invitation | null
-  error?: string
+  invitation: Invitation | null;
+  error?: string;
 }
 
 const AcceptInvitation: NextPage<AcceptInvitationProps> = ({ invitation, error }) => {
-  const router = useRouter()
-  const [name, setName] = useState('')
-  const [password, setPassword] = useState('')
+  const router = useRouter();
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/accept-invitation', {
@@ -24,23 +24,23 @@ const AcceptInvitation: NextPage<AcceptInvitationProps> = ({ invitation, error }
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ token: invitation?.token, name, password }),
-      })
+      });
 
       if (response.ok) {
-        router.push('/login')
+        router.push('/login');
       } else {
-        const errorData = await response.json()
-        console.error('Failed to accept invitation', errorData)
-        alert('Failed to accept invitation')
+        const errorData = await response.json();
+        console.error('Failed to accept invitation', errorData);
+        alert('Failed to accept invitation');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while accepting the invitation.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while accepting the invitation.');
     }
-  }
+  };
 
   if (error || !invitation) {
-    return <div>{error || 'Invalid or expired invitation.'}</div>
+    return <div>{error || 'Invalid or expired invitation.'}</div>;
   }
 
   return (
@@ -64,29 +64,29 @@ const AcceptInvitation: NextPage<AcceptInvitationProps> = ({ invitation, error }
         <button type="submit">Create Account</button>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const { token } = context.params || {}
+export const getServerSideProps: GetServerSideProps = async context => {
+  const { token } = context.params || {};
 
   if (typeof token !== 'string') {
-    return { props: { invitation: null, error: 'Invalid token.' } }
+    return { props: { invitation: null, error: 'Invalid token.' } };
   }
 
   const invitation = await prisma.invitation.findUnique({
     where: { token },
-  })
+  });
 
   if (!invitation || invitation.expires < new Date()) {
-    return { props: { invitation: null, error: 'Invalid or expired invitation.' } }
+    return { props: { invitation: null, error: 'Invalid or expired invitation.' } };
   }
 
   return {
     props: {
       invitation: JSON.parse(JSON.stringify(invitation)),
     },
-  }
-}
+  };
+};
 
-export default AcceptInvitation
+export default AcceptInvitation;

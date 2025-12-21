@@ -1,23 +1,28 @@
 # Cloud Run Architecture Fix - Quick Reference
 
 ## Problem
+
 Cloud Run rejects multi-architecture Docker images with error:
+
 ```
 Container manifest type 'application/vnd.oci.image.index.v1+json' must support amd64/linux
 ```
 
 ## Root Cause
+
 Docker buildx creates multi-platform images by default, but Cloud Run only accepts single architecture (linux/amd64) images.
 
 ## Solutions
 
 ### Option 1: Simple Cloud Build (RECOMMENDED)
+
 ```bash
 cd apps/web
 gcloud builds submit --config=cloudbuild-simple.yaml
 ```
 
 ### Option 2: Local Build with Platform Flag
+
 ```bash
 cd apps/web
 docker build --platform linux/amd64 -t gcr.io/easyreno-poc-202512161545/warehouse-network-web:latest -f Dockerfile.cloudrun .
@@ -26,6 +31,7 @@ gcloud run deploy warehouse-network-web --image gcr.io/easyreno-poc-202512161545
 ```
 
 ### Option 3: Use Deployment Script
+
 ```bash
 cd apps/web
 ./scripts/deploy-cloud-run.sh
@@ -40,6 +46,7 @@ cd apps/web
 5. **deploy-cloud-run.sh**: Interactive deployment script
 
 ## Files Created
+
 - `cloudbuild-simple.yaml` - Simple build config (recommended)
 - `cloudbuild.yaml` - Buildx config with platform flag
 - `Dockerfile.cloudrun` - Optimized Dockerfile with explicit platform
@@ -48,6 +55,7 @@ cd apps/web
 - `CLOUD_RUN_DEPLOYMENT.md` - Comprehensive deployment guide
 
 ## Quick Test
+
 ```bash
 # Verify image architecture after build
 docker manifest inspect gcr.io/easyreno-poc-202512161545/warehouse-network-web:latest | grep architecture

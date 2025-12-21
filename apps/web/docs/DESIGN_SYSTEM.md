@@ -24,6 +24,7 @@ Our color system is built on semantic naming and includes:
 ### Spacing
 
 Consistent spacing scale from `0` to `96` (24rem), including:
+
 - Fractional values: `0.5`, `1.5`, `2.5`, `3.5`
 - Standard increments: `4`, `8`, `12`, `16`, `20`, etc.
 
@@ -34,27 +35,30 @@ Multiple shadow levels from `sm` to `2xl` for depth and hierarchy.
 ## Theme System
 
 ### Light Theme
+
 ```javascript
-import { lightTheme, applyTheme } from '@/lib/design-system/theme'
+import { lightTheme, applyTheme } from '@/lib/design-system/theme';
 
 // Apply light theme
-applyTheme(lightTheme)
+applyTheme(lightTheme);
 ```
 
 ### Dark Theme
+
 ```javascript
-import { darkTheme, applyTheme } from '@/lib/design-system/theme'
+import { darkTheme, applyTheme } from '@/lib/design-system/theme';
 
 // Apply dark theme
-applyTheme(darkTheme)
+applyTheme(darkTheme);
 ```
 
 ### Theme Switching
+
 ```javascript
-import { getThemeFromLocalStorage } from '@/lib/design-system/theme'
+import { getThemeFromLocalStorage } from '@/lib/design-system/theme';
 
 // Get user's theme preference
-const theme = getThemeFromLocalStorage()
+const theme = getThemeFromLocalStorage();
 ```
 
 ## Components
@@ -93,9 +97,9 @@ import { Search, Mail } from 'lucide-react'
 <Input placeholder="Enter text..." />
 
 // With icons
-<Input 
-  placeholder="Search..." 
-  startIcon={<Search className="h-4 w-4" />} 
+<Input
+  placeholder="Search..."
+  startIcon={<Search className="h-4 w-4" />}
 />
 
 // Different states
@@ -112,13 +116,7 @@ import { Search, Mail } from 'lucide-react'
 Accessible select component with custom styling.
 
 ```tsx
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui';
 
 <Select>
   <SelectTrigger>
@@ -129,7 +127,7 @@ import {
     <SelectItem value="option2">Option 2</SelectItem>
     <SelectItem value="option3">Option 3</SelectItem>
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 ### Table
@@ -150,8 +148,8 @@ const data = [
   { id: 2, name: 'Item 2', status: 'Inactive' },
 ]
 
-<DataTable 
-  columns={columns} 
+<DataTable
+  columns={columns}
   data={data}
   onRowClick={(item) => console.log(item)}
 />
@@ -162,13 +160,13 @@ const data = [
 Accessible modal dialogs for user interactions.
 
 ```tsx
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogDescription 
-} from '@/components/ui'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui';
 
 <Dialog>
   <DialogTrigger>
@@ -177,13 +175,11 @@ import {
   <DialogContent>
     <DialogHeader>
       <DialogTitle>Dialog Title</DialogTitle>
-      <DialogDescription>
-        Dialog description goes here.
-      </DialogDescription>
+      <DialogDescription>Dialog description goes here.</DialogDescription>
     </DialogHeader>
     {/* Dialog content */}
   </DialogContent>
-</Dialog>
+</Dialog>;
 ```
 
 ### Loading States
@@ -191,11 +187,11 @@ import {
 Various loading components for different use cases.
 
 ```tsx
-import { 
-  Skeleton, 
-  SkeletonCard, 
-  Spinner, 
-  LoadingOverlay 
+import {
+  Skeleton,
+  SkeletonCard,
+  Spinner,
+  LoadingOverlay
 } from '@/components/ui'
 
 // Basic skeleton
@@ -217,11 +213,11 @@ import {
 Comprehensive navigation components.
 
 ```tsx
-import { 
-  NavigationMenu, 
-  Breadcrumb, 
-  TabNavigation, 
-  Sidebar 
+import {
+  NavigationMenu,
+  Breadcrumb,
+  TabNavigation,
+  Sidebar
 } from '@/components/ui'
 
 // Navigation menu
@@ -248,16 +244,17 @@ const tabs = [
   { title: 'Tab 2', value: 'tab2' },
 ]
 
-<TabNavigation 
-  items={tabs} 
-  value={activeTab} 
-  onValueChange={setActiveTab} 
+<TabNavigation
+  items={tabs}
+  value={activeTab}
+  onValueChange={setActiveTab}
 />
 ```
 
 ## Utility Classes
 
 ### Container
+
 ```html
 <div className="container">
   <!-- Centered content with responsive padding -->
@@ -265,6 +262,7 @@ const tabs = [
 ```
 
 ### Card Hover Effect
+
 ```html
 <div className="card-hover">
   <!-- Card with hover animation -->
@@ -272,15 +270,15 @@ const tabs = [
 ```
 
 ### Links
+
 ```html
 <a href="#" className="link">Styled link</a>
 ```
 
 ### Badges
+
 ```html
-<span className="badge bg-primary text-primary-foreground">
-  New
-</span>
+<span className="badge bg-primary text-primary-foreground"> New </span>
 ```
 
 ## Accessibility
@@ -298,7 +296,7 @@ All components are built with accessibility in mind:
 The design system is mobile-first with breakpoints:
 
 - `sm`: 640px
-- `md`: 768px  
+- `md`: 768px
 - `lg`: 1024px
 - `xl`: 1280px
 - `2xl`: 1536px
@@ -314,6 +312,7 @@ The design system is mobile-first with breakpoints:
 ## Extending the System
 
 ### Adding New Colors
+
 ```javascript
 // In tokens.ts
 export const tokens = {
@@ -321,26 +320,19 @@ export const tokens = {
     custom: {
       DEFAULT: '#custom-color',
       // Add shades...
-    }
-  }
-}
+    },
+  },
+};
 ```
 
 ### Creating Custom Components
+
 ```tsx
-import { cn } from '@/lib/utils'
-import { tokens } from '@/lib/design-system/tokens'
+import { cn } from '@/lib/utils';
+import { tokens } from '@/lib/design-system/tokens';
 
 export function CustomComponent({ className, ...props }) {
-  return (
-    <div 
-      className={cn(
-        "rounded-md bg-card p-4",
-        className
-      )}
-      {...props}
-    />
-  )
+  return <div className={cn('bg-card rounded-md p-4', className)} {...props} />;
 }
 ```
 

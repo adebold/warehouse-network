@@ -1,0 +1,170 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.cache/
+*.tsbuildinfo
+
+# Testing
+coverage/
+*.lcov
+.nyc_output/
+test-results/
+playwright-report/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.*.local
+
+# Secrets - CRITICAL: Never commit these!
+.secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+*-key.json
+service-account*.json
+credentials*.json
+
+# Sensitive configuration
+firebase-config.json
+gcp-credentials.json
+aws-credentials.ini
+.aws/
+.gcloud/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Nx
+.nx/
+.nx/cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+/data/
+/backups/
+/dumps/
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+terraform.tfvars
+override.tf
+override.tf.json
+
+# Security scan results
+*.sarif
+trivy-results.json
+snyk-results.json
+gitleaks-report.json
+
+# Temporary files
+tmp/
+temp/
+*.bak
+*.backup
+*.old
+
+# Python (if used)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+ENV/
+
+# Certificates (already in .secrets but adding here too)
+*.csr
+*.p7b
+*.p7c
+
+# Audit logs (local)
+audit-*.json
+logs/audit/
+
+# Documentation builds
+docs/_build/
+site/
+
+# Package manager locks (keep one, ignore others)
+# We're using pnpm, so:
+package-lock.json
+yarn.lock
+
+# Backup files
+*_backup
+*_old
+*.orig
+
+# Local development overrides
+docker-compose.local.yml
+local.config.json
+
+# GPG
+secring.gpg
+*.asc
+
+# SSH
+*.ssh/
+ssh_config
+known_hosts
+
+# Cloud provider specific
+.gcp/
+.aws/
+.azure/
+
+# Monitoring & APM
+newrelic_agent.log
+
+# Build artifacts
+*.wasm
+*.js.map
+*.d.ts.map
+
+# Sensitive documents
+SECRETS.md
+PASSWORDS.txt
+credentials.txt

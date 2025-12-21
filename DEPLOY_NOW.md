@@ -1,6 +1,7 @@
 # 🚀 Deploy Warehouse Network Application NOW
 
 ## Current Status
+
 - ✅ **Enterprise GitOps Infrastructure**: Complete and pushed to GitHub
 - ✅ **Production Dockerfile**: Optimized and ready
 - ✅ **GitHub Actions**: CI/CD pipeline configured
@@ -16,6 +17,7 @@ Since Docker isn't running locally and gcloud needs auth, let's use the GitHub A
 Go to: https://github.com/adebold/warehouse-network/settings/secrets/actions
 
 Add these secrets:
+
 ```
 GCP_PROJECT_ID: easyreno-demo-20251219144606
 GCP_SERVICE_ACCOUNT_KEY: (your service account JSON)
@@ -26,17 +28,20 @@ NEXTAUTH_SECRET: (generate with: openssl rand -base64 32)
 ### Step 2: Trigger Deployment
 
 Option A: Push to main (already done!)
+
 ```bash
 git push origin main
 ```
 
 Option B: Create a release tag
+
 ```bash
 git tag -a v1.0.0 -m "Production release"
 git push origin v1.0.0
 ```
 
 Option C: Manual trigger in GitHub UI
+
 1. Go to: https://github.com/adebold/warehouse-network/actions
 2. Click on "CD Production" workflow
 3. Click "Run workflow"
@@ -51,12 +56,14 @@ https://github.com/adebold/warehouse-network/actions
 If you want to deploy immediately without GitHub Actions:
 
 ### 1. Re-authenticate gcloud
+
 ```bash
 gcloud auth login
 gcloud config set project easyreno-demo-20251219144606
 ```
 
 ### 2. Deploy directly
+
 ```bash
 cd /Users/adebold/Documents/GitHub/warehouse-network/apps/web
 gcloud run deploy warehouse-network \
@@ -69,11 +76,13 @@ gcloud run deploy warehouse-network \
 ## 🎉 Expected Result
 
 Your Warehouse Network application will be live at:
+
 ```
 https://warehouse-network-1078962111758.us-central1.run.app
 ```
 
 With:
+
 - ✅ Auto-scaling based on traffic
 - ✅ Enterprise security and monitoring
 - ✅ Zero-downtime deployments

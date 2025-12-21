@@ -26,6 +26,7 @@
 ## 🔧 Current Issue
 
 The Cloud Build is failing during the Next.js build process. This is likely due to:
+
 - Memory constraints during build
 - Complex dependencies timing out
 - Platform differences (Mac ARM64 vs Linux AMD64)
@@ -35,6 +36,7 @@ The Cloud Build is failing during the Next.js build process. This is likely due 
 Since you have billing enabled and full access, the fastest way to get live is:
 
 ### Option 1: Use Google Cloud Shell
+
 ```bash
 # In your browser, go to:
 # https://console.cloud.google.com/cloudshell
@@ -51,6 +53,7 @@ gcloud run deploy warehouse-frontend \
 ```
 
 ### Option 2: Deploy Pre-built Image
+
 ```bash
 # Deploy using a working Node.js image
 gcloud run deploy warehouse-frontend \
@@ -62,7 +65,9 @@ gcloud run deploy warehouse-frontend \
 ```
 
 ### Option 3: Simplify the Build
+
 Create a minimal Next.js config that builds faster:
+
 ```bash
 # Create simplified build config
 cd apps/web
@@ -78,6 +83,7 @@ gcloud run deploy warehouse-frontend \
 ## 📊 Summary
 
 Your AI Industries infrastructure is set up correctly:
+
 - ✅ Project created with billing
 - ✅ All services enabled
 - ✅ Permissions configured

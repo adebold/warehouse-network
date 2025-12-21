@@ -34,6 +34,7 @@ gcloud run services describe warehouse-app \
 The Next.js build is complex. Here are alternatives:
 
 ### Option 1: Pre-build Locally
+
 ```bash
 cd apps/web
 # Build locally first
@@ -48,13 +49,16 @@ gcloud run deploy warehouse-app \
 ```
 
 ### Option 2: Use Vercel (Instant)
+
 ```bash
 cd apps/web
 npx vercel --prod
 ```
+
 This will deploy your Next.js app instantly with a public URL.
 
 ### Option 3: Use Firebase Hosting
+
 ```bash
 # Install Firebase CLI
 npm install -g firebase-tools

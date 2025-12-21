@@ -1,19 +1,19 @@
-import { PrismaClient } from '@prisma/client'
-import bcrypt from 'bcryptjs'
-import { addDays, subDays } from 'date-fns'
+import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import { addDays, subDays } from 'date-fns';
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 interface TestScenario {
-  name: string
-  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED'
-  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT'
-  overdueAmount: number
-  totalOutstanding: number
-  paymentDueDate: Date | null
-  lockReason?: string
-  lockedAt?: Date
-  skidCount: number
+  name: string;
+  accountStatus: 'ACTIVE' | 'SUSPENDED' | 'LOCKED';
+  paymentStatus: 'CURRENT' | 'OVERDUE' | 'DELINQUENT';
+  overdueAmount: number;
+  totalOutstanding: number;
+  paymentDueDate: Date | null;
+  lockReason?: string;
+  lockedAt?: Date;
+  skidCount: number;
 }
 
 const testScenarios: TestScenario[] = [
@@ -30,8 +30,8 @@ const testScenarios: TestScenario[] = [
     name: 'Overdue Customer - 15 Days',
     accountStatus: 'ACTIVE',
     paymentStatus: 'OVERDUE',
-    overdueAmount: 1500.00,
-    totalOutstanding: 2500.00,
+    overdueAmount: 1500.0,
+    totalOutstanding: 2500.0,
     paymentDueDate: subDays(new Date(), 15),
     skidCount: 3,
   },
@@ -39,8 +39,8 @@ const testScenarios: TestScenario[] = [
     name: 'Delinquent Customer - 45 Days',
     accountStatus: 'ACTIVE',
     paymentStatus: 'DELINQUENT',
-    overdueAmount: 5000.00,
-    totalOutstanding: 8500.00,
+    overdueAmount: 5000.0,
+    totalOutstanding: 8500.0,
     paymentDueDate: subDays(new Date(), 45),
     skidCount: 8,
   },
@@ -48,8 +48,8 @@ const testScenarios: TestScenario[] = [
     name: 'Locked Customer - Non-payment',
     accountStatus: 'LOCKED',
     paymentStatus: 'DELINQUENT',
-    overdueAmount: 10000.00,
-    totalOutstanding: 10000.00,
+    overdueAmount: 10000.0,
+    totalOutstanding: 10000.0,
     paymentDueDate: subDays(new Date(), 60),
     lockReason: 'Payment overdue 60+ days',
     lockedAt: subDays(new Date(), 5),
@@ -59,34 +59,34 @@ const testScenarios: TestScenario[] = [
     name: 'Suspended Customer',
     accountStatus: 'SUSPENDED',
     paymentStatus: 'OVERDUE',
-    overdueAmount: 3000.00,
-    totalOutstanding: 4500.00,
+    overdueAmount: 3000.0,
+    totalOutstanding: 4500.0,
     paymentDueDate: subDays(new Date(), 30),
     skidCount: 6,
   },
-]
+];
 
 async function seed() {
-  console.log('🌱 Starting test database seed...')
+  console.log('🌱 Starting test database seed...');
 
   // Clear existing test data
-  await prisma.accountLockHistory.deleteMany({})
-  await prisma.releaseRequest.deleteMany({})
-  await prisma.skid.deleteMany({})
-  await prisma.user.deleteMany({ where: { isTestUser: true } })
-  await prisma.customer.deleteMany({ where: { isTestData: true } })
-  await prisma.warehouse.deleteMany({})
-  await prisma.operator.deleteMany({})
-  await prisma.platform.deleteMany({})
+  await prisma.accountLockHistory.deleteMany({});
+  await prisma.releaseRequest.deleteMany({});
+  await prisma.skid.deleteMany({});
+  await prisma.user.deleteMany({ where: { isTestUser: true } });
+  await prisma.customer.deleteMany({ where: { isTestData: true } });
+  await prisma.warehouse.deleteMany({});
+  await prisma.operator.deleteMany({});
+  await prisma.platform.deleteMany({});
 
-  console.log('✅ Cleared existing test data')
+  console.log('✅ Cleared existing test data');
 
   // Create platform
   const platform = await prisma.platform.create({
     data: {
       name: 'Test Platform',
     },
-  })
+  });
 
   // Create operator
   const operator = await prisma.operator.create({
@@ -103,7 +103,7 @@ async function seed() {
       termsAccepted: true,
       termsAcceptedAt: new Date(),
     },
-  })
+  });
 
   // Create warehouses
   const warehouses = await Promise.all([
@@ -116,7 +116,7 @@ async function seed() {
         province: 'NY',
         postalCode: '10001',
         latitude: 40.7128,
-        longitude: -74.0060,
+        longitude: -74.006,
         totalSpace: 50000,
         operatingHours: '24/7',
         capacity: 1000,
@@ -145,9 +145,9 @@ async function seed() {
         operatorId: operator.id,
       },
     }),
-  ])
+  ]);
 
-  console.log('✅ Created test warehouses')
+  console.log('✅ Created test warehouses');
 
   // Create admin user
   const adminUser = await prisma.user.create({
@@ -159,7 +159,7 @@ async function seed() {
       emailVerified: new Date(),
       isTestUser: true,
     },
-  })
+  });
 
   // Create operator user
   const operatorUser = await prisma.user.create({
@@ -171,9 +171,9 @@ async function seed() {
       emailVerified: new Date(),
       isTestUser: true,
     },
-  })
+  });
 
-  console.log('✅ Created test admin and operator users')
+  console.log('✅ Created test admin and operator users');
 
   // Create test customers with different scenarios
   for (const [index, scenario] of testScenarios.entries()) {
@@ -192,7 +192,7 @@ async function seed() {
         isTestData: true,
         testScenario: scenario.name.toLowerCase().replace(/\s+/g, '_'),
       },
-    })
+    });
 
     // Create customer user
     const customerUser = await prisma.user.create({
@@ -205,7 +205,7 @@ async function seed() {
         emailVerified: new Date(),
         isTestUser: true,
       },
-    })
+    });
 
     // Create lock history if account is locked
     if (scenario.accountStatus === 'LOCKED' && scenario.lockedAt) {
@@ -221,11 +221,11 @@ async function seed() {
             scenario: scenario.name,
           },
         },
-      })
+      });
     }
 
     // Create test skids
-    const skidPromises = []
+    const skidPromises = [];
     for (let i = 0; i < scenario.skidCount; i++) {
       skidPromises.push(
         prisma.skid.create({
@@ -240,11 +240,11 @@ async function seed() {
             createdAt: subDays(new Date(), Math.floor(Math.random() * 30)),
           },
         })
-      )
+      );
     }
-    await Promise.all(skidPromises)
+    await Promise.all(skidPromises);
 
-    console.log(`✅ Created test customer: ${scenario.name}`)
+    console.log(`✅ Created test customer: ${scenario.name}`);
   }
 
   // Create a regular test customer for general E2E tests
@@ -259,7 +259,7 @@ async function seed() {
       isTestData: true,
       testScenario: 'regular',
     },
-  })
+  });
 
   await prisma.user.create({
     data: {
@@ -271,9 +271,9 @@ async function seed() {
       emailVerified: new Date(),
       isTestUser: true,
     },
-  })
+  });
 
-  console.log('✅ Created regular test customer')
+  console.log('✅ Created regular test customer');
 
   // Create some release requests for testing
   const pendingSkids = await prisma.skid.findMany({
@@ -284,7 +284,7 @@ async function seed() {
       status: 'STORED',
     },
     take: 2,
-  })
+  });
 
   if (pendingSkids.length > 0) {
     await prisma.releaseRequest.create({
@@ -299,27 +299,27 @@ async function seed() {
           connect: pendingSkids.map(s => ({ id: s.id })),
         },
       },
-    })
-    console.log('✅ Created test release request')
+    });
+    console.log('✅ Created test release request');
   }
 
-  console.log('🎉 Test database seed completed!')
-  console.log('\n📋 Test Accounts:')
-  console.log('Admin: admin@test.com / admin123')
-  console.log('Operator: operator@test.com / operator123')
-  console.log('Customer: customer@test.com / customer123')
-  console.log('Customer 1 (Good Standing): customer1@test.com / customer123')
-  console.log('Customer 2 (Overdue 15 days): customer2@test.com / customer123')
-  console.log('Customer 3 (Delinquent 45 days): customer3@test.com / customer123')
-  console.log('Customer 4 (Locked): customer4@test.com / customer123')
-  console.log('Customer 5 (Suspended): customer5@test.com / customer123')
+  console.log('🎉 Test database seed completed!');
+  console.log('\n📋 Test Accounts:');
+  console.log('Admin: admin@test.com / admin123');
+  console.log('Operator: operator@test.com / operator123');
+  console.log('Customer: customer@test.com / customer123');
+  console.log('Customer 1 (Good Standing): customer1@test.com / customer123');
+  console.log('Customer 2 (Overdue 15 days): customer2@test.com / customer123');
+  console.log('Customer 3 (Delinquent 45 days): customer3@test.com / customer123');
+  console.log('Customer 4 (Locked): customer4@test.com / customer123');
+  console.log('Customer 5 (Suspended): customer5@test.com / customer123');
 }
 
 seed()
-  .catch((e) => {
-    console.error('❌ Seed failed:', e)
-    process.exit(1)
+  .catch(e => {
+    console.error('❌ Seed failed:', e);
+    process.exit(1);
   })
   .finally(async () => {
-    await prisma.$disconnect()
-  })
+    await prisma.$disconnect();
+  });

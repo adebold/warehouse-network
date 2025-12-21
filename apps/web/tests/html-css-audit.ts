@@ -22,7 +22,7 @@ export class HTMLCSSAuditor {
 
   async auditPage(page: Page, pageName: string): Promise<AuditResult> {
     const issues: AuditResult['issues'] = [];
-    
+
     // Check semantic HTML structure
     const semanticIssues = await this.checkSemanticHTML(page);
     issues.push(...semanticIssues);
@@ -45,7 +45,7 @@ export class HTMLCSSAuditor {
     const result: AuditResult = {
       page: pageName,
       issues,
-      metrics
+      metrics,
     };
 
     this.results.push(result);
@@ -56,7 +56,7 @@ export class HTMLCSSAuditor {
     const issues: AuditResult['issues'] = [];
 
     // Check for proper heading hierarchy
-    const headings = await page.$$eval('h1, h2, h3, h4, h5, h6', elements => 
+    const headings = await page.$$eval('h1, h2, h3, h4, h5, h6', elements =>
       elements.map(el => ({ tag: el.tagName, text: el.textContent }))
     );
 
@@ -68,7 +68,7 @@ export class HTMLCSSAuditor {
           type: 'semantic',
           severity: 'warning',
           message: `Skipped heading level: ${heading.tag} after H${lastLevel}`,
-          selector: heading.tag
+          selector: heading.tag,
         });
       }
       lastLevel = level;
@@ -81,7 +81,7 @@ export class HTMLCSSAuditor {
         type: 'semantic',
         severity: 'warning',
         message: `Multiple H1 tags found (${h1Count}). Page should have only one H1.`,
-        selector: 'h1'
+        selector: 'h1',
       });
     }
 
@@ -92,7 +92,7 @@ export class HTMLCSSAuditor {
         type: 'accessibility',
         severity: 'error',
         message: `${imagesWithoutAlt} images without alt text found`,
-        selector: 'img:not([alt])'
+        selector: 'img:not([alt])',
       });
     }
 
@@ -101,13 +101,13 @@ export class HTMLCSSAuditor {
       'input:not([type="hidden"]):not([type="submit"]):not([aria-label]):not([aria-labelledby])',
       elements => elements.filter(el => !el.closest('label')).length
     );
-    
+
     if (inputsWithoutLabels > 0) {
       issues.push({
         type: 'accessibility',
         severity: 'error',
         message: `${inputsWithoutLabels} form inputs without associated labels`,
-        selector: 'input'
+        selector: 'input',
       });
     }
 
@@ -120,7 +120,7 @@ export class HTMLCSSAuditor {
           type: 'semantic',
           severity: 'warning',
           message: `Page should have exactly one <main> element, found ${count}`,
-          selector: 'main'
+          selector: 'main',
         });
       }
     }
@@ -132,11 +132,11 @@ export class HTMLCSSAuditor {
     const issues: AuditResult['issues'] = [];
 
     // Check for inline styles
-    const elementsWithInlineStyles = await page.$$eval('[style]', elements => 
+    const elementsWithInlineStyles = await page.$$eval('[style]', elements =>
       elements.map(el => ({
         tag: el.tagName,
         style: el.getAttribute('style'),
-        selector: el.className || el.id || el.tagName
+        selector: el.className || el.id || el.tagName,
       }))
     );
 
@@ -146,7 +146,7 @@ export class HTMLCSSAuditor {
           type: 'css',
           severity: 'warning',
           message: `Inline styles detected: ${el.style}`,
-          selector: el.selector
+          selector: el.selector,
         });
       });
     }
@@ -156,7 +156,7 @@ export class HTMLCSSAuditor {
       elements.map(el => ({
         classes: el.className,
         text: el.textContent,
-        hasBaseClass: el.classList.contains('btn') || el.classList.contains('button')
+        hasBaseClass: el.classList.contains('btn') || el.classList.contains('button'),
       }))
     );
 
@@ -166,7 +166,7 @@ export class HTMLCSSAuditor {
         type: 'css',
         severity: 'warning',
         message: `${buttonsWithoutBaseClass} buttons without consistent base class`,
-        selector: 'button'
+        selector: 'button',
       });
     }
 
@@ -181,7 +181,7 @@ export class HTMLCSSAuditor {
         type: 'css',
         severity: 'info',
         message: 'No CSS custom properties found. Consider using them for theming.',
-        selector: ':root'
+        selector: ':root',
       });
     }
 
@@ -193,15 +193,15 @@ export class HTMLCSSAuditor {
     const viewports = [
       { name: 'mobile', width: 375, height: 667 },
       { name: 'tablet', width: 768, height: 1024 },
-      { name: 'desktop', width: 1440, height: 900 }
+      { name: 'desktop', width: 1440, height: 900 },
     ];
 
     for (const viewport of viewports) {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
-      
+
       // Check for horizontal scroll
-      const hasHorizontalScroll = await page.evaluate(() => 
-        document.documentElement.scrollWidth > document.documentElement.clientWidth
+      const hasHorizontalScroll = await page.evaluate(
+        () => document.documentElement.scrollWidth > document.documentElement.clientWidth
       );
 
       if (hasHorizontalScroll) {
@@ -209,7 +209,7 @@ export class HTMLCSSAuditor {
           type: 'responsive',
           severity: 'error',
           message: `Horizontal scroll detected at ${viewport.name} viewport (${viewport.width}px)`,
-          selector: 'body'
+          selector: 'body',
         });
       }
 
@@ -217,16 +217,20 @@ export class HTMLCSSAuditor {
       const overlappingElements = await page.evaluate(() => {
         const elements = document.querySelectorAll('*');
         const overlapping: string[] = [];
-        
+
         for (let i = 0; i < elements.length; i++) {
           const rect1 = elements[i].getBoundingClientRect();
           for (let j = i + 1; j < elements.length; j++) {
             const rect2 = elements[j].getBoundingClientRect();
-            
-            if (!(rect1.right < rect2.left || 
-                  rect1.left > rect2.right || 
-                  rect1.bottom < rect2.top || 
-                  rect1.top > rect2.bottom)) {
+
+            if (
+              !(
+                rect1.right < rect2.left ||
+                rect1.left > rect2.right ||
+                rect1.bottom < rect2.top ||
+                rect1.top > rect2.bottom
+              )
+            ) {
               // Elements overlap
               const selector1 = (elements[i] as HTMLElement).className || elements[i].tagName;
               const selector2 = (elements[j] as HTMLElement).className || elements[j].tagName;
@@ -258,12 +262,12 @@ export class HTMLCSSAuditor {
     const issues: AuditResult['issues'] = [];
 
     // Check card components
-    const cards = await page.$$eval('.card, [class*="card"]', elements => 
+    const cards = await page.$$eval('.card, [class*="card"]', elements =>
       elements.map(el => ({
         classes: el.className,
         hasHeader: !!el.querySelector('.card-header, [class*="card-header"]'),
         hasBody: !!el.querySelector('.card-body, .card-content, [class*="card-content"]'),
-        hasFooter: !!el.querySelector('.card-footer, [class*="card-footer"]')
+        hasFooter: !!el.querySelector('.card-footer, [class*="card-footer"]'),
       }))
     );
 
@@ -273,7 +277,7 @@ export class HTMLCSSAuditor {
         type: 'component',
         severity: 'warning',
         message: `${inconsistentCards} card components without proper structure`,
-        selector: '.card'
+        selector: '.card',
       });
     }
 
@@ -282,7 +286,7 @@ export class HTMLCSSAuditor {
       elements.map(el => ({
         hasSubmitButton: !!el.querySelector('button[type="submit"], input[type="submit"]'),
         hasLabels: el.querySelectorAll('label').length > 0,
-        inputCount: el.querySelectorAll('input, select, textarea').length
+        inputCount: el.querySelectorAll('input, select, textarea').length,
       }))
     );
 
@@ -292,13 +296,14 @@ export class HTMLCSSAuditor {
           type: 'component',
           severity: 'warning',
           message: `Form ${index + 1} has inputs but no submit button`,
-          selector: `form:nth-of-type(${index + 1})`
+          selector: `form:nth-of-type(${index + 1})`,
         });
       }
     });
 
     // Check loading states
-    const hasLoadingStates = await page.$$eval('[class*="loading"], [class*="skeleton"], .spinner', 
+    const hasLoadingStates = await page.$$eval(
+      '[class*="loading"], [class*="skeleton"], .spinner',
       elements => elements.length
     );
 
@@ -316,17 +321,23 @@ export class HTMLCSSAuditor {
   private calculateMetrics(issues: AuditResult['issues']): AuditResult['metrics'] {
     const errorCount = issues.filter(i => i.severity === 'error').length;
     const warningCount = issues.filter(i => i.severity === 'warning').length;
-    
-    const semanticScore = Math.max(0, 100 - (issues.filter(i => i.type === 'semantic').length * 10));
-    const accessibilityScore = Math.max(0, 100 - (issues.filter(i => i.type === 'accessibility').length * 15));
-    const cssConsistencyScore = Math.max(0, 100 - (issues.filter(i => i.type === 'css').length * 5));
-    const performanceScore = Math.max(0, 100 - (issues.filter(i => i.type === 'responsive').length * 10));
+
+    const semanticScore = Math.max(0, 100 - issues.filter(i => i.type === 'semantic').length * 10);
+    const accessibilityScore = Math.max(
+      0,
+      100 - issues.filter(i => i.type === 'accessibility').length * 15
+    );
+    const cssConsistencyScore = Math.max(0, 100 - issues.filter(i => i.type === 'css').length * 5);
+    const performanceScore = Math.max(
+      0,
+      100 - issues.filter(i => i.type === 'responsive').length * 10
+    );
 
     return {
       semanticScore,
       accessibilityScore,
       cssConsistencyScore,
-      performanceScore
+      performanceScore,
     };
   }
 
@@ -345,12 +356,12 @@ export class HTMLCSSAuditor {
       if (result.issues.length > 0) {
         report += '### Issues Found\n\n';
         const groupedIssues = this.groupIssuesByType(result.issues);
-        
+
         Object.entries(groupedIssues).forEach(([type, issues]) => {
           report += `#### ${type.charAt(0).toUpperCase() + type.slice(1)} Issues\n\n`;
           issues.forEach(issue => {
-            const icon = issue.severity === 'error' ? '❌' : 
-                        issue.severity === 'warning' ? '⚠️' : 'ℹ️';
+            const icon =
+              issue.severity === 'error' ? '❌' : issue.severity === 'warning' ? '⚠️' : 'ℹ️';
             report += `${icon} **${issue.severity.toUpperCase()}**: ${issue.message}\n`;
             if (issue.selector) {
               report += `   - Selector: \`${issue.selector}\`\n`;
@@ -367,11 +378,14 @@ export class HTMLCSSAuditor {
   }
 
   private groupIssuesByType(issues: AuditResult['issues']): Record<string, AuditResult['issues']> {
-    return issues.reduce((acc, issue) => {
-      if (!acc[issue.type]) acc[issue.type] = [];
-      acc[issue.type].push(issue);
-      return acc;
-    }, {} as Record<string, AuditResult['issues']>);
+    return issues.reduce(
+      (acc, issue) => {
+        if (!acc[issue.type]) acc[issue.type] = [];
+        acc[issue.type].push(issue);
+        return acc;
+      },
+      {} as Record<string, AuditResult['issues']>
+    );
   }
 }
 
@@ -383,22 +397,22 @@ test.describe('HTML/CSS Audit', () => {
     { path: '/search', name: 'Search Page' },
     { path: '/login', name: 'Login Page' },
     { path: '/register', name: 'Registration Page' },
-    { path: '/app/dashboard', name: 'Dashboard' }
+    { path: '/app/dashboard', name: 'Dashboard' },
   ];
 
   pagesToAudit.forEach(({ path, name }) => {
     test(`Audit ${name}`, async ({ page }) => {
       await page.goto(path);
       await page.waitForLoadState('networkidle');
-      
+
       const result = await auditor.auditPage(page, name);
-      
+
       // Assert minimum scores
       expect(result.metrics.semanticScore).toBeGreaterThanOrEqual(70);
       expect(result.metrics.accessibilityScore).toBeGreaterThanOrEqual(80);
       expect(result.metrics.cssConsistencyScore).toBeGreaterThanOrEqual(70);
       expect(result.metrics.performanceScore).toBeGreaterThanOrEqual(70);
-      
+
       // Fail on critical errors
       const criticalErrors = result.issues.filter(i => i.severity === 'error');
       expect(criticalErrors).toHaveLength(0);

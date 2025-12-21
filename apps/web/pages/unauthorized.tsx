@@ -1,7 +1,7 @@
-import type { NextPage } from 'next'
+import type { NextPage } from 'next';
 
 const Unauthorized: NextPage = () => {
-  return <h1>Access Denied</h1>
-}
+  return <h1>Access Denied</h1>;
+};
 
-export default Unauthorized
+export default Unauthorized;

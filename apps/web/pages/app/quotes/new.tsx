@@ -1,19 +1,19 @@
-import type { NextPage, GetServerSideProps } from 'next'
-import { useSession } from 'next-auth/react'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import type { Warehouse } from '@prisma/client'
-import prisma from '../../../lib/prisma'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../api/auth/[...nextauth]'
+import type { NextPage, GetServerSideProps } from 'next';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
+import { useEffect, useState } from 'react';
+import type { Warehouse } from '@prisma/client';
+import prisma from '../../../lib/prisma';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface NewRFQProps {
-  warehouses: Warehouse[]
+  warehouses: Warehouse[];
 }
 
 const NewRFQ: NextPage<NewRFQProps> = ({ warehouses }) => {
-  const { data: session, status } = useSession()
-  const router = useRouter()
+  const { data: session, status } = useSession();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     preferredWarehouseIds: [] as string[],
     estimatedSkidCount: 0,
@@ -21,33 +21,35 @@ const NewRFQ: NextPage<NewRFQProps> = ({ warehouses }) => {
     expectedInboundDate: '',
     expectedDuration: '',
     specialHandlingNotes: '',
-  })
+  });
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session) router.push('/login')
-    if (session?.user?.role !== 'CUSTOMER_ADMIN') router.push('/unauthorized')
-  }, [session, status, router])
+    if (status === 'loading') return;
+    if (!session) router.push('/login');
+    if (session?.user?.role !== 'CUSTOMER_ADMIN') router.push('/unauthorized');
+  }, [session, status, router]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
       [name]: name === 'estimatedSkidCount' ? parseInt(value, 10) : value,
-    }))
-  }
+    }));
+  };
 
   const handleWarehouseSelection = (warehouseId: string) => {
     setFormData(prevState => {
       const preferredWarehouseIds = prevState.preferredWarehouseIds.includes(warehouseId)
         ? prevState.preferredWarehouseIds.filter(id => id !== warehouseId)
-        : [...prevState.preferredWarehouseIds, warehouseId]
-      return { ...prevState, preferredWarehouseIds }
-    })
-  }
+        : [...prevState.preferredWarehouseIds, warehouseId];
+      return { ...prevState, preferredWarehouseIds };
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
       const response = await fetch('/api/app/rfqs', {
@@ -56,23 +58,23 @@ const NewRFQ: NextPage<NewRFQProps> = ({ warehouses }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        router.push('/app/quotes')
+        router.push('/app/quotes');
       } else {
-        const errorData = await response.json()
-        console.error('Failed to create RFQ', errorData)
-        alert('Failed to create RFQ')
+        const errorData = await response.json();
+        console.error('Failed to create RFQ', errorData);
+        alert('Failed to create RFQ');
       }
     } catch (error) {
-      console.error('An error occurred:', error)
-      alert('An error occurred while creating the RFQ.')
+      console.error('An error occurred:', error);
+      alert('An error occurred while creating the RFQ.');
     }
-  }
+  };
 
   if (status === 'loading' || !session) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   return (
@@ -140,26 +142,27 @@ const NewRFQ: NextPage<NewRFQProps> = ({ warehouses }) => {
           />
         </div>
         <button type="submit">Submit RFQ</button>
-      </form>    </div>
-  )
-}
+      </form>{' '}
+    </div>
+  );
+};
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
-  const session = await getServerSession(context.req, context.res, authOptions)
+export const getServerSideProps: GetServerSideProps = async context => {
+  const session = await getServerSession(context.req, context.res, authOptions);
 
   if (!session || session.user?.role !== 'CUSTOMER_ADMIN') {
-    return { redirect: { destination: '/unauthorized', permanent: false } }
+    return { redirect: { destination: '/unauthorized', permanent: false } };
   }
 
   const warehouses = await prisma.warehouse.findMany({
     where: { status: 'READY_FOR_MARKETPLACE' }, // Only show warehouses ready for marketplace
-  })
+  });
 
   return {
     props: {
       warehouses: JSON.parse(JSON.stringify(warehouses)),
     },
-  }
-}
+  };
+};
 
-export default NewRFQ
+export default NewRFQ;

@@ -94,7 +94,7 @@ test.describe('Bulk Operations', () => {
     // Select customers with overdue amounts
     const checkboxes = page.locator('input[type="checkbox"][data-customer-email*="bulk-test"]');
     const count = await checkboxes.count();
-    
+
     // Select first 3 customers
     for (let i = 0; i < Math.min(3, count); i++) {
       await checkboxes.nth(i).check();
@@ -175,7 +175,7 @@ test.describe('Bulk Operations', () => {
     // Select customers
     const checkboxes = page.locator('input[type="checkbox"][data-customer-email*="bulk-test"]');
     const count = await checkboxes.count();
-    
+
     for (let i = 0; i < count; i++) {
       await checkboxes.nth(i).check();
     }
@@ -185,7 +185,7 @@ test.describe('Bulk Operations', () => {
 
     // Confirmation modal
     await expect(page.locator('h2:has-text("Send Payment Reminders")')).toBeVisible();
-    
+
     // Should show preview of reminders
     await expect(page.locator('text=Customer')).toBeVisible();
     await expect(page.locator('text=Overdue Amount')).toBeVisible();
@@ -194,7 +194,9 @@ test.describe('Bulk Operations', () => {
     // Customize message (optional)
     const messageTextarea = page.locator('textarea[name="customMessage"]');
     if (await messageTextarea.isVisible()) {
-      await messageTextarea.fill('This is a reminder about your overdue payment. Please pay as soon as possible to avoid account restrictions.');
+      await messageTextarea.fill(
+        'This is a reminder about your overdue payment. Please pay as soon as possible to avoid account restrictions.'
+      );
     }
 
     // Send reminders
@@ -202,7 +204,7 @@ test.describe('Bulk Operations', () => {
 
     // Wait for success
     await expect(page.locator('.toast-success')).toContainText('Payment reminders sent');
-    
+
     // Should show summary
     await expect(page.locator('text=/\\d+ reminders sent successfully/')).toBeVisible();
   });
@@ -230,12 +232,17 @@ test.describe('Bulk Operations', () => {
     await page.click('button:has-text("Lock Accounts")');
 
     // Fill reason with risk assessment
-    await page.fill('textarea[name="reason"]', 'High risk - 30+ days overdue - Automated bulk lock');
+    await page.fill(
+      'textarea[name="reason"]',
+      'High risk - 30+ days overdue - Automated bulk lock'
+    );
 
     // Add notes about follow-up actions
     const notesField = page.locator('textarea[name="internalNotes"]');
     if (await notesField.isVisible()) {
-      await notesField.fill('Accounts locked due to extended overdue period. Follow up with collections team.');
+      await notesField.fill(
+        'Accounts locked due to extended overdue period. Follow up with collections team.'
+      );
     }
 
     // Confirm
@@ -279,7 +286,7 @@ test.describe('Bulk Operations', () => {
     // Start export
     const downloadPromise = page.waitForEvent('download');
     await page.click('button:has-text("Export")');
-    
+
     const download = await downloadPromise;
     expect(download.suggestedFilename()).toContain('customers');
     expect(download.suggestedFilename()).toContain('.csv');
@@ -327,7 +334,7 @@ test.describe('Bulk Operations', () => {
 
     // Select some customers
     const checkboxes = page.locator('input[type="checkbox"]').slice(1, 4);
-    for (let i = 0; i < await checkboxes.count(); i++) {
+    for (let i = 0; i < (await checkboxes.count()); i++) {
       await checkboxes.nth(i).check();
     }
 
@@ -357,7 +364,7 @@ test.describe('Bulk Operations', () => {
 
     // Should show partial success message
     await expect(page.locator('.toast-warning')).toContainText('2 of 3 accounts locked');
-    
+
     // Should show error details
     await expect(page.locator('.error-details')).toBeVisible();
     await expect(page.locator('text=Customer has pending transactions')).toBeVisible();
@@ -368,14 +375,16 @@ test.describe('Bulk Operations', () => {
 
   test('Bulk operations audit trail', async ({ page }) => {
     await loginAsAdmin(page);
-    
+
     // Perform a bulk operation first
     await page.goto('/admin/customers');
     await page.fill('input[placeholder*="Search"]', 'bulk-test');
     await page.waitForTimeout(500);
 
-    const checkboxes = page.locator('input[type="checkbox"][data-customer-email*="bulk-test"]').first(2);
-    for (let i = 0; i < await checkboxes.count(); i++) {
+    const checkboxes = page
+      .locator('input[type="checkbox"][data-customer-email*="bulk-test"]')
+      .first(2);
+    for (let i = 0; i < (await checkboxes.count()); i++) {
       await checkboxes.nth(i).check();
     }
 
@@ -403,7 +412,7 @@ test.describe('Bulk Operations', () => {
     await expect(page.locator('text=Action: BULK_PAYMENT_REMINDER')).toBeVisible();
     await expect(page.locator('text=Affected Customers: 2')).toBeVisible();
     await expect(page.locator('text=Performed By:')).toBeVisible();
-    
+
     // Should list affected customers
     await expect(page.locator('text=Affected Customer IDs')).toBeVisible();
   });
@@ -431,7 +440,7 @@ test.describe('Bulk Operations', () => {
 
     // Set schedule
     await page.click('input[type="radio"][value="once"]');
-    
+
     const tomorrow = new Date();
     tomorrow.setDate(tomorrow.getDate() + 1);
     await page.fill('input[name="scheduledDate"]', tomorrow.toISOString().split('T')[0]);
@@ -467,7 +476,7 @@ bulk-test-3@example.com,unlock,`;
 
     // Create file
     const buffer = Buffer.from(csvContent);
-    
+
     // Upload file
     await page.setInputFiles('input[type="file"]', {
       name: 'bulk-operations.csv',
@@ -493,12 +502,12 @@ bulk-test-3@example.com,unlock,`;
     // Results
     await expect(page.locator('text=Import completed')).toBeVisible({ timeout: 10000 });
     await expect(page.locator('text=Successful: 3')).toBeVisible();
-    
+
     // Download results
     const downloadPromise = page.waitForEvent('download');
     await page.click('button:has-text("Download Results")');
     const download = await downloadPromise;
-    
+
     expect(download.suggestedFilename()).toContain('import-results');
   });
 });

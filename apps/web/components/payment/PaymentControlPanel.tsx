@@ -38,9 +38,12 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
     paymentDueDate: customer.paymentDueDate || '',
   });
 
-  const canManagePayments = ['SUPER_ADMIN', 'FINANCE_ADMIN', 'OPERATOR_ADMIN', 'WAREHOUSE_STAFF'].includes(
-    session?.user?.role || ''
-  );
+  const canManagePayments = [
+    'SUPER_ADMIN',
+    'FINANCE_ADMIN',
+    'OPERATOR_ADMIN',
+    'WAREHOUSE_STAFF',
+  ].includes(session?.user?.role || '');
 
   const canOverride = ['SUPER_ADMIN', 'FINANCE_ADMIN', 'OPERATOR_ADMIN'].includes(
     session?.user?.role || ''
@@ -115,17 +118,17 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
 
   return (
     <>
-      <Card className="p-6 space-y-6">
+      <Card className="space-y-6 p-6">
         <div>
-          <h3 className="text-lg font-semibold mb-4">Payment Control</h3>
-          
+          <h3 className="mb-4 text-lg font-semibold">Payment Control</h3>
+
           <div className="space-y-4">
             {/* Current Status */}
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">Account Status</span>
-              <PaymentStatusBadge 
-                accountStatus={customer.accountStatus} 
-                paymentStatus={customer.paymentStatus} 
+              <PaymentStatusBadge
+                accountStatus={customer.accountStatus}
+                paymentStatus={customer.paymentStatus}
               />
             </div>
 
@@ -138,13 +141,18 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
             />
 
             {/* Payment Information */}
-            <div className="space-y-3 pt-4 border-t">
+            <div className="space-y-3 border-t pt-4">
               <div>
                 <Label htmlFor="paymentStatus">Payment Status</Label>
                 <Select
                   id="paymentStatus"
                   value={paymentData.paymentStatus}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setPaymentData({ ...paymentData, paymentStatus: e.target.value as CustomerPaymentStatus })}
+                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                    setPaymentData({
+                      ...paymentData,
+                      paymentStatus: e.target.value as CustomerPaymentStatus,
+                    })
+                  }
                   disabled={!canOverride || loading}
                   className="mt-1"
                 >
@@ -161,7 +169,12 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
                   type="number"
                   step="0.01"
                   value={paymentData.overdueAmount}
-                  onChange={(e) => setPaymentData({ ...paymentData, overdueAmount: parseFloat(e.target.value) || 0 })}
+                  onChange={e =>
+                    setPaymentData({
+                      ...paymentData,
+                      overdueAmount: parseFloat(e.target.value) || 0,
+                    })
+                  }
                   disabled={!canOverride || loading}
                   className="mt-1"
                 />
@@ -174,7 +187,12 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
                   type="number"
                   step="0.01"
                   value={paymentData.totalOutstanding}
-                  onChange={(e) => setPaymentData({ ...paymentData, totalOutstanding: parseFloat(e.target.value) || 0 })}
+                  onChange={e =>
+                    setPaymentData({
+                      ...paymentData,
+                      totalOutstanding: parseFloat(e.target.value) || 0,
+                    })
+                  }
                   disabled={!canOverride || loading}
                   className="mt-1"
                 />
@@ -186,25 +204,21 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
                   id="paymentDueDate"
                   type="date"
                   value={paymentData.paymentDueDate}
-                  onChange={(e) => setPaymentData({ ...paymentData, paymentDueDate: e.target.value })}
+                  onChange={e => setPaymentData({ ...paymentData, paymentDueDate: e.target.value })}
                   disabled={!canOverride || loading}
                   className="mt-1"
                 />
               </div>
 
               {canOverride && (
-                <Button
-                  onClick={updatePaymentInfo}
-                  disabled={loading}
-                  className="w-full"
-                >
+                <Button onClick={updatePaymentInfo} disabled={loading} className="w-full">
                   Update Payment Information
                 </Button>
               )}
             </div>
 
             {/* Lock/Unlock Actions */}
-            <div className="flex gap-2 pt-4 border-t">
+            <div className="flex gap-2 border-t pt-4">
               {customer.accountStatus === 'LOCKED' ? (
                 <Button
                   variant="success"
@@ -228,11 +242,11 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
 
             {/* Lock History */}
             {customer.lockHistory && customer.lockHistory.length > 0 && (
-              <div className="pt-4 border-t">
-                <h4 className="text-sm font-medium mb-2">Recent Actions</h4>
+              <div className="border-t pt-4">
+                <h4 className="mb-2 text-sm font-medium">Recent Actions</h4>
                 <div className="space-y-2">
                   {customer.lockHistory.slice(0, 5).map((history: any) => (
-                    <div key={history.id} className="text-xs text-muted-foreground">
+                    <div key={history.id} className="text-muted-foreground text-xs">
                       <div className="flex justify-between">
                         <span>{history.action}</span>
                         <span>{new Date(history.timestamp).toLocaleDateString()}</span>
@@ -261,10 +275,10 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
               <Label htmlFor="reason">Reason</Label>
               <textarea
                 id="reason"
-                className="w-full mt-1 p-2 border rounded-md"
+                className="mt-1 w-full rounded-md border p-2"
                 rows={3}
                 value={reason}
-                onChange={(e) => setReason(e.target.value)}
+                onChange={e => setReason(e.target.value)}
                 placeholder={`Please provide a reason for ${dialogAction === 'lock' ? 'locking' : 'unlocking'} this account...`}
               />
             </div>
