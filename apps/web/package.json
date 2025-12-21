@@ -40,6 +40,7 @@
     "@radix-ui/react-toast": "^1.1.5",
     "@react-pdf/renderer": "^4.3.1",
     "@stripe/stripe-js": "^8.6.0",
+    "stripe": "^12.18.0",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/typography": "^0.5.19",
     "@yudiel/react-qr-scanner": "^2.5.0",
