@@ -215,7 +215,7 @@ export default function CustomerDetailPage() {
             </Button>
             <Dialog open={showLockDialog} onOpenChange={setShowLockDialog}>
               <DialogTrigger asChild>
-                <Button variant={customer.accountStatus === 'LOCKED' ? 'success' : 'destructive'}>
+                <Button variant={customer.accountStatus === 'LOCKED' ? 'default' : 'destructive'}>
                   {customer.accountStatus === 'LOCKED' ? (
                     <>
                       <Unlock className="mr-2 h-4 w-4" />
@@ -277,7 +277,7 @@ export default function CustomerDetailPage() {
                     Cancel
                   </Button>
                   <Button
-                    variant={customer.accountStatus === 'LOCKED' ? 'success' : 'destructive'}
+                    variant={customer.accountStatus === 'LOCKED' ? 'default' : 'destructive'}
                     onClick={handleLockUnlock}
                     disabled={actionLoading || !lockReason}
                   >

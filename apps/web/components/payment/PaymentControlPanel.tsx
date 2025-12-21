@@ -293,7 +293,7 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
                 Cancel
               </Button>
               <Button
-                variant={dialogAction === 'lock' ? 'destructive' : 'success'}
+                variant={dialogAction === 'lock' ? 'destructive' : 'default'}
                 onClick={confirmAction}
                 disabled={loading || !reason}
                 className="flex-1"
