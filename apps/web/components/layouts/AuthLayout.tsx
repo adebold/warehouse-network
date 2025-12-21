@@ -1,4 +1,5 @@
 import type { Warehouse } from '@warehouse/types';
+
 import React from 'react';
 import Link from 'next/link';
 import { Building2 } from 'lucide-react';

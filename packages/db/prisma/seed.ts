@@ -1,4 +1,5 @@
 import type { User, Warehouse, Customer } from '@warehouse/types';
+
 import { PrismaClient, UserRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
 

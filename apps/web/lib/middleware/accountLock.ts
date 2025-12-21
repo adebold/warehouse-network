@@ -1,4 +1,5 @@
 import type { Customer } from '@warehouse/types';
+
 import { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '@/lib/prisma';
 

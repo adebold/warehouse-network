@@ -1,4 +1,5 @@
 import type { User, Warehouse } from '@warehouse/types';
+
 import prisma from '../../db/src/client';
 import { UserRole } from '@prisma/client';
 
