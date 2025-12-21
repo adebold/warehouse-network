@@ -37,11 +37,15 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - name: Clear npm cache
+        run: npm cache clean --force
+        
+      - name: Remove package-lock.json
+        run: rm -f package-lock.json
+
+      - name: Fresh install dependencies
+        run: npm install
 
       - name: Build packages
         run: npm run build:packages
