@@ -1,0 +1,9 @@
+# Policy to allow public access to Cloud Run services
+# This removes the domain restriction for the warehouse project
+
+constraint: constraints/iam.allowedPolicyMemberDomains
+listPolicy:
+  allowedValues:
+    - C02m8vjgn  # Your organization
+    - "is:allUsers"  # Allow public access
+  deniedValues: []

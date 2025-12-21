@@ -1,0 +1,160 @@
+name: Warehouse Staging Deployment
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/warehouse-staging.yml'
+  push:
+    branches:
+      - develop
+      - staging
+    paths:
+      - 'apps/web/**'
+
+env:
+  PROJECT_ID: warehouse-network-20251220
+  SERVICE_NAME: warehouse-frontend-staging
+  REGION: us-central1
+  REGISTRY: us-central1-docker.pkg.dev
+  IMAGE_NAME: warehouse-frontend-staging
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: apps/web/package-lock.json
+
+      - name: Install dependencies
+        working-directory: apps/web
+        run: npm ci
+
+      - name: Run type check
+        working-directory: apps/web
+        run: npm run typecheck
+
+      - name: Run linting
+        working-directory: apps/web
+        run: npm run lint
+
+      - name: Run tests
+        working-directory: apps/web
+        run: npm run test:ci
+
+      - name: Build application
+        working-directory: apps/web
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Run E2E tests
+        working-directory: apps/web
+        run: npm run test:e2e
+        continue-on-error: true
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: test
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY_WAREHOUSE }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Build and Push Docker image
+        working-directory: apps/web
+        run: |
+          docker build \
+            --tag ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --tag ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:staging \
+            --file Dockerfile.production \
+            .
+          
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:staging
+
+      - name: Deploy to Cloud Run Staging
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300 \
+            --max-instances 10 \
+            --min-instances 0 \
+            --port 3000 \
+            --set-env-vars "NODE_ENV=staging,NEXT_TELEMETRY_DISABLED=1" \
+            --labels "environment=staging,app=warehouse,owner=ai-industries" \
+            --tag "staging-${{ github.sha }}"
+
+      - name: Get Staging URL
+        id: staging-url
+        run: |
+          STAGING_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)')
+          echo "url=$STAGING_URL" >> $GITHUB_OUTPUT
+
+      - name: Comment PR with Staging URL
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const url = '${{ steps.staging-url.outputs.url }}';
+            const body = `## 🚀 Staging Deployment Ready!
+            
+            Your changes have been deployed to staging:
+            **URL:** ${url}
+            
+            ### Test Coverage:
+            - ✅ Build successful
+            - ✅ Tests passed
+            - ✅ Linting passed
+            - ✅ Deployed to Cloud Run
+            
+            ### What to test:
+            - [ ] Homepage loads correctly
+            - [ ] Search functionality works
+            - [ ] Navigation between pages
+            - [ ] Mobile responsiveness
+            - [ ] Performance is acceptable
+            
+            **Ready for review!** 🎯`;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            });

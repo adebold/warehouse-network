@@ -1,0 +1,11 @@
+name: production
+url: https://warehouse-frontend-467296114824.us-central1.run.app
+protection_rules:
+  - type: required_reviewers
+    required_reviewers:
+      - alexdebold
+  - type: wait_timer
+    wait_timer: 0
+deployment_branch_policy:
+  protected_branches: true
+  custom_branch_policies: false

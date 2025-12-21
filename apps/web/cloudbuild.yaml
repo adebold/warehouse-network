@@ -2,9 +2,9 @@
 # This explicitly builds for linux/amd64 architecture only
 
 substitutions:
-  _SERVICE_NAME: warehouse-network-web
+  _SERVICE_NAME: warehouse-frontend
   _REGION: us-central1
-  _IMAGE_NAME: warehouse-network-web
+  _IMAGE_NAME: warehouse-frontend
 
 steps:
   # Step 1: Build the Docker image explicitly for linux/amd64
@@ -19,8 +19,8 @@ steps:
       - 'gcr.io/$PROJECT_ID/${_IMAGE_NAME}:latest'
       - '--push'
       - '-f'
-      - 'apps/web/Dockerfile'
-      - 'apps/web'
+      - 'Dockerfile'
+      - '.'
     env:
       - 'DOCKER_BUILDKIT=1'
 

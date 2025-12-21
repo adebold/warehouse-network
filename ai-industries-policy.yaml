@@ -1,0 +1,6 @@
+constraint: constraints/iam.allowedPolicyMemberDomains
+listPolicy:
+  allowedValues:
+    - C01enhfk3  # AI Industries domain (correct ID)
+    - "is:allAuthenticatedUsers"  # Allow authenticated users
+    - "is:allUsers"  # Allow public access

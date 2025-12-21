@@ -1,0 +1,12 @@
+name: staging
+url: https://warehouse-frontend-staging-467296114824.us-central1.run.app
+protection_rules: []
+deployment_branch_policy:
+  protected_branches: false
+  custom_branch_policies: true
+  custom_branches:
+    - main
+    - develop
+    - staging
+    - "feature/*"
+    - "hotfix/*"
