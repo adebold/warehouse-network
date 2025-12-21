@@ -1,7 +1,6 @@
 import { beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { execSync } from 'child_process';
 import { PrismaClient } from '@prisma/client';
-import { cleanupTestData } from '../factories';
 
 // Global test setup for integration tests
 const prisma = new PrismaClient({

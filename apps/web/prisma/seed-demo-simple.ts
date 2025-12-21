@@ -1,3 +1,4 @@
+import type { User, Warehouse, Customer } from '@warehouse/types';
 import { PrismaClient, UserRole, WarehouseStatus, SkidStatus, PayoutStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 

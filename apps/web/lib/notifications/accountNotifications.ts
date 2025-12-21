@@ -1,3 +1,4 @@
+import type { User, Warehouse, Customer } from '@warehouse/types';
 import { Customer, User, AccountLockHistory } from '@prisma/client';
 import { sendEmail } from '../email';
 import prisma from '../prisma';

@@ -1,3 +1,4 @@
+import type { Warehouse, Customer } from '@warehouse/types';
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { addDays, subDays } from 'date-fns';

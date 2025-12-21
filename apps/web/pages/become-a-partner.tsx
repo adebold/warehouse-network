@@ -1,3 +1,4 @@
+import type { Warehouse } from '@warehouse/types';
 import type { NextPage } from 'next';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';

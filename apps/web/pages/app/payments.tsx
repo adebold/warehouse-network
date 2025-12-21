@@ -47,7 +47,6 @@ import {
   Lock,
   XCircle,
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
 
 interface PaymentData {
   customer: {

@@ -1,3 +1,4 @@
+import type { Warehouse, Customer } from '@warehouse/types';
 import type { NextPage } from 'next';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -15,7 +16,6 @@ import {
   Star,
 } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { trackEcommerce, trackSearch } from '@/lib/analytics';
 
 const Home: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState('');

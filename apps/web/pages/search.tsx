@@ -1,3 +1,4 @@
+import type { Warehouse } from '@warehouse/types';
 import type { NextPage, GetServerSideProps } from 'next';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -6,7 +7,7 @@ import prisma from '../lib/prisma';
 import type { Warehouse } from '@prisma/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+
 import {
   Select,
   SelectContent,
@@ -24,8 +25,7 @@ import {
   Star,
   Loader2,
 } from 'lucide-react';
-import { useAnalytics } from '@/hooks/useAnalytics';
-import { trackEcommerce, trackProductImpressions } from '@/lib/analytics';
+
 
 interface SearchResultsProps {
   warehouses: Warehouse[];

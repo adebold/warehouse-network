@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import type { NextPage } from 'next';
 
 const Dashboard: NextPage = () => {
   const { data: session, status } = useSession();

@@ -170,11 +170,11 @@ try {
 log('\n🔧 Step 5: Adding missing type annotations...', COLORS.blue);
 
 const TYPE_FIXES = [
-  // Fix Promise<any> to Promise<unknown>
+  // Fix Promise<unknown> to Promise<unknown>
   {
-    pattern: /Promise<any>/g,
+    pattern: /Promise<unknown>/g,
     fix: () => 'Promise<unknown>',
-    description: 'Promise<any> → Promise<unknown>',
+    description: 'Promise<unknown> → Promise<unknown>',
   },
   // Fix any[] to unknown[]
   {

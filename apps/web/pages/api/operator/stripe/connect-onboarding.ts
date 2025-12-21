@@ -1,7 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
+
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../auth/[...nextauth]';
-import prisma from '../../../../lib/prisma';
+
 // TODO: Stripe integration - package not installed
 // This endpoint would handle Stripe Connect onboarding for operators
 

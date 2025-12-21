@@ -1,3 +1,4 @@
+import type { User, Warehouse, Customer } from '@warehouse/types';
 import { faker } from '@faker-js/faker';
 import {
   Customer,

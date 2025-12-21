@@ -1,3 +1,4 @@
+import type { Customer } from '@warehouse/types';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
@@ -26,7 +27,6 @@ import {
   Mail,
   Lock,
 } from 'lucide-react';
-import { formatDistanceToNow, addDays } from 'date-fns';
 
 interface OverdueCustomer {
   id: string;

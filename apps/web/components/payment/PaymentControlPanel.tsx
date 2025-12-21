@@ -1,3 +1,4 @@
+import type { Customer } from '@warehouse/types';
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,7 +21,7 @@ interface PaymentControlPanelProps {
     overdueAmount: number;
     totalOutstanding: number;
     paymentDueDate?: string | null;
-    lockHistory?: any[];
+    lockHistory?: unknown[];
   };
   onUpdate: () => void;
 }

@@ -1,7 +1,8 @@
+import type { Warehouse, Inventory, Customer } from '@warehouse/types';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
-import type { NextPage } from 'next';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Package, Building2, FileText, TrendingUp } from 'lucide-react';

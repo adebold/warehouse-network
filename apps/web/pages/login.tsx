@@ -1,9 +1,10 @@
+import type { User, Warehouse } from '@warehouse/types';
 import type { NextPage } from 'next';
 import { signIn } from 'next-auth/react';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useAnalytics } from '@/hooks/useAnalytics';
-import { trackConversion, setUserProperties } from '@/lib/analytics';
+
 import Link from 'next/link';
 import { AuthLayout } from '@/components/layouts/AuthLayout';
 import { Button } from '@/components/ui/button';

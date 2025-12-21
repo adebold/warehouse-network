@@ -1,3 +1,4 @@
+import type { User } from '@warehouse/types';
 import ReactGA from 'react-ga4';
 
 // Initialize Google Analytics
@@ -71,7 +72,7 @@ export const trackEcommerce = {
   },
 
   // Track purchase
-  purchase: (transactionId: string, items: any[], totalValue: number) => {
+  purchase: (transactionId: string, items: unknown[], totalValue: number) => {
     ReactGA.event({
       category: 'ecommerce',
       action: 'purchase',

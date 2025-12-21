@@ -105,7 +105,7 @@ function throttle(func: Function, wait: number) {
   let timeout: NodeJS.Timeout | null = null;
   let lastCall = 0;
 
-  return function (...args: any[]) {
+  return function (...args: unknown[]) {
     const now = Date.now();
 
     if (now - lastCall >= wait) {

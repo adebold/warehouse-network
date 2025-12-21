@@ -1,4 +1,4 @@
-import type { NextPage } from 'next';
+
 import { useRouter } from 'next/router';
 
 const OnboardingRefresh: NextPage = () => {

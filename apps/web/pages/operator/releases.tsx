@@ -1,3 +1,4 @@
+import type { Customer } from '@warehouse/types';
 import type { NextPage, GetServerSideProps } from 'next';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';

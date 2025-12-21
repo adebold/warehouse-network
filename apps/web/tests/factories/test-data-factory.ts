@@ -1,5 +1,5 @@
+import type { User, Warehouse, Customer } from '@warehouse/types';
 import { faker } from '@faker-js/faker';
-import type { User, Operator, Warehouse, Customer, Booking } from '@prisma/client';
 
 export class TestDataFactory {
   // User factory

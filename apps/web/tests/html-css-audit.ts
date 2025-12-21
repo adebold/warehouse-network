@@ -1,5 +1,4 @@
 import { test, expect, Page } from '@playwright/test';
-import { AxePuppeteer } from '@axe-core/puppeteer';
 
 interface AuditResult {
   page: string;
