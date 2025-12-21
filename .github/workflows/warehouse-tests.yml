@@ -23,11 +23,13 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: apps/web
         run: npm ci
+
+      - name: Build packages
+        run: npm run build:packages
 
       - name: TypeScript check
         working-directory: apps/web
@@ -57,11 +59,13 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: apps/web
         run: npm ci
+
+      - name: Build packages
+        run: npm run build:packages
 
       - name: Run unit tests
         working-directory: apps/web
@@ -109,11 +113,13 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: apps/web
         run: npm ci
+
+      - name: Build packages
+        run: npm run build:packages
 
       - name: Setup test database
         working-directory: apps/web
@@ -144,11 +150,13 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: apps/web/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        working-directory: apps/web
         run: npm ci
+
+      - name: Build packages
+        run: npm run build:packages
 
       - name: Install Playwright
         working-directory: apps/web
