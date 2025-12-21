@@ -1,56 +1,34 @@
-# Multi-stage Dockerfile for Next.js standalone deployment
+# Optimized Dockerfile for Next.js on Cloud Run
 FROM node:18-alpine AS deps
-# Install dependencies only when needed
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY package.json package-lock.json ./
+RUN npm ci
 
-# Install dependencies
-RUN npm ci --only=production && \
-    npm install --save-dev @prisma/client prisma
-
-# Rebuild the source code only when needed
 FROM node:18-alpine AS builder
 WORKDIR /app
-
-# Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Generate Prisma client
-RUN npx prisma generate
-
-# Set telemetry off
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Build Next.js
 RUN npm run build
 
-# Production image, copy all the files and run next
 FROM node:18-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy necessary files from builder
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
-COPY --from=builder /app/prisma ./prisma
-
-# Copy package.json for scripts
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
-
-# Set correct permissions
-RUN chown -R nextjs:nodejs /app
+COPY --from=builder /app/next-server.js ./next-server.js
 
 USER nextjs
 
@@ -58,5 +36,4 @@ EXPOSE 3000
 
 ENV PORT 3000
 
-# Use the standalone server
-CMD ["node", "server.js"]
+CMD ["npm", "start"]
