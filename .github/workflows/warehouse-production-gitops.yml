@@ -1,0 +1,66 @@
+name: Warehouse Production Deployment (GitOps)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/warehouse-production-gitops.yml'
+
+env:
+  PROJECT_ID: aindustries-warehouse
+  SERVICE_NAME: warehouse-platform-v2
+  REGION: us-central1
+  REGISTRY: us-central1-docker.pkg.dev
+  IMAGE_NAME: warehouse-platform-v2
+
+jobs:
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/668950927538/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-actions-deploy@aindustries-warehouse.iam.gserviceaccount.com'
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }}
+
+      - name: Build and Push Docker image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} ./apps/web
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            --region ${{ env.REGION }} \
+            --platform managed \
+            --allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --timeout 300 \
+            --concurrency 1000 \
+            --max-instances 10 \
+            --min-instances 0 \
+            --port 3000 \
+            --set-env-vars "NODE_ENV=production,PROJECT_ID=${{ env.PROJECT_ID }}" \
+            --set-secrets "DATABASE_URL=DATABASE_URL:latest,REDIS_URL=REDIS_URL:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,NEXT_PUBLIC_GA_MEASUREMENT_ID=GA_MEASUREMENT_ID:latest" \
+            --service-account "warehouse-app@aindustries-warehouse.iam.gserviceaccount.com" \
+            --add-cloudsql-instances "aindustries-warehouse:us-central1:warehouse-db" \
+            --labels "environment=production,app=warehouse,gitops=true"
