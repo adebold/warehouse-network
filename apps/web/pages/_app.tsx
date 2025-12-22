@@ -10,7 +10,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   useEffect(() => {
     // Initialize Google Analytics
     if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) {
-      initGA();
+      initGA(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
     }
   }, []);
 
