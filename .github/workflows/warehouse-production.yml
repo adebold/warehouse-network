@@ -1,13 +1,7 @@
-name: Warehouse Production Deployment
+name: Warehouse Production Deployment (DEPRECATED - Use GitOps)
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - 'apps/web/**'
-      - '.github/workflows/warehouse-production.yml'
-  workflow_dispatch:
+  workflow_dispatch: # Only manual trigger, no automatic runs
     inputs:
       environment:
         description: 'Environment to deploy to'
