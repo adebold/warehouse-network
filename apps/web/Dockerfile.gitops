@@ -3,7 +3,7 @@
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk add --no-cache libc6-compat python3 make g++ openssl openssl-dev
 WORKDIR /app
 
 # Copy package files - handle monorepo structure
@@ -21,7 +21,7 @@ RUN if [ -f package-lock.json ]; then \
 
 # Stage 2: Build
 FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat python3 make g++
+RUN apk add --no-cache libc6-compat python3 make g++ openssl openssl-dev
 WORKDIR /app
 
 # Copy package files
@@ -56,7 +56,7 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Install runtime dependencies
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
