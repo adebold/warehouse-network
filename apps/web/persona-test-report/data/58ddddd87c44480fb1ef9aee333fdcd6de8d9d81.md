@@ -1,0 +1,184 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - img [ref=e8]
+          - generic [ref=e12]: Warehouse Network
+        - navigation [ref=e13]:
+          - link "Browse Listings" [ref=e14] [cursor=pointer]:
+            - /url: /search
+          - link "List Property" [ref=e15] [cursor=pointer]:
+            - /url: /become-a-partner
+          - link "Sign In" [ref=e16] [cursor=pointer]:
+            - /url: /login
+            - button "Sign In" [ref=e17]
+          - link "Get Started" [ref=e18] [cursor=pointer]:
+            - /url: /become-a-partner
+            - button "Get Started" [ref=e19]
+    - generic [ref=e20]:
+      - img "Modern warehouse interior" [ref=e22]
+      - generic [ref=e26]:
+        - heading "Find Your Perfect Warehouse Space" [level=1] [ref=e27]
+        - paragraph [ref=e28]: Discover prime industrial and warehouse spaces across Ontario. Connect directly with property owners and find your ideal facility today.
+        - generic [ref=e29]:
+          - textbox "Type of space, size, or features..." [ref=e31]
+          - textbox "City or postal code" [ref=e33]
+          - button "Search" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - text: Search
+        - generic [ref=e38]:
+          - generic [ref=e39]:
+            - paragraph [ref=e40]: 500+
+            - paragraph [ref=e41]: Active Listings
+          - generic [ref=e42]:
+            - paragraph [ref=e43]: 2M+
+            - paragraph [ref=e44]: Sq Ft Available
+          - generic [ref=e45]:
+            - paragraph [ref=e46]: 50+
+            - paragraph [ref=e47]: Cities Covered
+          - generic [ref=e48]:
+            - paragraph [ref=e49]: 98%
+            - paragraph [ref=e50]: Client Satisfaction
+    - generic [ref=e55]:
+      - generic [ref=e56]:
+        - heading "Why Choose Warehouse Network" [level=2] [ref=e57]
+        - paragraph [ref=e58]: The modern platform for industrial real estate
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - img [ref=e62]
+            - heading "Prime Locations" [level=3] [ref=e65]
+          - paragraph [ref=e67]: Strategic locations near major highways and transportation hubs across Ontario.
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - img [ref=e70]
+            - heading "Fast & Easy" [level=3] [ref=e72]
+          - paragraph [ref=e74]: Connect directly with property owners. No middleman delays or hidden fees.
+        - generic [ref=e75]:
+          - generic [ref=e76]:
+            - img [ref=e77]
+            - heading "Verified Listings" [level=3] [ref=e79]
+          - paragraph [ref=e81]: All properties are verified with accurate specs, photos, and availability.
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - img [ref=e84]
+            - heading "Market Insights" [level=3] [ref=e87]
+          - paragraph [ref=e89]: Real-time market data and trends to help you make informed decisions.
+    - generic [ref=e91]:
+      - generic [ref=e92]:
+        - heading "Trusted by Leading Businesses" [level=2] [ref=e93]
+        - paragraph [ref=e94]: See how companies save 30% on warehouse costs with our platform
+      - generic [ref=e95]:
+        - generic [ref=e97]:
+          - generic [ref=e98]:
+            - img [ref=e99]
+            - img [ref=e101]
+            - img [ref=e103]
+            - img [ref=e105]
+            - img [ref=e107]
+          - paragraph [ref=e109]: "\"Warehouse Network helped us reduce our logistics costs by 35% and find the perfect distribution center in just 2 days. The platform is a game-changer.\""
+          - generic [ref=e110]:
+            - img "David Chen" [ref=e111]
+            - generic [ref=e112]:
+              - paragraph [ref=e113]: David Chen
+              - paragraph [ref=e114]: VP Operations, TechStart Inc.
+        - generic [ref=e116]:
+          - generic [ref=e117]:
+            - img [ref=e118]
+            - img [ref=e120]
+            - img [ref=e122]
+            - img [ref=e124]
+            - img [ref=e126]
+          - paragraph [ref=e128]: "\"We expanded from 1 to 5 locations seamlessly. The real-time availability and transparent pricing saved us months of negotiations.\""
+          - generic [ref=e129]:
+            - img "Sarah Johnson" [ref=e130]
+            - generic [ref=e131]:
+              - paragraph [ref=e132]: Sarah Johnson
+              - paragraph [ref=e133]: CEO, FastShip Commerce
+        - generic [ref=e135]:
+          - generic [ref=e136]:
+            - img [ref=e137]
+            - img [ref=e139]
+            - img [ref=e141]
+            - img [ref=e143]
+            - img [ref=e145]
+          - paragraph [ref=e147]: "\"The quality of warehouses on the platform is exceptional. We found a climate-controlled facility that perfectly fits our pharmaceutical storage needs.\""
+          - generic [ref=e148]:
+            - img "Michael Torres" [ref=e149]
+            - generic [ref=e150]:
+              - paragraph [ref=e151]: Michael Torres
+              - paragraph [ref=e152]: Supply Chain Director, MedSupply Co.
+      - generic [ref=e153]:
+        - generic [ref=e154]:
+          - paragraph [ref=e155]: $2.3M
+          - paragraph [ref=e156]: Saved by our customers annually
+        - generic [ref=e157]:
+          - paragraph [ref=e158]: 48hrs
+          - paragraph [ref=e159]: Average time to secure space
+        - generic [ref=e160]:
+          - paragraph [ref=e161]: 95%
+          - paragraph [ref=e162]: Customer retention rate
+        - generic [ref=e163]:
+          - paragraph [ref=e164]: 30%
+          - paragraph [ref=e165]: Average cost savings
+    - generic [ref=e167]:
+      - generic [ref=e168]:
+        - heading "Find Your Space Type" [level=2] [ref=e169]
+        - paragraph [ref=e170]: From small units to large distribution centers
+      - generic [ref=e171]:
+        - generic [ref=e172] [cursor=pointer]:
+          - generic [ref=e173]:
+            - img "Storage facility" [ref=e174]
+            - img [ref=e177]
+          - generic [ref=e181]:
+            - heading "Storage Facilities" [level=3] [ref=e182]
+            - paragraph [ref=e183]: 5,000 - 25,000 sq ft
+          - paragraph [ref=e185]: Perfect for inventory storage, e-commerce fulfillment, and seasonal goods.
+        - generic [ref=e186] [cursor=pointer]:
+          - generic [ref=e187]:
+            - img "Distribution center" [ref=e188]
+            - img [ref=e191]
+          - generic [ref=e195]:
+            - heading "Distribution Centers" [level=3] [ref=e196]
+            - paragraph [ref=e197]: 25,000 - 100,000 sq ft
+          - paragraph [ref=e199]: Ideal for regional distribution with multiple loading docks and high ceilings.
+        - generic [ref=e200] [cursor=pointer]:
+          - generic [ref=e201]:
+            - img "Manufacturing space" [ref=e202]
+            - img [ref=e205]
+          - generic [ref=e210]:
+            - heading "Manufacturing Spaces" [level=3] [ref=e211]
+            - paragraph [ref=e212]: 50,000+ sq ft
+          - paragraph [ref=e214]: Heavy-duty facilities with specialized power, ventilation, and floor loading.
+    - generic [ref=e216]:
+      - heading "Ready to Find Your Space?" [level=2] [ref=e217]
+      - paragraph [ref=e218]: Join thousands of businesses that found their perfect warehouse through our platform.
+      - generic [ref=e219]:
+        - link "Browse Listings" [ref=e220] [cursor=pointer]:
+          - /url: /search
+          - button "Browse Listings" [ref=e221]
+        - link "List Your Property" [ref=e222] [cursor=pointer]:
+          - /url: /become-a-partner
+          - button "List Your Property" [ref=e223]
+    - contentinfo [ref=e224]:
+      - generic [ref=e225]:
+        - generic [ref=e226]:
+          - generic [ref=e227]:
+            - img [ref=e228]
+            - generic [ref=e232]: Warehouse Network
+          - navigation [ref=e233]:
+            - link "About" [ref=e234] [cursor=pointer]:
+              - /url: /#
+            - link "Contact" [ref=e235] [cursor=pointer]:
+              - /url: /#
+            - link "Terms" [ref=e236] [cursor=pointer]:
+              - /url: /#
+            - link "Privacy" [ref=e237] [cursor=pointer]:
+              - /url: /#
+        - generic [ref=e238]: © 2025 Warehouse Network. All rights reserved.
+  - alert [ref=e239]
+```

@@ -1,0 +1,723 @@
+{
+  "config": {
+    "configFile": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/playwright.personas-prod.config.ts",
+    "rootDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas",
+    "forbidOnly": true,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "persona-prod-test-results.json"
+        }
+      ],
+      [
+        "html",
+        {
+          "outputFolder": "persona-prod-test-report"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "quiet": false,
+    "projects": [
+      {
+        "outputDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results",
+        "repeatEach": 1,
+        "retries": 1,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "chromium",
+        "name": "chromium",
+        "testDir": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas",
+        "testIgnore": [],
+        "testMatch": [
+          "**/*.@(spec|test).?(c|m)[jt]s?(x)"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.57.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "authenticated-personas.spec.ts",
+      "file": "authenticated-personas.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "Authenticated Persona Tests",
+          "file": "authenticated-personas.spec.ts",
+          "line": 12,
+          "column": 6,
+          "specs": [],
+          "suites": [
+            {
+              "title": "Super Admin Persona",
+              "file": "authenticated-personas.spec.ts",
+              "line": 13,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should access admin dashboard and manage operator applications",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 0,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 6148,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected pattern: \u001b[32m/admin|dashboard/i\u001b[39m\nReceived string:  \u001b[31m\"Access Denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\u001b[2m    6 × locator resolved to <h1>Access Denied</h1>\u001b[22m\n\u001b[2m      - unexpected value \"Access Denied\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected pattern: \u001b[32m/admin|dashboard/i\u001b[39m\nReceived string:  \u001b[31m\"Access Denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\u001b[2m    6 × locator resolved to <h1>Access Denied</h1>\u001b[22m\n\u001b[2m      - unexpected value \"Access Denied\"\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:20:40",
+                            "location": {
+                              "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                              "column": 40,
+                              "line": 20
+                            },
+                            "snippet": "  18 |       // Navigate to admin dashboard\n  19 |       await page.goto('/admin/dashboard');\n> 20 |       await expect(page.locator('h1')).toContainText(/admin|dashboard/i);\n     |                                        ^\n  21 |       \n  22 |       // Check for admin-specific elements\n  23 |       await expect(page.getByText(/operator applications/i)).toBeVisible();"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                                "column": 40,
+                                "line": 20
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected pattern: \u001b[32m/admin|dashboard/i\u001b[39m\nReceived string:  \u001b[31m\"Access Denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\u001b[2m    6 × locator resolved to <h1>Access Denied</h1>\u001b[22m\n\u001b[2m      - unexpected value \"Access Denied\"\u001b[22m\n\n\n  18 |       // Navigate to admin dashboard\n  19 |       await page.goto('/admin/dashboard');\n> 20 |       await expect(page.locator('h1')).toContainText(/admin|dashboard/i);\n     |                                        ^\n  21 |       \n  22 |       // Check for admin-specific elements\n  23 |       await expect(page.getByText(/operator applications/i)).toBeVisible();\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:20:40"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-22T15:11:18.992Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 40,
+                            "line": 20
+                          }
+                        },
+                        {
+                          "workerIndex": 1,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 5766,
+                          "error": {
+                            "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected pattern: \u001b[32m/admin|dashboard/i\u001b[39m\nReceived string:  \u001b[31m\"Access Denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\u001b[2m    6 × locator resolved to <h1>Access Denied</h1>\u001b[22m\n\u001b[2m      - unexpected value \"Access Denied\"\u001b[22m\n",
+                            "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected pattern: \u001b[32m/admin|dashboard/i\u001b[39m\nReceived string:  \u001b[31m\"Access Denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\u001b[2m    6 × locator resolved to <h1>Access Denied</h1>\u001b[22m\n\u001b[2m      - unexpected value \"Access Denied\"\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:20:40",
+                            "location": {
+                              "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                              "column": 40,
+                              "line": 20
+                            },
+                            "snippet": "  18 |       // Navigate to admin dashboard\n  19 |       await page.goto('/admin/dashboard');\n> 20 |       await expect(page.locator('h1')).toContainText(/admin|dashboard/i);\n     |                                        ^\n  21 |       \n  22 |       // Check for admin-specific elements\n  23 |       await expect(page.getByText(/operator applications/i)).toBeVisible();"
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                                "column": 40,
+                                "line": 20
+                              },
+                              "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoContainText\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m)\u001b[22m failed\n\nLocator: locator('h1')\nExpected pattern: \u001b[32m/admin|dashboard/i\u001b[39m\nReceived string:  \u001b[31m\"Access Denied\"\u001b[39m\nTimeout: 5000ms\n\nCall log:\n\u001b[2m  - Expect \"toContainText\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for locator('h1')\u001b[22m\n\u001b[2m    6 × locator resolved to <h1>Access Denied</h1>\u001b[22m\n\u001b[2m      - unexpected value \"Access Denied\"\u001b[22m\n\n\n  18 |       // Navigate to admin dashboard\n  19 |       await page.goto('/admin/dashboard');\n> 20 |       await expect(page.locator('h1')).toContainText(/admin|dashboard/i);\n     |                                        ^\n  21 |       \n  22 |       // Check for admin-specific elements\n  23 |       await expect(page.getByText(/operator applications/i)).toBeVisible();\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:20:40"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 1,
+                          "startTime": "2025-12-22T15:11:25.835Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium-retry1/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium-retry1/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium-retry1/error-context.md"
+                            },
+                            {
+                              "name": "trace",
+                              "contentType": "application/zip",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-2f68d-anage-operator-applications-chromium-retry1/trace.zip"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 40,
+                            "line": 20
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "eeb24032bf712d3ccaa1-db4ddabc6f67c8b4f550",
+                  "file": "authenticated-personas.spec.ts",
+                  "line": 14,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Customer Admin Persona",
+              "file": "authenticated-personas.spec.ts",
+              "line": 27,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should access customer dashboard and view inventory",
+                  "ok": false,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 2,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 532,
+                          "error": {
+                            "message": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n",
+                            "stack": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:36:41",
+                            "location": {
+                              "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                              "column": 41,
+                              "line": 36
+                            },
+                            "snippet": "  34 |       await page.getByLabel('Name').fill('Customer Admin Test');\n  35 |       await page.getByLabel('Email').fill(email);\n> 36 |       await page.getByLabel('Password').fill('Test123!@#');\n     |                                         ^\n  37 |       await page.getByLabel('Company Name').fill('Test Company');\n  38 |       await page.getByRole('button', { name: /create account/i }).click();\n  39 |       "
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                                "column": 41,
+                                "line": 36
+                              },
+                              "message": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n\n  34 |       await page.getByLabel('Name').fill('Customer Admin Test');\n  35 |       await page.getByLabel('Email').fill(email);\n> 36 |       await page.getByLabel('Password').fill('Test123!@#');\n     |                                         ^\n  37 |       await page.getByLabel('Company Name').fill('Test Company');\n  38 |       await page.getByRole('button', { name: /create account/i }).click();\n  39 |       \n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:36:41"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-22T15:11:32.101Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium/error-context.md"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 41,
+                            "line": 36
+                          }
+                        },
+                        {
+                          "workerIndex": 3,
+                          "parallelIndex": 0,
+                          "status": "failed",
+                          "duration": 576,
+                          "error": {
+                            "message": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n",
+                            "stack": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:36:41",
+                            "location": {
+                              "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                              "column": 41,
+                              "line": 36
+                            },
+                            "snippet": "  34 |       await page.getByLabel('Name').fill('Customer Admin Test');\n  35 |       await page.getByLabel('Email').fill(email);\n> 36 |       await page.getByLabel('Password').fill('Test123!@#');\n     |                                         ^\n  37 |       await page.getByLabel('Company Name').fill('Test Company');\n  38 |       await page.getByRole('button', { name: /create account/i }).click();\n  39 |       "
+                          },
+                          "errors": [
+                            {
+                              "location": {
+                                "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                                "column": 41,
+                                "line": 36
+                              },
+                              "message": "Error: locator.fill: Error: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n\n  34 |       await page.getByLabel('Name').fill('Customer Admin Test');\n  35 |       await page.getByLabel('Email').fill(email);\n> 36 |       await page.getByLabel('Password').fill('Test123!@#');\n     |                                         ^\n  37 |       await page.getByLabel('Company Name').fill('Test Company');\n  38 |       await page.getByRole('button', { name: /create account/i }).click();\n  39 |       \n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:36:41"
+                            }
+                          ],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 1,
+                          "startTime": "2025-12-22T15:11:33.161Z",
+                          "annotations": [],
+                          "attachments": [
+                            {
+                              "name": "screenshot",
+                              "contentType": "image/png",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium-retry1/test-failed-1.png"
+                            },
+                            {
+                              "name": "video",
+                              "contentType": "video/webm",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium-retry1/video.webm"
+                            },
+                            {
+                              "name": "error-context",
+                              "contentType": "text/markdown",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium-retry1/error-context.md"
+                            },
+                            {
+                              "name": "trace",
+                              "contentType": "application/zip",
+                              "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Aut-4fe5d-ashboard-and-view-inventory-chromium-retry1/trace.zip"
+                            }
+                          ],
+                          "errorLocation": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 41,
+                            "line": 36
+                          }
+                        }
+                      ],
+                      "status": "unexpected"
+                    }
+                  ],
+                  "id": "eeb24032bf712d3ccaa1-1d550d2983204f32e605",
+                  "file": "authenticated-personas.spec.ts",
+                  "line": 28,
+                  "column": 9
+                }
+              ]
+            },
+            {
+              "title": "Warehouse Staff Persona",
+              "file": "authenticated-personas.spec.ts",
+              "line": 49,
+              "column": 8,
+              "specs": [
+                {
+                  "title": "should be able to access login but not admin areas",
+                  "ok": true,
+                  "tags": [],
+                  "tests": [
+                    {
+                      "timeout": 30000,
+                      "annotations": [],
+                      "expectedStatus": "passed",
+                      "projectId": "chromium",
+                      "projectName": "chromium",
+                      "results": [
+                        {
+                          "workerIndex": 4,
+                          "parallelIndex": 0,
+                          "status": "passed",
+                          "duration": 471,
+                          "errors": [],
+                          "stdout": [],
+                          "stderr": [],
+                          "retry": 0,
+                          "startTime": "2025-12-22T15:11:34.235Z",
+                          "annotations": [],
+                          "attachments": []
+                        }
+                      ],
+                      "status": "expected"
+                    }
+                  ],
+                  "id": "eeb24032bf712d3ccaa1-61c64f461ce157ffafc1",
+                  "file": "authenticated-personas.spec.ts",
+                  "line": 50,
+                  "column": 9
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "title": "Public Access Tests",
+          "file": "authenticated-personas.spec.ts",
+          "line": 61,
+          "column": 6,
+          "specs": [
+            {
+              "title": "should allow access to public pages without authentication",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 4,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 595,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/warehouse network/i)\nExpected: visible\nError: strict mode violation: getByText(/warehouse network/i) resolved to 5 elements:\n    1) <span class=\"ml-2 text-xl font-bold\">Warehouse Network</span> aka getByRole('banner').getByText('Warehouse Network')\n    2) <h2 class=\"text-3xl font-bold tracking-tight\">Why Choose Warehouse Network</h2> aka getByRole('heading', { name: 'Why Choose Warehouse Network' })\n    3) <p class=\"mb-6 text-lg italic\">\"Warehouse Network helped us reduce our logistics…</p> aka getByText('\"Warehouse Network helped us')\n    4) <span class=\"ml-2 font-bold\">Warehouse Network</span> aka getByRole('contentinfo').getByText('Warehouse Network', { exact: true })\n    5) <div class=\"text-muted-foreground mt-8 text-center text-sm\">© 2025 Warehouse Network. All rights reserved.</div> aka getByText('© 2025 Warehouse Network. All')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/warehouse network/i)\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/warehouse network/i)\nExpected: visible\nError: strict mode violation: getByText(/warehouse network/i) resolved to 5 elements:\n    1) <span class=\"ml-2 text-xl font-bold\">Warehouse Network</span> aka getByRole('banner').getByText('Warehouse Network')\n    2) <h2 class=\"text-3xl font-bold tracking-tight\">Why Choose Warehouse Network</h2> aka getByRole('heading', { name: 'Why Choose Warehouse Network' })\n    3) <p class=\"mb-6 text-lg italic\">\"Warehouse Network helped us reduce our logistics…</p> aka getByText('\"Warehouse Network helped us')\n    4) <span class=\"ml-2 font-bold\">Warehouse Network</span> aka getByRole('contentinfo').getByText('Warehouse Network', { exact: true })\n    5) <div class=\"text-muted-foreground mt-8 text-center text-sm\">© 2025 Warehouse Network. All rights reserved.</div> aka getByText('© 2025 Warehouse Network. All')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/warehouse network/i)\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:65:56",
+                        "location": {
+                          "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                          "column": 56,
+                          "line": 65
+                        },
+                        "snippet": "  63 |     // Homepage\n  64 |     await page.goto('/');\n> 65 |     await expect(page.getByText(/warehouse network/i)).toBeVisible();\n     |                                                        ^\n  66 |     \n  67 |     // Search page\n  68 |     await page.goto('/search');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 56,
+                            "line": 65
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/warehouse network/i)\nExpected: visible\nError: strict mode violation: getByText(/warehouse network/i) resolved to 5 elements:\n    1) <span class=\"ml-2 text-xl font-bold\">Warehouse Network</span> aka getByRole('banner').getByText('Warehouse Network')\n    2) <h2 class=\"text-3xl font-bold tracking-tight\">Why Choose Warehouse Network</h2> aka getByRole('heading', { name: 'Why Choose Warehouse Network' })\n    3) <p class=\"mb-6 text-lg italic\">\"Warehouse Network helped us reduce our logistics…</p> aka getByText('\"Warehouse Network helped us')\n    4) <span class=\"ml-2 font-bold\">Warehouse Network</span> aka getByRole('contentinfo').getByText('Warehouse Network', { exact: true })\n    5) <div class=\"text-muted-foreground mt-8 text-center text-sm\">© 2025 Warehouse Network. All rights reserved.</div> aka getByText('© 2025 Warehouse Network. All')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/warehouse network/i)\u001b[22m\n\n\n  63 |     // Homepage\n  64 |     await page.goto('/');\n> 65 |     await expect(page.getByText(/warehouse network/i)).toBeVisible();\n     |                                                        ^\n  66 |     \n  67 |     // Search page\n  68 |     await page.goto('/search');\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:65:56"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-22T15:11:34.823Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                        "column": 56,
+                        "line": 65
+                      }
+                    },
+                    {
+                      "workerIndex": 5,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 693,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/warehouse network/i)\nExpected: visible\nError: strict mode violation: getByText(/warehouse network/i) resolved to 5 elements:\n    1) <span class=\"ml-2 text-xl font-bold\">Warehouse Network</span> aka getByRole('banner').getByText('Warehouse Network')\n    2) <h2 class=\"text-3xl font-bold tracking-tight\">Why Choose Warehouse Network</h2> aka getByRole('heading', { name: 'Why Choose Warehouse Network' })\n    3) <p class=\"mb-6 text-lg italic\">\"Warehouse Network helped us reduce our logistics…</p> aka getByText('\"Warehouse Network helped us')\n    4) <span class=\"ml-2 font-bold\">Warehouse Network</span> aka getByRole('contentinfo').getByText('Warehouse Network', { exact: true })\n    5) <div class=\"text-muted-foreground mt-8 text-center text-sm\">© 2025 Warehouse Network. All rights reserved.</div> aka getByText('© 2025 Warehouse Network. All')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/warehouse network/i)\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/warehouse network/i)\nExpected: visible\nError: strict mode violation: getByText(/warehouse network/i) resolved to 5 elements:\n    1) <span class=\"ml-2 text-xl font-bold\">Warehouse Network</span> aka getByRole('banner').getByText('Warehouse Network')\n    2) <h2 class=\"text-3xl font-bold tracking-tight\">Why Choose Warehouse Network</h2> aka getByRole('heading', { name: 'Why Choose Warehouse Network' })\n    3) <p class=\"mb-6 text-lg italic\">\"Warehouse Network helped us reduce our logistics…</p> aka getByText('\"Warehouse Network helped us')\n    4) <span class=\"ml-2 font-bold\">Warehouse Network</span> aka getByRole('contentinfo').getByText('Warehouse Network', { exact: true })\n    5) <div class=\"text-muted-foreground mt-8 text-center text-sm\">© 2025 Warehouse Network. All rights reserved.</div> aka getByText('© 2025 Warehouse Network. All')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/warehouse network/i)\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:65:56",
+                        "location": {
+                          "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                          "column": 56,
+                          "line": 65
+                        },
+                        "snippet": "  63 |     // Homepage\n  64 |     await page.goto('/');\n> 65 |     await expect(page.getByText(/warehouse network/i)).toBeVisible();\n     |                                                        ^\n  66 |     \n  67 |     // Search page\n  68 |     await page.goto('/search');"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 56,
+                            "line": 65
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByText(/warehouse network/i)\nExpected: visible\nError: strict mode violation: getByText(/warehouse network/i) resolved to 5 elements:\n    1) <span class=\"ml-2 text-xl font-bold\">Warehouse Network</span> aka getByRole('banner').getByText('Warehouse Network')\n    2) <h2 class=\"text-3xl font-bold tracking-tight\">Why Choose Warehouse Network</h2> aka getByRole('heading', { name: 'Why Choose Warehouse Network' })\n    3) <p class=\"mb-6 text-lg italic\">\"Warehouse Network helped us reduce our logistics…</p> aka getByText('\"Warehouse Network helped us')\n    4) <span class=\"ml-2 font-bold\">Warehouse Network</span> aka getByRole('contentinfo').getByText('Warehouse Network', { exact: true })\n    5) <div class=\"text-muted-foreground mt-8 text-center text-sm\">© 2025 Warehouse Network. All rights reserved.</div> aka getByText('© 2025 Warehouse Network. All')\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByText(/warehouse network/i)\u001b[22m\n\n\n  63 |     // Homepage\n  64 |     await page.goto('/');\n> 65 |     await expect(page.getByText(/warehouse network/i)).toBeVisible();\n     |                                                        ^\n  66 |     \n  67 |     // Search page\n  68 |     await page.goto('/search');\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:65:56"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-22T15:11:35.782Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-d682a-ages-without-authentication-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                        "column": 56,
+                        "line": 65
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "eeb24032bf712d3ccaa1-73577bfc4effbdc58fe1",
+              "file": "authenticated-personas.spec.ts",
+              "line": 62,
+              "column": 7
+            },
+            {
+              "title": "should show login page",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 473,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-22T15:11:37.007Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "eeb24032bf712d3ccaa1-05034e3e88634bf590ad",
+              "file": "authenticated-personas.spec.ts",
+              "line": 78,
+              "column": 7
+            },
+            {
+              "title": "should show registration page",
+              "ok": false,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "chromium",
+                  "projectName": "chromium",
+                  "results": [
+                    {
+                      "workerIndex": 6,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 1541,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByLabel('Password')\nExpected: visible\nError: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByLabel('Password')\nExpected: visible\nError: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:89:47",
+                        "location": {
+                          "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                          "column": 47,
+                          "line": 89
+                        },
+                        "snippet": "  87 |     await expect(page.getByLabel('Name')).toBeVisible();\n  88 |     await expect(page.getByLabel('Email')).toBeVisible();\n> 89 |     await expect(page.getByLabel('Password')).toBeVisible();\n     |                                               ^\n  90 |     await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();\n  91 |   });\n  92 | });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 47,
+                            "line": 89
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByLabel('Password')\nExpected: visible\nError: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n\n  87 |     await expect(page.getByLabel('Name')).toBeVisible();\n  88 |     await expect(page.getByLabel('Email')).toBeVisible();\n> 89 |     await expect(page.getByLabel('Password')).toBeVisible();\n     |                                               ^\n  90 |     await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();\n  91 |   });\n  92 | });\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:89:47"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2025-12-22T15:11:37.597Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium/error-context.md"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                        "column": 47,
+                        "line": 89
+                      }
+                    },
+                    {
+                      "workerIndex": 7,
+                      "parallelIndex": 0,
+                      "status": "failed",
+                      "duration": 465,
+                      "error": {
+                        "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByLabel('Password')\nExpected: visible\nError: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n",
+                        "stack": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByLabel('Password')\nExpected: visible\nError: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:89:47",
+                        "location": {
+                          "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                          "column": 47,
+                          "line": 89
+                        },
+                        "snippet": "  87 |     await expect(page.getByLabel('Name')).toBeVisible();\n  88 |     await expect(page.getByLabel('Email')).toBeVisible();\n> 89 |     await expect(page.getByLabel('Password')).toBeVisible();\n     |                                               ^\n  90 |     await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();\n  91 |   });\n  92 | });"
+                      },
+                      "errors": [
+                        {
+                          "location": {
+                            "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                            "column": 47,
+                            "line": 89
+                          },
+                          "message": "Error: \u001b[2mexpect(\u001b[22m\u001b[31mlocator\u001b[39m\u001b[2m).\u001b[22mtoBeVisible\u001b[2m(\u001b[22m\u001b[2m)\u001b[22m failed\n\nLocator: getByLabel('Password')\nExpected: visible\nError: strict mode violation: getByLabel('Password') resolved to 2 elements:\n    1) <input value=\"\" required=\"\" id=\"password\" minlength=\"8\" type=\"password\" name=\"password\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background h-10 pl-10\"/> aka getByRole('textbox', { name: 'Password', exact: true })\n    2) <input value=\"\" required=\"\" minlength=\"8\" type=\"password\" id=\"confirmPassword\" name=\"confirmPassword\" placeholder=\"••••••••\" class=\"flex w-full rounded-md border bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 transition-colors border-input focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-backgrou…/> aka getByRole('textbox', { name: 'Confirm Password' })\n\nCall log:\n\u001b[2m  - Expect \"toBeVisible\" with timeout 5000ms\u001b[22m\n\u001b[2m  - waiting for getByLabel('Password')\u001b[22m\n\n\n  87 |     await expect(page.getByLabel('Name')).toBeVisible();\n  88 |     await expect(page.getByLabel('Email')).toBeVisible();\n> 89 |     await expect(page.getByLabel('Password')).toBeVisible();\n     |                                               ^\n  90 |     await expect(page.getByRole('button', { name: /create account/i })).toBeVisible();\n  91 |   });\n  92 | });\n    at /Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts:89:47"
+                        }
+                      ],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 1,
+                      "startTime": "2025-12-22T15:11:39.484Z",
+                      "annotations": [],
+                      "attachments": [
+                        {
+                          "name": "screenshot",
+                          "contentType": "image/png",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium-retry1/test-failed-1.png"
+                        },
+                        {
+                          "name": "video",
+                          "contentType": "video/webm",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium-retry1/video.webm"
+                        },
+                        {
+                          "name": "error-context",
+                          "contentType": "text/markdown",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium-retry1/error-context.md"
+                        },
+                        {
+                          "name": "trace",
+                          "contentType": "application/zip",
+                          "path": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/test-results/authenticated-personas-Pub-5410f-ould-show-registration-page-chromium-retry1/trace.zip"
+                        }
+                      ],
+                      "errorLocation": {
+                        "file": "/Users/adebold/Documents/GitHub/warehouse-network/apps/web/tests/personas/authenticated-personas.spec.ts",
+                        "column": 47,
+                        "line": 89
+                      }
+                    }
+                  ],
+                  "status": "unexpected"
+                }
+              ],
+              "id": "eeb24032bf712d3ccaa1-e78aaedc1773c1f7cbd7",
+              "file": "authenticated-personas.spec.ts",
+              "line": 85,
+              "column": 7
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2025-12-22T15:11:18.623Z",
+    "duration": 21502.027,
+    "expected": 2,
+    "skipped": 0,
+    "unexpected": 4,
+    "flaky": 0
+  }
+}
