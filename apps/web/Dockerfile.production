@@ -6,20 +6,22 @@ FROM --platform=linux/amd64 node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from root and current directory
+COPY package.json ./
+COPY ../../package-lock.json ./ || echo "No root package-lock.json found"
 COPY prisma ./prisma/
 
 # Install production dependencies only
-RUN npm install --only=production --ignore-scripts
+RUN npm install --only=production --ignore-scripts || npm install --production --ignore-scripts
 
 # Stage 2: Build Stage (Platform-specific)
 FROM --platform=linux/amd64 node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files
-COPY package*.json ./
+# Copy package files from root and current directory
+COPY package.json ./
+COPY ../../package-lock.json ./ || echo "No root package-lock.json found"
 COPY prisma ./prisma/
 
 # Install all dependencies (including dev)
