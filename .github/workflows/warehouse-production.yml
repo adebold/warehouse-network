@@ -20,10 +20,10 @@ on:
 
 env:
   PROJECT_ID: aindustries-warehouse
-  SERVICE_NAME: warehouse-frontend
+  SERVICE_NAME: warehouse-platform-v2
   REGION: us-central1
   REGISTRY: us-central1-docker.pkg.dev
-  IMAGE_NAME: warehouse-frontend
+  IMAGE_NAME: warehouse-platform-v2
 
 jobs:
   test:
@@ -112,7 +112,7 @@ jobs:
         run: |
           # Build with cache optimization
           docker build \
-            --cache-from ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:cache \
+            --no-cache \
             --tag ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             --tag ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:latest \
             --tag ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:cache \
@@ -195,7 +195,7 @@ jobs:
         run: |
           if [ "${{ job.status }}" == "success" ]; then
             echo "✅ Warehouse app deployed successfully to production"
-            echo "🌐 URL: https://warehouse-frontend-467296114824.us-central1.run.app"
+            echo "🌐 URL: https://${{ env.SERVICE_NAME }}-467296114824.us-central1.run.app"
             echo "📊 Project: ${{ env.PROJECT_ID }}"
             echo "🏢 Owner: AI Industries"
           else
