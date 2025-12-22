@@ -9,8 +9,13 @@ import '../styles/globals.css';
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   useEffect(() => {
     // Initialize Google Analytics
-    if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) {
-      initGA(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID);
+    const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID;
+    if (typeof window !== 'undefined' && measurementId && measurementId !== 'G-XXXXXXXXXX') {
+      try {
+        initGA(measurementId);
+      } catch (error) {
+        console.warn('Google Analytics initialization failed:', error);
+      }
     }
   }, []);
 

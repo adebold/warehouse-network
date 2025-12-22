@@ -21,7 +21,7 @@ export function middleware(request: NextRequest) {
     "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com",
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https: https://www.google-analytics.com https://www.googletagmanager.com",
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com https://r2cdn.perplexity.ai",
     "connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com",
     "frame-src 'self'",
     "object-src 'none'",

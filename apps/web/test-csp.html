@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>CSP Test for Google Analytics</title>
+</head>
+<body>
+  <h1>Testing CSP Configuration</h1>
+  <p>Open the browser console to check for CSP violations.</p>
+  
+  <h2>Steps to verify:</h2>
+  <ol>
+    <li>Open http://localhost:3000 in your browser</li>
+    <li>Open Developer Tools (F12)</li>
+    <li>Go to the Console tab</li>
+    <li>Look for any CSP violation errors (they appear in red)</li>
+    <li>Check the Network tab for blocked Google Analytics requests</li>
+    <li>Verify gtag/analytics scripts are loading successfully</li>
+  </ol>
+
+  <h2>Expected Result:</h2>
+  <ul>
+    <li>No CSP violations in console</li>
+    <li>Google Analytics scripts load from googletagmanager.com</li>
+    <li>Analytics requests to google-analytics.com succeed</li>
+  </ul>
+
+  <h2>Updated CSP Policy:</h2>
+  <pre>
+    script-src: 'self' 'unsafe-eval' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com
+    connect-src: 'self' https://www.google-analytics.com https://analytics.google.com https://www.googletagmanager.com
+    img-src: 'self' data: https: https://www.google-analytics.com https://www.googletagmanager.com
+  </pre>
+</body>
+</html>

@@ -2,7 +2,11 @@ import type { User } from '@warehouse/types';
 import ReactGA from 'react-ga4';
 
 // Initialize Google Analytics
-export const initGA = (measurementId: string) => {
+export const initGA = (measurementId?: string) => {
+  if (!measurementId || measurementId === 'G-XXXXXXXXXX') {
+    console.warn('Google Analytics: Invalid or missing measurement ID');
+    return;
+  }
   ReactGA.initialize(measurementId);
 };
 
