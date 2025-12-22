@@ -33,7 +33,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
   const responseTime = seconds * 1000 + nanoseconds / 1000000;
 
   const health: HealthStatus = {
-    status: 'healthy', // Always return healthy for now - app works without DB
+    status: dbStatus === 'connected' ? 'healthy' : 'unhealthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     database: dbStatus,
@@ -41,6 +41,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
     environment: process.env.NODE_ENV || 'development',
   };
 
-  // Always return 200 to pass health checks
-  res.status(200).json(health);
+  // Return appropriate status code
+  const statusCode = health.status === 'healthy' ? 200 : 503;
+
+  res.status(statusCode).json(health);
 }
