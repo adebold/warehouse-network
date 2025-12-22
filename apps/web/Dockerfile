@@ -11,6 +11,9 @@ RUN npm ci
 # Copy all source files
 COPY . .
 
+# Generate Prisma client
+RUN npx prisma generate
+
 # Build Next.js app - continue even with SSG errors
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
@@ -19,6 +22,9 @@ RUN npm run build || true
 # Production stage
 FROM node:20-alpine AS runner
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
 
 # Install production dependencies only
 COPY package*.json ./
@@ -29,6 +35,7 @@ COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/next.config.js ./
 COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
 
 # Set environment variables
 ENV NODE_ENV=production
