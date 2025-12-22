@@ -139,7 +139,7 @@ jobs:
             --max-instances 10 \
             --min-instances 0 \
             --port 3000 \
-            --set-env-vars "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PROJECT_ID=${{ env.PROJECT_ID }}" \
+            --set-env-vars "NODE_ENV=production,NEXT_TELEMETRY_DISABLED=1,PROJECT_ID=${{ env.PROJECT_ID }},NEXT_PUBLIC_GA_MEASUREMENT_ID=G-WAREHOUSE2024" \
             --labels "environment=production,app=warehouse,owner=ai-industries" \
             --tag "prod-$(echo ${{ github.sha }} | cut -c1-8)"
 
