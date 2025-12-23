@@ -51,7 +51,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Quotes', href: '/admin/quotes', icon: ClipboardList },
     { name: 'City Pages', href: '/admin/content/city-pages', icon: MapPin },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
-    { name: 'GOAP System', href: '/dashboard/goap', icon: Brain },
+    // { name: 'GOAP System', href: '/dashboard/goap', icon: Brain }, // Temporarily disabled for production
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
