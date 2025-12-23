@@ -1,8 +1,8 @@
 {
-  "name": "warehouse-network-monorepo",
+  "name": "skidspace-monorepo",
   "private": true,
   "version": "1.0.0",
-  "description": "Warehouse Management Platform",
+  "description": "AI-Powered Warehouse Space Marketplace",
   "workspaces": [
     "packages/*",
     "apps/*"

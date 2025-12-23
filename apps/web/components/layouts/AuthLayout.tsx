@@ -17,7 +17,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="mx-auto flex max-w-7xl items-center justify-between">
           <Link href="/" className="flex items-center space-x-2">
             <Building2 className="text-primary h-8 w-8" />
-            <span className="text-xl font-bold">Warehouse Network</span>
+            <span className="text-xl font-bold">SkidSpace</span>
           </Link>
           <ThemeToggle />
         </div>
@@ -31,7 +31,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
       {/* Footer */}
       <footer className="p-4 sm:p-6">
         <div className="text-muted-foreground mx-auto max-w-7xl text-center text-sm">
-          <p>© 2024 Warehouse Network. All rights reserved.</p>
+          <p>© 2025 SkidSpace. All rights reserved.</p>
           <div className="mt-2 space-x-4">
             <Link href="/terms" className="hover:text-foreground transition-colors">
               Terms

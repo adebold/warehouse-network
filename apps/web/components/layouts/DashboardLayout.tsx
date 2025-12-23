@@ -20,6 +20,7 @@ import {
   ClipboardList,
   Bell,
   Search,
+  Brain,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +52,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'Quotes', href: '/admin/quotes', icon: ClipboardList },
     { name: 'City Pages', href: '/admin/content/city-pages', icon: MapPin },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
+    { name: 'GOAP System', href: '/dashboard/goap', icon: Brain },
     { name: 'Users', href: '/admin/users', icon: Users },
     { name: 'Settings', href: '/admin/settings', icon: Settings },
   ];
@@ -94,7 +96,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <Building2 className="text-primary h-6 w-6" />
             <div>
               <span className="text-lg font-semibold">Admin Panel</span>
-              <span className="text-muted-foreground block text-xs">Warehouse Network</span>
+              <span className="text-muted-foreground block text-xs">SkidSpace</span>
             </div>
           </Link>
           <Button

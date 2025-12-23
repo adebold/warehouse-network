@@ -233,7 +233,7 @@ const LoginPage: NextPage = () => {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-background text-muted-foreground px-2">
-                {isReferralSignup ? 'Already have an account?' : 'New to Warehouse Network?'}
+                {isReferralSignup ? 'Already have an account?' : 'New to SkidSpace?'}
               </span>
             </div>
           </div>

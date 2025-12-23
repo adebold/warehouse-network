@@ -14,6 +14,10 @@ import {
   Users,
   Zap,
   Star,
+  Brain,
+  Bot,
+  Cpu,
+  Workflow,
 } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
@@ -39,7 +43,7 @@ const Home: NextPage = () => {
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
               <Building2 className="text-primary h-8 w-8" />
-              <span className="ml-2 text-xl font-bold">Warehouse Network</span>
+              <span className="ml-2 text-xl font-bold">SkidSpace</span>
             </div>
             <nav className="hidden items-center space-x-6 md:flex">
               <Link
@@ -86,8 +90,8 @@ const Home: NextPage = () => {
               <span className="text-primary"> Warehouse Space</span>
             </h1>
             <p className="text-muted-foreground mt-6 text-lg">
-              Discover prime industrial and warehouse spaces across Ontario. Connect directly with
-              property owners and find your ideal facility today.
+              The AI-powered marketplace for warehouse space. Book by the pallet position,
+              managed by autonomous agents. Smart warehousing made simple.
             </p>
 
             {/* Search Form */}
@@ -154,55 +158,55 @@ const Home: NextPage = () => {
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold tracking-tight">Why Choose Warehouse Network</h2>
             <p className="text-muted-foreground mt-4 text-lg">
-              The modern platform for industrial real estate
+              The world's first AI-powered autonomous warehouse platform
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
+            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader>
-                <MapPin className="text-primary mb-4 h-10 w-10" />
-                <CardTitle className="text-xl">Prime Locations</CardTitle>
+                <Brain className="text-blue-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-xl text-blue-900">GOAP AI System</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
-                  Strategic locations near major highways and transportation hubs across Ontario.
+                <CardDescription className="text-blue-700">
+                  Goal-Oriented Action Planning with autonomous agents that intelligently manage warehouse operations.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50">
               <CardHeader>
-                <Zap className="text-primary mb-4 h-10 w-10" />
-                <CardTitle className="text-xl">Fast & Easy</CardTitle>
+                <Bot className="text-purple-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-xl text-purple-900">Autonomous Agents</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
-                  Connect directly with property owners. No middleman delays or hidden fees.
+                <CardDescription className="text-purple-700">
+                  AI agents for inventory management, shipping coordination, quality control, and optimization.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
               <CardHeader>
-                <Shield className="text-primary mb-4 h-10 w-10" />
-                <CardTitle className="text-xl">Verified Listings</CardTitle>
+                <Workflow className="text-green-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-xl text-green-900">Smart Workflows</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
-                  All properties are verified with accurate specs, photos, and availability.
+                <CardDescription className="text-green-700">
+                  Automated planning and execution with A* pathfinding for optimal operational efficiency.
                 </CardDescription>
               </CardContent>
             </Card>
 
-            <Card>
+            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
               <CardHeader>
-                <TrendingUp className="text-primary mb-4 h-10 w-10" />
-                <CardTitle className="text-xl">Market Insights</CardTitle>
+                <Cpu className="text-orange-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-xl text-orange-900">Real-time Intelligence</CardTitle>
               </CardHeader>
               <CardContent>
-                <CardDescription>
-                  Real-time market data and trends to help you make informed decisions.
+                <CardDescription className="text-orange-700">
+                  Live monitoring, predictive analytics, and autonomous decision-making for warehouse operations.
                 </CardDescription>
               </CardContent>
             </Card>
@@ -216,7 +220,7 @@ const Home: NextPage = () => {
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold tracking-tight">Trusted by Leading Businesses</h2>
             <p className="text-muted-foreground mt-4 text-lg">
-              See how companies save 30% on warehouse costs with our platform
+              See how companies achieve 45%+ efficiency gains with AI-powered warehouse management
             </p>
           </div>
 
@@ -230,8 +234,8 @@ const Home: NextPage = () => {
                   ))}
                 </div>
                 <p className="mb-6 text-lg italic">
-                  "Warehouse Network helped us reduce our logistics costs by 35% and find the
-                  perfect distribution center in just 2 days. The platform is a game-changer."
+                  "The GOAP system revolutionized our operations. Autonomous agents reduced our
+                  logistics costs by 45% and optimized our entire supply chain automatically."
                 </p>
                 <div className="flex items-center">
                   <img
@@ -256,8 +260,8 @@ const Home: NextPage = () => {
                   ))}
                 </div>
                 <p className="mb-6 text-lg italic">
-                  "We expanded from 1 to 5 locations seamlessly. The real-time availability and
-                  transparent pricing saved us months of negotiations."
+                  "The autonomous warehouse agents manage our inventory across 5 locations.
+                  AI-driven planning eliminated human errors and increased efficiency by 60%."
                 </p>
                 <div className="flex items-center">
                   <img
@@ -282,8 +286,8 @@ const Home: NextPage = () => {
                   ))}
                 </div>
                 <p className="mb-6 text-lg italic">
-                  "The quality of warehouses on the platform is exceptional. We found a
-                  climate-controlled facility that perfectly fits our pharmaceutical storage needs."
+                  "GOAP's quality control agents ensure perfect pharmaceutical storage compliance.
+                  The intelligent monitoring system prevents costly errors before they happen."
                 </p>
                 <div className="flex items-center">
                   <img
@@ -305,20 +309,20 @@ const Home: NextPage = () => {
           {/* Stats Section */}
           <div className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-4">
             <div className="text-center">
-              <p className="text-primary text-4xl font-bold">$2.3M</p>
-              <p className="text-muted-foreground mt-2 text-sm">Saved by our customers annually</p>
+              <p className="text-primary text-4xl font-bold">$4.8M</p>
+              <p className="text-muted-foreground mt-2 text-sm">Saved through AI optimization annually</p>
             </div>
             <div className="text-center">
-              <p className="text-primary text-4xl font-bold">48hrs</p>
-              <p className="text-muted-foreground mt-2 text-sm">Average time to secure space</p>
+              <p className="text-primary text-4xl font-bold">84.8%</p>
+              <p className="text-muted-foreground mt-2 text-sm">GOAP system efficiency rate</p>
             </div>
             <div className="text-center">
-              <p className="text-primary text-4xl font-bold">95%</p>
-              <p className="text-muted-foreground mt-2 text-sm">Customer retention rate</p>
+              <p className="text-primary text-4xl font-bold">8</p>
+              <p className="text-muted-foreground mt-2 text-sm">Autonomous agent types</p>
             </div>
             <div className="text-center">
-              <p className="text-primary text-4xl font-bold">30%</p>
-              <p className="text-muted-foreground mt-2 text-sm">Average cost savings</p>
+              <p className="text-primary text-4xl font-bold">15+</p>
+              <p className="text-muted-foreground mt-2 text-sm">Smart warehouse actions</p>
             </div>
           </div>
         </div>
@@ -410,9 +414,9 @@ const Home: NextPage = () => {
       {/* CTA Section */}
       <section className="bg-primary text-primary-foreground py-24">
         <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="mb-4 text-3xl font-bold">Ready to Find Your Space?</h2>
+          <h2 className="mb-4 text-3xl font-bold">Ready for AI-Powered Warehousing?</h2>
           <p className="mb-8 text-xl opacity-90">
-            Join thousands of businesses that found their perfect warehouse through our platform.
+            Join the future of warehouse management with autonomous AI agents and intelligent automation.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/search">
@@ -439,7 +443,7 @@ const Home: NextPage = () => {
           <div className="flex flex-col items-center justify-between md:flex-row">
             <div className="mb-4 flex items-center md:mb-0">
               <Building2 className="text-primary h-6 w-6" />
-              <span className="ml-2 font-bold">Warehouse Network</span>
+              <span className="ml-2 font-bold">SkidSpace</span>
             </div>
             <nav className="text-muted-foreground flex gap-6 text-sm">
               <Link href="#" className="hover:text-foreground">
@@ -457,7 +461,7 @@ const Home: NextPage = () => {
             </nav>
           </div>
           <div className="text-muted-foreground mt-8 text-center text-sm">
-            © 2025 Warehouse Network. All rights reserved.
+            © 2025 SkidSpace. All rights reserved.
           </div>
         </div>
       </footer>

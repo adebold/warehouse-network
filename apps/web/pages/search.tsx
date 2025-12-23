@@ -280,7 +280,7 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
       <footer className="mt-16 border-t">
         <div className="container mx-auto px-4 py-6 sm:px-6 lg:px-8">
           <div className="text-muted-foreground text-center text-sm">
-            © 2025 Warehouse Network. All rights reserved.
+            © 2025 SkidSpace. All rights reserved.
           </div>
         </div>
       </footer>
