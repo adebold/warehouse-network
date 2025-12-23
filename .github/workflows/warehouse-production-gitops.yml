@@ -43,23 +43,24 @@ jobs:
 
       - name: Build and Push Docker image
         run: |
-          cd apps/web
-          
           # Check if Dockerfile exists
-          if [ -f Dockerfile.gitops ]; then
-            DOCKERFILE="Dockerfile.gitops"
-          elif [ -f Dockerfile.production ]; then  
-            DOCKERFILE="Dockerfile.production"
-          elif [ -f Dockerfile ]; then
-            DOCKERFILE="Dockerfile"
+          if [ -f apps/web/Dockerfile.monorepo ]; then
+            DOCKERFILE="apps/web/Dockerfile.monorepo"
+          elif [ -f apps/web/Dockerfile.gitops ]; then
+            DOCKERFILE="apps/web/Dockerfile.gitops"
+          elif [ -f apps/web/Dockerfile.production ]; then  
+            DOCKERFILE="apps/web/Dockerfile.production"
+          elif [ -f apps/web/Dockerfile ]; then
+            DOCKERFILE="apps/web/Dockerfile"
           else
             echo "❌ No Dockerfile found!"
             exit 1
           fi
           
           echo "Using $DOCKERFILE for build"
+          echo "Building from repository root to include src directory"
           
-          # Build the image
+          # Build the image from repository root
           docker build -f $DOCKERFILE \
             -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} \
             -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:latest \
