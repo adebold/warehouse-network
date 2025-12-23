@@ -31,11 +31,12 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: 'projects/668950927538/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
-          service_account: 'github-actions-deploy@aindustries-warehouse.iam.gserviceaccount.com'
+          credentials_json: ${{ secrets.GCP_SA_KEY_WAREHOUSE }}
 
       - name: Set up Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
 
       - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGISTRY }}
@@ -43,8 +44,30 @@ jobs:
       - name: Build and Push Docker image
         run: |
           cd apps/web
-          docker build -f Dockerfile.gitops -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+          
+          # Check if Dockerfile exists
+          if [ -f Dockerfile.gitops ]; then
+            DOCKERFILE="Dockerfile.gitops"
+          elif [ -f Dockerfile.production ]; then  
+            DOCKERFILE="Dockerfile.production"
+          elif [ -f Dockerfile ]; then
+            DOCKERFILE="Dockerfile"
+          else
+            echo "❌ No Dockerfile found!"
+            exit 1
+          fi
+          
+          echo "Using $DOCKERFILE for build"
+          
+          # Build the image
+          docker build -f $DOCKERFILE \
+            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+            -t ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:latest \
+            .
+          
+          # Push both tags
           docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/${{ env.PROJECT_ID }}/warehouse-docker/${{ env.IMAGE_NAME }}:latest
 
       - name: Deploy to Cloud Run
         run: |
@@ -61,7 +84,58 @@ jobs:
             --min-instances 0 \
             --port 3000 \
             --set-env-vars "NODE_ENV=production,PROJECT_ID=${{ env.PROJECT_ID }}" \
-            --set-secrets "DATABASE_URL=DATABASE_URL:latest,REDIS_URL=REDIS_URL:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,NEXT_PUBLIC_GA_MEASUREMENT_ID=GA_MEASUREMENT_ID:latest" \
+            --update-secrets "DATABASE_URL=DATABASE_URL:latest,REDIS_URL=REDIS_URL:latest,NEXTAUTH_SECRET=NEXTAUTH_SECRET:latest,NEXT_PUBLIC_GA_MEASUREMENT_ID=GA_MEASUREMENT_ID:latest" \
             --service-account "warehouse-app@aindustries-warehouse.iam.gserviceaccount.com" \
             --add-cloudsql-instances "aindustries-warehouse:us-central1:warehouse-production-db" \
             --labels "environment=production,app=warehouse,gitops=true"
+
+      - name: Verify Deployment
+        run: |
+          # Get the service URL
+          SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)')
+          
+          echo "Service deployed to: $SERVICE_URL"
+          
+          # Wait for service to be ready
+          echo "Waiting for service to be ready..."
+          sleep 30
+          
+          # Check if service is responding
+          if curl -f -s "$SERVICE_URL" -o /dev/null; then
+            echo "✅ Deployment successful! Service is responding."
+            echo "🌐 SkidSpace is live at: $SERVICE_URL"
+          else
+            echo "⚠️ Service deployed but may still be starting up."
+            echo "Please check manually at: $SERVICE_URL"
+          fi
+          
+      - name: Create Deployment Summary
+        if: always()
+        run: |
+          echo "## SkidSpace Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ job.status }}" == "success" ]; then
+            SERVICE_URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+              --region ${{ env.REGION }} \
+              --format 'value(status.url)')
+            
+            echo "✅ **Deployment Successful**" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "🌐 **URL**: $SERVICE_URL" >> $GITHUB_STEP_SUMMARY
+            echo "🎨 **What's New**: Updated SkidSpace brand assets (logos, colors)" >> $GITHUB_STEP_SUMMARY
+            echo "📦 **Version**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Please Verify" >> $GITHUB_STEP_SUMMARY
+            echo "1. Visit [SkidSpace.com]($SERVICE_URL)" >> $GITHUB_STEP_SUMMARY
+            echo "2. Check that the new logo appears in:" >> $GITHUB_STEP_SUMMARY
+            echo "   - Homepage header and footer" >> $GITHUB_STEP_SUMMARY
+            echo "   - Login/Register pages" >> $GITHUB_STEP_SUMMARY  
+            echo "   - Dashboard navigation" >> $GITHUB_STEP_SUMMARY
+            echo "3. Verify brand colors are #0B5FFF (blue) and #FF8A1F (orange)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Deployment Failed**" >> $GITHUB_STEP_SUMMARY
+            echo "Check the workflow logs for details." >> $GITHUB_STEP_SUMMARY
+          fi
