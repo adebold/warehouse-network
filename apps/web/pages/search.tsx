@@ -16,7 +16,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Building2,
   MapPin,
   Package,
   Filter,
@@ -49,8 +48,12 @@ const SearchResults: NextPage<SearchResultsProps> = ({ warehouses }) => {
                 <ChevronLeft className="mr-1 h-5 w-5" />
                 <span className="hidden sm:inline">Back</span>
               </Link>
-              <Building2 className="text-primary h-8 w-8" />
-              <span className="text-xl font-bold">Search Results</span>
+              <img 
+                src="/brand/logo-icon.svg" 
+                alt="SkidSpace" 
+                className="h-8 w-8" 
+              />
+              <span className="text-xl font-semibold">Search Results</span>
             </div>
             <div className="flex items-center space-x-4">
               <Button

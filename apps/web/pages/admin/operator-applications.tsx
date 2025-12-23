@@ -7,7 +7,8 @@ import { useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, CheckCircle, XCircle, Clock, Building2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { BRAND_ASSETS } from '@/lib/asset-urls';
 import Link from 'next/link';
 
 
@@ -75,7 +76,7 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
           {applications.length === 0 ? (
             <Card>
               <CardContent className="py-8 text-center">
-                <Building2 className="mx-auto mb-4 h-12 w-12 text-gray-400" />
+                <img src={BRAND_ASSETS.systemIcon} alt="" className="mx-auto mb-4 h-12 w-12 text-gray-400" />
                 <p className="text-gray-600">No operator applications to review</p>
               </CardContent>
             </Card>

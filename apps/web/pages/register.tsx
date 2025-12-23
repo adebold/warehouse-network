@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Building2, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 
 const RegisterPage: NextPage = () => {
   const router = useRouter();

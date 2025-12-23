@@ -48,8 +48,12 @@ const Home: NextPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center">
-              <Building2 className="text-primary h-8 w-8" />
-              <span className="ml-2 text-xl font-bold">SkidSpace</span>
+              <img 
+                src="/brand/logo-icon.svg" 
+                alt="SkidSpace" 
+                className="h-8 w-8" 
+              />
+              <span className="ml-2 text-xl font-semibold" style={{color: '#0B1220'}}>SkidSpace</span>
             </div>
             <nav className="hidden items-center space-x-6 md:flex">
               <Link
@@ -108,7 +112,11 @@ const Home: NextPage = () => {
               </Link>
               <Link href="/become-a-partner">
                 <Button size="lg" variant="outline" className="w-full sm:w-auto px-8">
-                  <Building2 className="mr-2 h-5 w-5" />
+                  <img 
+                    src="/brand/logo-icon.svg" 
+                    alt="" 
+                    className="mr-2 h-5 w-5" 
+                  />
                   I Have Space
                 </Button>
               </Link>
@@ -531,7 +539,11 @@ const Home: NextPage = () => {
                 variant="outline"
                 className="min-w-[200px] text-white border-white hover:bg-white hover:text-primary bg-transparent"
               >
-                <Building2 className="mr-2 h-5 w-5" />
+                <img 
+                  src="/brand/logo-icon.svg" 
+                  alt="" 
+                  className="mr-2 h-5 w-5" 
+                />
                 List Your Warehouse
               </Button>
             </Link>

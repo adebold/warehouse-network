@@ -5,7 +5,6 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
-  Building2,
   Package,
   ShoppingCart,
   FileText,
@@ -76,7 +75,11 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
           <Link href="/app/dashboard" className="flex items-center space-x-2">
-            <Building2 className="text-primary h-6 w-6" />
+            <img 
+              src="/brand/logo-icon.svg" 
+              alt="SkidSpace" 
+              className="h-6 w-6" 
+            />
             <span className="text-lg font-semibold">Warehouse</span>
           </Link>
           <Button

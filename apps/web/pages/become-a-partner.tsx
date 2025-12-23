@@ -120,8 +120,12 @@ const BecomeAPartner: NextPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <Link href="/" className="flex items-center">
-              <Building2 className="text-primary h-8 w-8" />
-              <span className="ml-2 text-xl font-bold">SkidSpace</span>
+              <img 
+                src="/brand/logo-icon.svg" 
+                alt="SkidSpace" 
+                className="h-8 w-8" 
+              />
+              <span className="ml-2 text-xl font-semibold" style={{color: '#0B1220'}}>SkidSpace</span>
             </Link>
             <nav className="flex items-center space-x-4">
               <Link href="/login">
@@ -552,8 +556,12 @@ const BecomeAPartner: NextPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between md:flex-row">
             <div className="mb-4 flex items-center md:mb-0">
-              <Building2 className="text-primary h-6 w-6" />
-              <span className="ml-2 font-bold">SkidSpace</span>
+              <img 
+                src="/brand/logo-icon.svg" 
+                alt="SkidSpace" 
+                className="h-6 w-6" 
+              />
+              <span className="ml-2 font-semibold" style={{color: '#0B1220'}}>SkidSpace</span>
             </div>
             <nav className="text-muted-foreground flex gap-6 text-sm">
               <Link href="/about" className="hover:text-foreground">

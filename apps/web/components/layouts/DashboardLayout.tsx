@@ -5,7 +5,6 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
 import {
-  Building2,
   LayoutDashboard,
   Package,
   FileText,
@@ -93,7 +92,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
           <Link href="/admin/dashboard" className="flex items-center space-x-2">
-            <Building2 className="text-primary h-6 w-6" />
+            <img 
+              src="/brand/logo-icon.svg" 
+              alt="SkidSpace" 
+              className="h-6 w-6" 
+            />
             <div>
               <span className="text-lg font-semibold">Admin Panel</span>
               <span className="text-muted-foreground block text-xs">SkidSpace</span>

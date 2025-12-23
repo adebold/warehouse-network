@@ -6,7 +6,8 @@ import { useEffect, useState } from 'react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Package, Building2, FileText, TrendingUp } from 'lucide-react';
+import { Package, FileText, TrendingUp } from 'lucide-react';
+import { BRAND_ASSETS } from '@/lib/asset-urls';
 import { AppLayout } from '@/components/layouts/AppLayout';
 
 const CustomerDashboard: NextPage = () => {
@@ -66,7 +67,7 @@ const CustomerDashboard: NextPage = () => {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Warehouses</CardTitle>
-              <Building2 className="text-muted-foreground h-4 w-4" />
+              <img src={BRAND_ASSETS.systemIcon} alt="" className="text-muted-foreground h-4 w-4" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.totalWarehouses}</div>
