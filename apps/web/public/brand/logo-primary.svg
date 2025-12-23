@@ -1,8 +1,9 @@
 <svg width="640" height="160" viewBox="0 0 640 160" xmlns="http://www.w3.org/2000/svg">
   <g transform="translate(0,16)">
-    <path d="M64 0C32 0 8 28 8 56c0 32 56 80 56 80s56-48 56-80C120 28 96 0 64 0z" fill="#0B5FFF"/>
-    <path d="M40 48h48v28H40z" rx="4" fill="#FFFFFF"/>
-    <path d="M40 68h48v8H40z" fill="#FF8A1F"/>
+    <path d="M64 0C32 0 8 28 8 56c0 32 56 80 56 80s56-48 56-80C120 28 96 0 64 0z" fill="#FF8A1F"/>
+    <path d="M64 24C40 24 24 42 24 64c0 24 40 64 40 64s40-40 40-64C104 42 88 24 64 24z" fill="#0B5FFF"/>
+    <path d="M40 60h48v28H40z" rx="4" fill="#FFFFFF"/>
+    <path d="M40 80h48v8H40z" fill="#FF8A1F"/>
   </g>
   <text x="160" y="96" font-size="64" font-weight="600" fill="#0B1220"
         font-family="Inter, system-ui, sans-serif">

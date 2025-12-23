@@ -4,10 +4,11 @@ This folder contains the official SkidSpace brand assets based on the brand guid
 
 ## Files
 
-- `logo-icon.svg` - Primary icon logo (256x256) for app icons, favicons, map pins
-- `logo-primary.svg` - Horizontal logo (640x160) for website headers, hero sections
-- `map-pin.svg` - Standard map pin (blue)
-- `map-pin-active.svg` - Active map pin (orange)
+- `logo-icon.svg` - Expressive icon with dual-layer pin design (256x256) for app icons, favicons
+- `logo-primary.svg` - Enhanced horizontal logo with dual-layer pin (640x160) for headers
+- `system-icon.svg` - Clean system icon with stroke-based design for UI elements
+- `map-pin.svg` - Standard map pin with stroke warehouse (blue)
+- `map-pin-active.svg` - Active map pin with stroke warehouse (orange)
 
 ## Brand Colors
 

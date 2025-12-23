@@ -7,6 +7,7 @@ const CDN_BASE_URL = process.env.NEXT_PUBLIC_CDN_BASE_URL || '';
 export const BRAND_ASSETS = {
   logoIcon: `${CDN_BASE_URL}/brand/logo-icon.svg`,
   logoPrimary: `${CDN_BASE_URL}/brand/logo-primary.svg`,
+  systemIcon: `${CDN_BASE_URL}/brand/system-icon.svg`,
   mapPin: `${CDN_BASE_URL}/brand/map-pin.svg`,
   mapPinActive: `${CDN_BASE_URL}/brand/map-pin-active.svg`,
 } as const;
@@ -15,6 +16,7 @@ export const BRAND_ASSETS = {
 export const LOCAL_BRAND_ASSETS = {
   logoIcon: '/brand/logo-icon.svg',
   logoPrimary: '/brand/logo-primary.svg',
+  systemIcon: '/brand/system-icon.svg',
   mapPin: '/brand/map-pin.svg',
   mapPinActive: '/brand/map-pin-active.svg',
 } as const;
