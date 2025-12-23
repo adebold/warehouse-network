@@ -10,7 +10,7 @@ import {
   AgentType, 
   WarehouseAgents,
   SystemStatus 
-} from '../../src/goap';
+} from '../../../../src/goap';
 import { PrismaClient } from '@prisma/client';
 
 // Global GOAP system instance
