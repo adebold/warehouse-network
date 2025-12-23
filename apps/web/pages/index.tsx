@@ -18,6 +18,12 @@ import {
   Bot,
   Cpu,
   Workflow,
+  Check,
+  ChevronRight,
+  DollarSign,
+  Clock,
+  BarChart3,
+  Lock,
 } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
 
@@ -72,367 +78,479 @@ const Home: NextPage = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
-        {/* Hero Background Image */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
-            alt="Modern warehouse interior"
-            className="h-full w-full object-cover opacity-80 dark:opacity-60"
-          />
-          <div className="from-background/95 to-background/50 absolute inset-0 bg-gradient-to-r" />
-          <div className="via-background/50 to-background absolute inset-0 bg-gradient-to-b from-transparent" />
-        </div>
-        <div className="container relative mx-auto px-4 py-24 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">
-              Find Your Perfect
-              <span className="text-primary"> Warehouse Space</span>
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-900/20">
+        <div className="container relative mx-auto px-4 py-16 sm:px-6 lg:px-8 lg:py-24">
+          <div className="mx-auto max-w-4xl text-center">
+            {/* Platform Badge */}
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/30 px-4 py-2">
+              <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
+                AI-Powered Warehouse Marketplace
+              </span>
+            </div>
+
+            <h1 className="text-4xl font-bold tracking-tight sm:text-6xl lg:text-7xl">
+              The Airbnb of
+              <span className="text-primary block">Warehouse Space</span>
             </h1>
-            <p className="text-muted-foreground mt-6 text-lg">
-              The AI-powered marketplace for warehouse space. Book by the pallet position,
-              managed by autonomous agents. Smart warehousing made simple.
+            <p className="text-muted-foreground mt-6 text-xl leading-relaxed max-w-2xl mx-auto">
+              Rent warehouse space by the pallet. List your unused space. All managed by AI.
+              No long-term contracts. Complete flexibility.
             </p>
 
-            {/* Search Form */}
-            <form
-              onSubmit={handleSearch}
-              className="mx-auto mt-10 flex max-w-2xl flex-col gap-4 sm:flex-row"
-            >
-              <div className="flex-1">
-                <input
-                  type="text"
-                  placeholder="Type of space, size, or features..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-primary w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2"
-                />
-              </div>
-              <div className="flex-1 sm:max-w-xs">
-                <input
-                  type="text"
-                  placeholder="City or postal code"
-                  value={location}
-                  onChange={e => setLocation(e.target.value)}
-                  className="border-input bg-background text-foreground placeholder:text-muted-foreground focus:ring-primary w-full rounded-lg border px-4 py-3 focus:outline-none focus:ring-2"
-                />
-              </div>
-              <Button type="submit" size="lg" className="px-8">
-                <Search className="mr-2 h-4 w-4" />
-                Search
-              </Button>
-            </form>
+            {/* Dual CTA Buttons */}
+            <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/search">
+                <Button size="lg" className="w-full sm:w-auto px-8">
+                  <Search className="mr-2 h-5 w-5" />
+                  I Need Space
+                </Button>
+              </Link>
+              <Link href="/become-a-partner">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto px-8">
+                  <Building2 className="mr-2 h-5 w-5" />
+                  I Have Space
+                </Button>
+              </Link>
+            </div>
 
-            {/* Quick Stats */}
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
+            {/* Trust Indicators */}
+            <div className="mt-12 grid grid-cols-2 sm:grid-cols-4 gap-6 max-w-2xl mx-auto">
               <div className="text-center">
-                <p className="text-primary text-3xl font-bold">500+</p>
-                <p className="text-muted-foreground text-sm">Active Listings</p>
+                <div className="h-12 w-12 mx-auto mb-2 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
+                  <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
+                </div>
+                <p className="text-sm font-medium">Insured</p>
+                <p className="text-xs text-muted-foreground">$1M coverage</p>
               </div>
               <div className="text-center">
-                <p className="text-primary text-3xl font-bold">2M+</p>
-                <p className="text-muted-foreground text-sm">Sq Ft Available</p>
+                <div className="h-12 w-12 mx-auto mb-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
+                  <Zap className="h-6 w-6 text-blue-600 dark:text-blue-400" />
+                </div>
+                <p className="text-sm font-medium">Instant</p>
+                <p className="text-xs text-muted-foreground">Book online</p>
               </div>
               <div className="text-center">
-                <p className="text-primary text-3xl font-bold">50+</p>
-                <p className="text-muted-foreground text-sm">Cities Covered</p>
+                <div className="h-12 w-12 mx-auto mb-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                  <Bot className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                </div>
+                <p className="text-sm font-medium">AI-Managed</p>
+                <p className="text-xs text-muted-foreground">24/7 operations</p>
               </div>
               <div className="text-center">
-                <p className="text-primary text-3xl font-bold">98%</p>
-                <p className="text-muted-foreground text-sm">Client Satisfaction</p>
+                <div className="h-12 w-12 mx-auto mb-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
+                  <Package className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <p className="text-sm font-medium">Flexible</p>
+                <p className="text-xs text-muted-foreground">By the pallet</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="bg-muted/50 relative overflow-hidden py-24">
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-5 dark:opacity-10">
-          <div className="bg-primary absolute -left-24 -top-24 h-96 w-96 rounded-full blur-3xl" />
-          <div className="bg-primary absolute -bottom-24 -right-24 h-96 w-96 rounded-full blur-3xl" />
-        </div>
+      {/* Dual Value Propositions */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid gap-12 lg:grid-cols-2">
+            {/* For Renters */}
+            <div className="relative">
+              <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 p-8 lg:p-10">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold mb-4">Need Warehouse Space?</h2>
+                  <p className="text-muted-foreground text-lg">
+                    Find the perfect space for your inventory, no long-term commitment required.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-blue-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Pay Only for What You Use</p>
+                      <p className="text-sm text-muted-foreground">Book by the pallet position, not the whole warehouse</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-blue-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Instant Booking</p>
+                      <p className="text-sm text-muted-foreground">Find and reserve space in minutes, not weeks</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-blue-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">AI-Managed Operations</p>
+                      <p className="text-sm text-muted-foreground">Autonomous agents handle inventory and shipping 24/7</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-blue-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Complete Flexibility</p>
+                      <p className="text-sm text-muted-foreground">Scale up or down as your business needs change</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Link href="/search">
+                  <Button className="w-full" size="lg">
+                    Browse Available Spaces
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
 
-        <div className="container relative mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Why Choose Warehouse Network</h2>
-            <p className="text-muted-foreground mt-4 text-lg">
-              The world's first AI-powered autonomous warehouse platform
-            </p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
-              <CardHeader>
-                <Brain className="text-blue-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-xl text-blue-900">GOAP AI System</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-blue-700">
-                  Goal-Oriented Action Planning with autonomous agents that intelligently manage warehouse operations.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50">
-              <CardHeader>
-                <Bot className="text-purple-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-xl text-purple-900">Autonomous Agents</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-purple-700">
-                  AI agents for inventory management, shipping coordination, quality control, and optimization.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-              <CardHeader>
-                <Workflow className="text-green-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-xl text-green-900">Smart Workflows</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-green-700">
-                  Automated planning and execution with A* pathfinding for optimal operational efficiency.
-                </CardDescription>
-              </CardContent>
-            </Card>
-
-            <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
-              <CardHeader>
-                <Cpu className="text-orange-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-xl text-orange-900">Real-time Intelligence</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <CardDescription className="text-orange-700">
-                  Live monitoring, predictive analytics, and autonomous decision-making for warehouse operations.
-                </CardDescription>
-              </CardContent>
-            </Card>
+            {/* For Warehouse Owners */}
+            <div className="relative">
+              <div className="rounded-2xl bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-8 lg:p-10">
+                <div className="mb-6">
+                  <h2 className="text-3xl font-bold mb-4">Have Unused Space?</h2>
+                  <p className="text-muted-foreground text-lg">
+                    Turn your empty warehouse space into recurring revenue.
+                  </p>
+                </div>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-green-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Maximize Revenue</p>
+                      <p className="text-sm text-muted-foreground">Monetize every pallet position in your warehouse</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-green-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Zero Management Hassle</p>
+                      <p className="text-sm text-muted-foreground">AI agents handle all operations automatically</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-green-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Set Your Own Prices</p>
+                      <p className="text-sm text-muted-foreground">Dynamic pricing based on demand and seasonality</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-1 rounded-full bg-green-600 p-1">
+                      <Check className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Protected & Insured</p>
+                      <p className="text-sm text-muted-foreground">$1M liability coverage and verified renters</p>
+                    </div>
+                  </div>
+                </div>
+                
+                <Link href="/become-a-partner">
+                  <Button className="w-full" size="lg" variant="default">
+                    List Your Space
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="from-primary/5 bg-gradient-to-br to-transparent py-24">
+      {/* Trust & Safety Section */}
+      <section className="bg-muted/50 py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Trusted by Leading Businesses</h2>
-            <p className="text-muted-foreground mt-4 text-lg">
-              See how companies achieve 45%+ efficiency gains with AI-powered warehouse management
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Built on Trust</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              SkidSpace provides the security and reliability you need for your business
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
-            {/* Testimonial 1 */}
-            <Card className="relative overflow-hidden">
-              <CardContent className="pt-8">
-                <div className="mb-4 flex items-center">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Star key={i} className="fill-warning text-warning h-5 w-5" />
-                  ))}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
+                  <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="mb-6 text-lg italic">
-                  "The GOAP system revolutionized our operations. Autonomous agents reduced our
-                  logistics costs by 45% and optimized our entire supply chain automatically."
+                <CardTitle>Fully Insured</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  Every booking includes $1M liability coverage. Your inventory is protected from day one.
                 </p>
-                <div className="flex items-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
-                    alt="David Chen"
-                    className="mr-4 h-12 w-12 rounded-full"
-                  />
-                  <div>
-                    <p className="font-semibold">David Chen</p>
-                    <p className="text-muted-foreground text-sm">VP Operations, TechStart Inc.</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
-            {/* Testimonial 2 */}
-            <Card className="relative overflow-hidden md:translate-y-8">
-              <CardContent className="pt-8">
-                <div className="mb-4 flex items-center">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Star key={i} className="fill-warning text-warning h-5 w-5" />
-                  ))}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center mb-4">
+                  <Lock className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 </div>
-                <p className="mb-6 text-lg italic">
-                  "The autonomous warehouse agents manage our inventory across 5 locations.
-                  AI-driven planning eliminated human errors and increased efficiency by 60%."
+                <CardTitle>Verified Spaces</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  All warehouse partners are verified and inspected. Quality standards enforced by AI monitoring.
                 </p>
-                <div className="flex items-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
-                    alt="Sarah Johnson"
-                    className="mr-4 h-12 w-12 rounded-full"
-                  />
-                  <div>
-                    <p className="font-semibold">Sarah Johnson</p>
-                    <p className="text-muted-foreground text-sm">CEO, FastShip Commerce</p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
 
-            {/* Testimonial 3 */}
-            <Card className="relative overflow-hidden">
-              <CardContent className="pt-8">
-                <div className="mb-4 flex items-center">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <Star key={i} className="fill-warning text-warning h-5 w-5" />
-                  ))}
+            <Card className="border-0 shadow-sm">
+              <CardHeader>
+                <div className="h-12 w-12 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center mb-4">
+                  <BarChart3 className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <p className="mb-6 text-lg italic">
-                  "GOAP's quality control agents ensure perfect pharmaceutical storage compliance.
-                  The intelligent monitoring system prevents costly errors before they happen."
+                <CardTitle>Transparent Pricing</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">
+                  No hidden fees. See exactly what you'll pay before booking. Dynamic pricing for warehouse owners.
                 </p>
-                <div className="flex items-center">
-                  <img
-                    src="https://images.unsplash.com/photo-1519345182560-3f2917c472ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=100&q=80"
-                    alt="Michael Torres"
-                    className="mr-4 h-12 w-12 rounded-full"
-                  />
-                  <div>
-                    <p className="font-semibold">Michael Torres</p>
-                    <p className="text-muted-foreground text-sm">
-                      Supply Chain Director, MedSupply Co.
-                    </p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
           </div>
+        </div>
+      </section>
 
-          {/* Stats Section */}
-          <div className="mt-20 grid grid-cols-2 gap-8 md:grid-cols-4">
-            <div className="text-center">
-              <p className="text-primary text-4xl font-bold">$4.8M</p>
-              <p className="text-muted-foreground mt-2 text-sm">Saved through AI optimization annually</p>
+      {/* Platform Features */}
+      <section className="py-20">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Powered by AI</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Our GOAP (Goal-Oriented Action Planning) system manages operations autonomously
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2 max-w-5xl mx-auto">
+            {/* Renter Benefits */}
+            <div>
+              <h3 className="text-xl font-semibold mb-6">For Renters</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-2">
+                    <Brain className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Smart Inventory Management</p>
+                    <p className="text-sm text-muted-foreground">AI agents track and optimize your inventory placement</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-2">
+                    <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Automated Workflows</p>
+                    <p className="text-sm text-muted-foreground">Receiving, putaway, picking, and shipping handled by AI</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-2">
+                    <Clock className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Real-Time Visibility</p>
+                    <p className="text-sm text-muted-foreground">Track inventory levels and shipments 24/7</p>
+                  </div>
+                </div>
+              </div>
             </div>
-            <div className="text-center">
-              <p className="text-primary text-4xl font-bold">84.8%</p>
-              <p className="text-muted-foreground mt-2 text-sm">GOAP system efficiency rate</p>
-            </div>
-            <div className="text-center">
-              <p className="text-primary text-4xl font-bold">8</p>
-              <p className="text-muted-foreground mt-2 text-sm">Autonomous agent types</p>
-            </div>
-            <div className="text-center">
-              <p className="text-primary text-4xl font-bold">15+</p>
-              <p className="text-muted-foreground mt-2 text-sm">Smart warehouse actions</p>
+
+            {/* Owner Benefits */}
+            <div>
+              <h3 className="text-xl font-semibold mb-6">For Warehouse Owners</h3>
+              <div className="space-y-4">
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-green-100 dark:bg-green-900/30 p-2">
+                    <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Revenue Optimization</p>
+                    <p className="text-sm text-muted-foreground">AI pricing adjusts to demand and seasonality</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-green-100 dark:bg-green-900/30 p-2">
+                    <Bot className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Autonomous Operations</p>
+                    <p className="text-sm text-muted-foreground">AI agents manage daily warehouse activities</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-4">
+                  <div className="rounded-lg bg-green-100 dark:bg-green-900/30 p-2">
+                    <BarChart3 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Performance Analytics</p>
+                    <p className="text-sm text-muted-foreground">Detailed insights on space utilization and revenue</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Property Types */}
-      <section className="py-24">
+      {/* How It Works */}
+      <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Find Your Space Type</h2>
-            <p className="text-muted-foreground mt-4 text-lg">
-              From small units to large distribution centers
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">How SkidSpace Works</h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Get started in minutes, not months
             </p>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1565891741441-64926e441838?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="Storage facility"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <Package className="mb-2 h-8 w-8 text-white" />
+          <div className="grid gap-8 md:grid-cols-2 max-w-4xl mx-auto">
+            {/* For Renters */}
+            <div>
+              <h3 className="text-xl font-semibold mb-6 text-blue-600 dark:text-blue-400">For Renters</h3>
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Search Available Space</p>
+                    <p className="text-sm text-muted-foreground">Filter by location, size, and features</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Book Pallet Positions</p>
+                    <p className="text-sm text-muted-foreground">Reserve exact spots, pay only for what you need</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Ship Your Inventory</p>
+                    <p className="text-sm text-muted-foreground">AI agents receive and organize your goods</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-600 dark:text-blue-400">4</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Manage & Monitor</p>
+                    <p className="text-sm text-muted-foreground">Track inventory and shipments in real-time</p>
+                  </div>
                 </div>
               </div>
-              <CardHeader>
-                <CardTitle>Storage Facilities</CardTitle>
-                <CardDescription>5,000 - 25,000 sq ft</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  Perfect for inventory storage, e-commerce fulfillment, and seasonal goods.
-                </p>
-              </CardContent>
-            </Card>
+            </div>
 
-            <Card className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1553413077-190dd305871c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="Distribution center"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <Building2 className="mb-2 h-8 w-8 text-white" />
+            {/* For Owners */}
+            <div>
+              <h3 className="text-xl font-semibold mb-6 text-green-600 dark:text-green-400">For Warehouse Owners</h3>
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-green-600 dark:text-green-400">1</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">List Your Space</p>
+                    <p className="text-sm text-muted-foreground">Add photos, features, and set your prices</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-green-600 dark:text-green-400">2</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Accept Bookings</p>
+                    <p className="text-sm text-muted-foreground">Approve renters or set auto-accept rules</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-green-600 dark:text-green-400">3</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">AI Handles Operations</p>
+                    <p className="text-sm text-muted-foreground">Autonomous agents manage daily activities</p>
+                  </div>
+                </div>
+                <div className="flex gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                    <span className="text-sm font-bold text-green-600 dark:text-green-400">4</span>
+                  </div>
+                  <div>
+                    <p className="font-medium mb-1">Get Paid Monthly</p>
+                    <p className="text-sm text-muted-foreground">Direct deposits with detailed reporting</p>
+                  </div>
                 </div>
               </div>
-              <CardHeader>
-                <CardTitle>Distribution Centers</CardTitle>
-                <CardDescription>25,000 - 100,000 sq ft</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  Ideal for regional distribution with multiple loading docks and high ceilings.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="group cursor-pointer overflow-hidden transition-all hover:shadow-lg">
-              <div className="relative h-48 overflow-hidden">
-                <img
-                  src="https://images.unsplash.com/photo-1581087458702-372e94955c9f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1000&q=80"
-                  alt="Manufacturing space"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                <div className="absolute bottom-4 left-4">
-                  <Users className="mb-2 h-8 w-8 text-white" />
-                </div>
-              </div>
-              <CardHeader>
-                <CardTitle>Manufacturing Spaces</CardTitle>
-                <CardDescription>50,000+ sq ft</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground text-sm">
-                  Heavy-duty facilities with specialized power, ventilation, and floor loading.
-                </p>
-              </CardContent>
-            </Card>
+            </div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="bg-primary text-primary-foreground py-24">
-        <div className="container mx-auto px-4 text-center sm:px-6 lg:px-8">
-          <h2 className="mb-4 text-3xl font-bold">Ready for AI-Powered Warehousing?</h2>
-          <p className="mb-8 text-xl opacity-90">
-            Join the future of warehouse management with autonomous AI agents and intelligent automation.
+      <section className="relative overflow-hidden bg-gradient-to-br from-primary to-primary/90 text-white py-20">
+        <div className="absolute inset-0 bg-grid-white/10 [mask-image:linear-gradient(0deg,white,transparent)]" />
+        <div className="container relative mx-auto px-4 text-center sm:px-6 lg:px-8">
+          <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Ready to Transform Your Warehouse Operations?</h2>
+          <p className="mb-8 text-xl opacity-90 max-w-2xl mx-auto">
+            Join SkidSpace today and experience the future of flexible, AI-powered warehouse management.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/search">
-              <Button size="lg" variant="secondary">
-                Browse Listings
+              <Button size="lg" variant="secondary" className="min-w-[200px]">
+                <Search className="mr-2 h-5 w-5" />
+                Find Space Now
               </Button>
             </Link>
             <Link href="/become-a-partner">
               <Button
                 size="lg"
                 variant="outline"
-                className="text-primary-foreground border-primary-foreground hover:bg-primary-foreground hover:text-primary bg-transparent"
+                className="min-w-[200px] text-white border-white hover:bg-white hover:text-primary bg-transparent"
               >
-                List Your Property
+                <Building2 className="mr-2 h-5 w-5" />
+                List Your Warehouse
               </Button>
             </Link>
+          </div>
+          
+          {/* Quick Stats */}
+          <div className="mt-12 grid grid-cols-3 gap-8 max-w-lg mx-auto">
+            <div>
+              <p className="text-3xl font-bold">24/7</p>
+              <p className="text-sm opacity-90">AI Operations</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold">$1M</p>
+              <p className="text-sm opacity-90">Insurance</p>
+            </div>
+            <div>
+              <p className="text-3xl font-bold">0%</p>
+              <p className="text-sm opacity-90">Setup Fees</p>
+            </div>
           </div>
         </div>
       </section>
@@ -442,8 +560,12 @@ const Home: NextPage = () => {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center justify-between md:flex-row">
             <div className="mb-4 flex items-center md:mb-0">
-              <Building2 className="text-primary h-6 w-6" />
-              <span className="ml-2 font-bold">SkidSpace</span>
+              <img 
+                src="/brand/logo-icon.svg" 
+                alt="SkidSpace" 
+                className="h-6 w-6" 
+              />
+              <span className="ml-2 font-semibold" style={{color: '#0B1220'}}>SkidSpace</span>
             </div>
             <nav className="text-muted-foreground flex gap-6 text-sm">
               <Link href="#" className="hover:text-foreground">

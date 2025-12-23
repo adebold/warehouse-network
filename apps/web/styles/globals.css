@@ -3,23 +3,32 @@
 @tailwind utilities;
 
 @layer base {
-  /* Light theme (default) */
+  /* SkidSpace Brand Colors */
   :root {
-    /* Primary colors */
-    --primary: 198 93% 60%;
+    /* Brand Colors (From Brand Guide) */
+    --ss-blue: #0B5FFF;
+    --ss-orange: #FF8A1F;
+    --ss-ink: #0B1220;
+    --ss-slate: #475569;
+    --ss-border: #E2E8F0;
+    --ss-bg: #FFFFFF;
+    --ss-bg-muted: #F8FAFC;
+    
+    /* Converted to HSL for Tailwind */
+    --primary: 221 100% 53%; /* #0B5FFF */
     --primary-foreground: 0 0% 100%;
     
-    /* Secondary colors */
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    /* Orange accent */
+    --accent: 24 100% 56%; /* #FF8A1F */
+    --accent-foreground: 0 0% 100%;
+    
+    /* Secondary colors using slate */
+    --secondary: 248 25% 94%; /* #F8FAFC */
+    --secondary-foreground: 217 32% 17%; /* #0B1220 */
     
     /* Muted colors */
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-    
-    /* Accent colors */
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --muted: 210 40% 96%; /* #F8FAFC */
+    --muted-foreground: 213 20% 39%; /* #475569 */
     
     /* Semantic colors */
     --destructive: 0 84% 60%;
@@ -28,37 +37,44 @@
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     
-    --warning: 38 92% 50%;
+    --warning: 24 100% 56%; /* Using brand orange for warning */
     --warning-foreground: 0 0% 100%;
     
-    --info: 217 91% 60%;
+    --info: 221 100% 53%; /* Using brand blue for info */
     --info-foreground: 0 0% 100%;
     
     /* Backgrounds and borders */
-    --background: 0 0% 100%;
-    --background-secondary: 0 0% 98%;
-    --background-tertiary: 0 0% 96%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 100%; /* #FFFFFF */
+    --background-secondary: 248 25% 94%; /* #F8FAFC */
+    --background-tertiary: 213 32% 95%;
+    --foreground: 217 32% 17%; /* #0B1220 */
     
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 217 32% 17%;
     
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 217 32% 17%;
     
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 198 93% 60%;
+    --border: 213 32% 91%; /* #E2E8F0 */
+    --input: 213 32% 91%;
+    --ring: 221 100% 53%;
     
-    /* Radius */
-    --radius: 0.5rem;
+    /* Brand Radius */
+    --radius-sm: 8px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius: 14px; /* Default to medium */
   }
   
-  /* Dark theme */
+  /* Dark theme with SkidSpace brand colors */
   [data-theme="dark"] {
-    /* Primary colors */
-    --primary: 198 93% 50%;
+    /* Primary colors - slightly darker brand blue for dark mode */
+    --primary: 221 100% 45%;
     --primary-foreground: 0 0% 100%;
+    
+    /* Orange accent - slightly darker */
+    --accent: 24 100% 50%;
+    --accent-foreground: 0 0% 100%;
     
     /* Secondary colors */
     --secondary: 217 33% 17%;
@@ -66,11 +82,7 @@
     
     /* Muted colors */
     --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 65%;
-    
-    /* Accent colors */
-    --accent: 217 33% 17%;
-    --accent-foreground: 210 40% 98%;
+    --muted-foreground: 213 20% 65%;
     
     /* Semantic colors */
     --destructive: 0 84% 50%;
@@ -79,10 +91,10 @@
     --success: 142 71% 40%;
     --success-foreground: 0 0% 100%;
     
-    --warning: 38 92% 45%;
+    --warning: 24 100% 50%; /* Brand orange */
     --warning-foreground: 0 0% 100%;
     
-    --info: 217 91% 50%;
+    --info: 221 100% 45%; /* Brand blue */
     --info-foreground: 0 0% 100%;
     
     /* Backgrounds and borders */
@@ -99,10 +111,7 @@
     
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 198 93% 50%;
-    
-    /* Radius */
-    --radius: 0.5rem;
+    --ring: 221 100% 45%;
   }
 }
 
@@ -113,16 +122,18 @@
   
   body {
     @apply bg-background text-foreground;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
-  /* Typography */
+  /* SkidSpace Typography */
   h1, h2, h3, h4, h5, h6 {
     @apply scroll-m-20 tracking-tight;
+    font-weight: 600; /* Brand guideline: 600 for headings */
   }
   
   h1 {
-    @apply text-4xl font-extrabold lg:text-5xl;
+    @apply text-4xl font-semibold lg:text-5xl;
   }
   
   h2 {
@@ -135,6 +146,16 @@
   
   h4 {
     @apply text-xl font-semibold;
+  }
+  
+  /* Body text */
+  p {
+    font-weight: 400; /* Brand guideline: 400 for body */
+  }
+  
+  /* Button text */
+  button {
+    font-weight: 500; /* Brand guideline: 500 for buttons */
   }
   
   p {
