@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 
 # Copy package files
@@ -21,7 +21,7 @@ ENV SKIP_ENV_VALIDATION=true
 RUN npm run build || echo "Build completed with warnings"
 
 # Production stage
-FROM node:20-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 # Install OpenSSL for Prisma
