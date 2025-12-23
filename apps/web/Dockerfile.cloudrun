@@ -1,7 +1,7 @@
 # Optimized Dockerfile for Cloud Run deployment
 # Explicitly targeting linux/amd64 architecture
 
-FROM --platform=linux/amd64 node:18-alpine AS base
+FROM --platform=linux/amd64 node:25-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -38,7 +38,7 @@ ENV NODE_ENV production
 RUN npm run build
 
 # Production image, copy all the files and run next
-FROM --platform=linux/amd64 node:18-alpine AS runner
+FROM --platform=linux/amd64 node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production

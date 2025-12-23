@@ -1,5 +1,5 @@
 # Standalone Dockerfile using pre-built Next.js
-FROM --platform=linux/amd64 node:20-alpine AS runner
+FROM --platform=linux/amd64 node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production

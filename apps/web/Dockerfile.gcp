@@ -1,10 +1,10 @@
 # Multi-stage build for GCP deployment
-FROM node:18-alpine AS deps
+FROM node:25-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci || npm install
 
-FROM node:18-alpine AS builder
+FROM node:25-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -23,7 +23,7 @@ RUN npx prisma generate
 # Build Next.js with error handling
 RUN npm run build || echo "Build completed with warnings"
 
-FROM node:18-alpine AS runner
+FROM node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
