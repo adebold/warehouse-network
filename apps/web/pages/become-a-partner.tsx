@@ -8,7 +8,6 @@ import { trackConversion, logEvent } from '@/lib/analytics';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  Building2,
   TrendingUp,
   Shield,
   Zap,
