@@ -22,7 +22,12 @@
     "linting",
     "ci-cd",
     "automation",
-    "best-practices"
+    "best-practices",
+    "security",
+    "authentication",
+    "rbac",
+    "audit-logging",
+    "vulnerability-scanning"
   ],
   "author": "Claude Dev Standards Team",
   "license": "MIT",
@@ -46,7 +51,14 @@
     "lodash": "^4.17.21",
     "ora": "^5.4.1",
     "semver": "^7.5.4",
-    "yaml": "^2.3.4"
+    "yaml": "^2.3.4",
+    "jsonwebtoken": "^9.0.2",
+    "bcrypt": "^5.1.1",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5",
+    "cors": "^2.8.5",
+    "validator": "^13.11.0",
+    "winston": "^3.11.0"
   },
   "devDependencies": {
     "@types/jest": "^29.5.11",

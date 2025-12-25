@@ -46,6 +46,19 @@ async function init(options) {
       await templateManager.copyTemplate('testing', process.cwd(), projectType);
     }
     
+    if (answers.setupSecurity) {
+      await templateManager.copyTemplate('security', process.cwd(), projectType);
+      const SecurityValidator = require('../validators/security');
+      const security = new SecurityValidator();
+      await security.setupSecurity(process.cwd(), { 
+        auth: true, 
+        secrets: true, 
+        rbac: true, 
+        audit: true, 
+        container: true 
+      });
+    }
+    
     // Set up git hooks if requested
     if (answers.setupGitHooks && options.gitHooks !== false) {
       await gitHooks.install(process.cwd());
@@ -90,6 +103,12 @@ async function promptConfiguration(projectType) {
       type: 'confirm',
       name: 'setupTesting',
       message: 'Set up testing framework?',
+      default: true
+    },
+    {
+      type: 'confirm',
+      name: 'setupSecurity',
+      message: 'Set up security framework?',
       default: true
     },
     {
