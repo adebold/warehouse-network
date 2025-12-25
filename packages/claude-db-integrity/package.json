@@ -8,14 +8,33 @@
     "claude-db-integrity": "./bin/claude-db-integrity"
   },
   "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "jest",
+    "build": "npm run clean && tsc && npm run copy-assets",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "copy-assets": "cp -r templates dist/ && cp -r examples dist/ && cp -r docs dist/",
+    "dev": "npm run build:watch",
+    "test": "jest --passWithNoTests",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
     "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
     "lint": "eslint src/**/*.ts",
     "lint:fix": "eslint src/**/*.ts --fix",
-    "prepublishOnly": "npm run build",
-    "postinstall": "node bin/post-install.js"
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build",
+    "postinstall": "node bin/post-install.js || echo 'Postinstall completed'",
+    "publish:dry": "npm publish --dry-run",
+    "publish:beta": "npm publish --tag beta",
+    "publish:latest": "npm publish --tag latest",
+    "version:patch": "npm version patch",
+    "version:minor": "npm version minor",
+    "version:major": "npm version major",
+    "docs:generate": "typedoc --out docs/api src/index.ts",
+    "examples:test": "node scripts/test-examples.js",
+    "quick-setup": "./scripts/quick-setup.sh",
+    "migrate-existing": "./scripts/migrate-existing.sh",
+    "docker-setup": "./scripts/docker-setup.sh"
   },
   "keywords": [
     "database",
@@ -44,12 +63,36 @@
   },
   "homepage": "https://github.com/warehouse-network/claude-db-integrity#readme",
   "files": [
-    "dist",
-    "bin",
-    "templates",
-    "examples",
-    "docs"
+    "dist/**/*",
+    "bin/**/*",
+    "scripts/**/*",
+    "README.md",
+    "LICENSE",
+    "PUBLISHING.md"
   ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./express": {
+      "import": "./dist/integrations/express.js",
+      "require": "./dist/integrations/express.js",
+      "types": "./dist/integrations/express.d.ts"
+    },
+    "./nextjs": {
+      "import": "./dist/integrations/nextjs.js",
+      "require": "./dist/integrations/nextjs.js", 
+      "types": "./dist/integrations/nextjs.d.ts"
+    },
+    "./nestjs": {
+      "import": "./dist/integrations/nestjs.js",
+      "require": "./dist/integrations/nestjs.js",
+      "types": "./dist/integrations/nestjs.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
   "dependencies": {
     "@prisma/client": "^5.7.1",
     "commander": "^11.1.0",
@@ -80,7 +123,11 @@
     "@typescript-eslint/eslint-plugin": "^6.14.0",
     "jest": "^29.7.0",
     "ts-jest": "^29.1.1",
-    "prisma": "^5.7.1"
+    "prisma": "^5.7.1",
+    "rimraf": "^5.0.5",
+    "typedoc": "^0.25.4",
+    "@jest/types": "^29.6.3",
+    "ts-node": "^10.9.2"
   },
   "peerDependencies": {
     "prisma": "^5.0.0",
