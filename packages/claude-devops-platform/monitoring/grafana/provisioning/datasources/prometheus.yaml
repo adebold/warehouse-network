@@ -1,0 +1,49 @@
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true
+    jsonData:
+      timeInterval: 15s
+      queryTimeout: 60s
+      httpMethod: POST
+
+  - name: Loki
+    type: loki
+    access: proxy
+    url: http://loki:3100
+    editable: true
+    jsonData:
+      maxLines: 1000
+
+  - name: PostgreSQL
+    type: postgres
+    url: claude-platform-postgresql:5432
+    user: claude_user
+    database: claude_platform
+    jsonData:
+      sslmode: require
+      postgresVersion: 1600
+      timescaledb: false
+    secureJsonData:
+      password: ${POSTGRES_PASSWORD}
+
+  - name: Redis
+    type: redis-datasource
+    access: proxy
+    url: redis://claude-platform-redis:6379
+    jsonData:
+      client: standalone
+    secureJsonData:
+      password: ${REDIS_PASSWORD}
+
+  - name: CloudWatch
+    type: cloudwatch
+    jsonData:
+      authType: default
+      defaultRegion: ${AWS_DEFAULT_REGION}
+    editable: true

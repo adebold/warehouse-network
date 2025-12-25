@@ -78,17 +78,17 @@ export const useAnalytics = () => {
   // Form tracking helpers
   const formTracking = {
     start: (formName: string) => trackForm.start(formName),
-    field: (formName: string, fieldName: string) => trackForm.fieldInteraction(formName, fieldName),
-    submit: (formName: string) => trackForm.submit(formName),
+    field: (formName: string, fieldName: string) => logEvent('Form', 'field_interaction', `${formName} - ${fieldName}`),
+    submit: (formName: string) => trackForm.complete(formName),
     abandon: (formName: string, lastField?: string) => trackForm.abandon(formName, lastField),
     error: (formName: string, errorField: string) => trackForm.error(formName, errorField),
   };
 
   // Search tracking helpers
   const searchTracking = {
-    query: (term: string, results: number) => trackSearch.query(term, results),
-    filter: (type: string, value: string) => trackSearch.filter(type, value),
-    clickResult: (id: string, position: number) => trackSearch.resultClick(id, position),
+    query: (term: string, results: number) => trackSearch(term, results),
+    filter: (type: string, value: string) => logEvent('Search', 'filter', `${type}: ${value}`),
+    clickResult: (id: string, position: number) => logEvent('Search', 'result_click', id, position),
   };
 
   return {

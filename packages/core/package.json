@@ -4,13 +4,33 @@
   "description": "Core business logic for the warehouse network platform",
   "main": "src/index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db:check": "node ../../apps/web/scripts/db-integrity.js check",
+    "db:migrate": "node ../../apps/web/scripts/db-integrity.js migrate:run",
+    "db:drift": "node ../../apps/web/scripts/db-integrity.js drift:detect",
+    "db:validate": "node ../../apps/web/scripts/db-integrity.js validate:warehouse",
+    "memory-bank": "ts-node src/database-integrity/cli/memory-bank-cli.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.7.0",
-    "stripe": "^14.7.0"
+    "stripe": "^14.7.0",
+    "pg": "^8.11.3",
+    "winston": "^3.11.0",
+    "cron": "^3.1.6",
+    "glob": "^10.3.10",
+    "uuid": "^9.0.1",
+    "date-fns": "^2.30.0",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "commander": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9",
+    "@types/cron": "^2.0.1",
+    "@types/uuid": "^9.0.7",
+    "ts-node": "^10.9.2"
   }
 }

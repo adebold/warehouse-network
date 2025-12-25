@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: claude-platform
+  labels:
+    name: claude-platform
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/part-of: claude-devops-platform
+  annotations:
+    scheduler.alpha.kubernetes.io/node-selector: "node-role.kubernetes.io/worker=true"

@@ -1,0 +1,389 @@
+name: Database Drift Detection
+
+on:
+  # Run on every push to main/master
+  push:
+    branches: [main, master]
+    paths:
+      - 'migrations/**'
+      - 'src/models/**'
+      - 'src/database/**'
+      - 'prisma/schema.prisma'
+      - 'knexfile.js'
+      - 'database-integrity.config.js'
+  
+  # Run on pull requests
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'migrations/**'
+      - 'src/models/**'
+      - 'src/database/**'
+      - 'prisma/schema.prisma'
+      - 'knexfile.js'
+      - 'database-integrity.config.js'
+  
+  # Run on schedule (every 6 hours)
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Allow manual triggering
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to check'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+env:
+  NODE_ENV: ${{ github.event.inputs.environment || 'production' }}
+  CLAUDE_PLATFORM_VERSION: latest
+
+jobs:
+  setup:
+    name: Setup Database Connection
+    runs-on: ubuntu-latest
+    outputs:
+      db-available: ${{ steps.check-db.outputs.available }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Check database availability
+        id: check-db
+        run: |
+          # Check if we can connect to the database
+          if [[ "${{ env.NODE_ENV }}" == "production" ]]; then
+            # For production, ensure we have credentials
+            if [[ -z "${{ secrets.PROD_DB_HOST }}" ]]; then
+              echo "available=false" >> $GITHUB_OUTPUT
+              echo "::warning::Production database credentials not configured"
+            else
+              echo "available=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "available=true" >> $GITHUB_OUTPUT
+          fi
+
+  drift-detection:
+    name: Detect Schema Drift
+    needs: setup
+    if: needs.setup.outputs.db-available == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Get full history for comparisons
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Claude DevOps Platform
+        run: |
+          npm install -g @claude/devops-platform@${{ env.CLAUDE_PLATFORM_VERSION }}
+          # Or install locally if not published
+          # npm install
+          # npm link
+
+      - name: Configure database connection
+        run: |
+          # Set database credentials based on environment
+          if [[ "${{ env.NODE_ENV }}" == "production" ]]; then
+            echo "DB_HOST=${{ secrets.PROD_DB_HOST }}" >> $GITHUB_ENV
+            echo "DB_PORT=${{ secrets.PROD_DB_PORT }}" >> $GITHUB_ENV
+            echo "DB_NAME=${{ secrets.PROD_DB_NAME }}" >> $GITHUB_ENV
+            echo "DB_USER=${{ secrets.PROD_DB_USER }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}" >> $GITHUB_ENV
+          elif [[ "${{ env.NODE_ENV }}" == "staging" ]]; then
+            echo "DB_HOST=${{ secrets.STAGING_DB_HOST }}" >> $GITHUB_ENV
+            echo "DB_PORT=${{ secrets.STAGING_DB_PORT }}" >> $GITHUB_ENV
+            echo "DB_NAME=${{ secrets.STAGING_DB_NAME }}" >> $GITHUB_ENV
+            echo "DB_USER=${{ secrets.STAGING_DB_USER }}" >> $GITHUB_ENV
+            echo "DB_PASSWORD=${{ secrets.STAGING_DB_PASSWORD }}" >> $GITHUB_ENV
+          fi
+
+      - name: Check migration status
+        id: migration-status
+        run: |
+          claude-platform db migrate:status --json > migration-status.json
+          cat migration-status.json
+          
+          # Check if there are pending migrations
+          PENDING=$(jq '.pending | length' migration-status.json)
+          echo "pending-count=$PENDING" >> $GITHUB_OUTPUT
+          
+          if [[ $PENDING -gt 0 ]]; then
+            echo "::warning::Found $PENDING pending migrations"
+          fi
+
+      - name: Run drift detection
+        id: drift-check
+        run: |
+          claude-platform db drift:check --json > drift-report.json
+          cat drift-report.json
+          
+          # Check if drift was detected
+          HAS_DRIFT=$(jq '.hasDrift' drift-report.json)
+          echo "has-drift=$HAS_DRIFT" >> $GITHUB_OUTPUT
+          
+          if [[ "$HAS_DRIFT" == "true" ]]; then
+            echo "::error::Database schema drift detected!"
+            
+            # Extract drift summary
+            ADDED_TABLES=$(jq '.tables.added | length' drift-report.json)
+            REMOVED_TABLES=$(jq '.tables.removed | length' drift-report.json)
+            MODIFIED_TABLES=$(jq '.tables.modified | length' drift-report.json)
+            
+            echo "### 🚨 Schema Drift Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Added tables:** $ADDED_TABLES" >> $GITHUB_STEP_SUMMARY
+            echo "- **Removed tables:** $REMOVED_TABLES" >> $GITHUB_STEP_SUMMARY
+            echo "- **Modified tables:** $MODIFIED_TABLES" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Run \`claude-platform db drift:fix\` to generate fix migrations." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ✅ No Schema Drift" >> $GITHUB_STEP_SUMMARY
+            echo "Database schema is in sync with migrations." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Analyze schema health
+        if: always()
+        run: |
+          claude-platform db schema:analyze --performance --suggestions --json > schema-analysis.json
+          
+          # Extract key metrics
+          PERF_ISSUES=$(jq '.performanceIssues | length' schema-analysis.json)
+          SUGGESTIONS=$(jq '.suggestions | length' schema-analysis.json)
+          
+          if [[ $PERF_ISSUES -gt 0 || $SUGGESTIONS -gt 0 ]]; then
+            echo "### 📊 Schema Analysis" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "- **Performance issues:** $PERF_ISSUES" >> $GITHUB_STEP_SUMMARY
+            echo "- **Optimization suggestions:** $SUGGESTIONS" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Validate API routes
+        if: always()
+        run: |
+          claude-platform db validate:routes --json > route-validation.json || true
+          
+          # Extract validation results
+          ERRORS=$(jq '.errors | length' route-validation.json 2>/dev/null || echo "0")
+          WARNINGS=$(jq '.warnings | length' route-validation.json 2>/dev/null || echo "0")
+          
+          if [[ $ERRORS -gt 0 ]]; then
+            echo "::error::Found $ERRORS route validation errors"
+            echo "### ❌ Route Validation Failed" >> $GITHUB_STEP_SUMMARY
+            echo "Found $ERRORS errors in API routes" >> $GITHUB_STEP_SUMMARY
+          elif [[ $WARNINGS -gt 0 ]]; then
+            echo "::warning::Found $WARNINGS route validation warnings"
+          fi
+
+      - name: Generate drift fix (PR only)
+        if: github.event_name == 'pull_request' && steps.drift-check.outputs.has-drift == 'true'
+        run: |
+          # Generate fix migrations in dry-run mode
+          claude-platform db drift:fix --dry-run --json > fix-migrations.json
+          
+          # Create a comment body
+          echo "## 🔧 Suggested Drift Fix Migrations" > comment.md
+          echo "" >> comment.md
+          echo "The following migrations would fix the detected schema drift:" >> comment.md
+          echo "" >> comment.md
+          echo "\`\`\`sql" >> comment.md
+          jq -r '.[] | .sql' fix-migrations.json >> comment.md
+          echo "\`\`\`" >> comment.md
+          echo "" >> comment.md
+          echo "To apply these fixes, run:" >> comment.md
+          echo "\`\`\`bash" >> comment.md
+          echo "claude-platform db drift:fix" >> comment.md
+          echo "claude-platform db migrate" >> comment.md
+          echo "\`\`\`" >> comment.md
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            
+            // Read the comment file if it exists
+            let comment = '## 📊 Database Integrity Check\n\n';
+            
+            // Add migration status
+            const migrationStatus = JSON.parse(fs.readFileSync('migration-status.json', 'utf8'));
+            const pendingCount = migrationStatus.pending.length;
+            if (pendingCount > 0) {
+              comment += `### ⚠️ Pending Migrations\n`;
+              comment += `Found ${pendingCount} pending migrations:\n`;
+              migrationStatus.pending.forEach(m => {
+                comment += `- ${m.name}\n`;
+              });
+              comment += '\n';
+            }
+            
+            // Add drift status
+            const driftReport = JSON.parse(fs.readFileSync('drift-report.json', 'utf8'));
+            if (driftReport.hasDrift) {
+              comment += `### 🚨 Schema Drift Detected\n`;
+              comment += `- Added tables: ${driftReport.tables.added.length}\n`;
+              comment += `- Removed tables: ${driftReport.tables.removed.length}\n`;
+              comment += `- Modified tables: ${driftReport.tables.modified.length}\n`;
+              comment += '\n';
+              
+              // Add fix migrations if they exist
+              if (fs.existsSync('comment.md')) {
+                comment += fs.readFileSync('comment.md', 'utf8');
+              }
+            } else {
+              comment += `### ✅ No Schema Drift\n`;
+              comment += `Database schema is in sync with migrations.\n\n`;
+            }
+            
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('Database Integrity Check')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-integrity-reports
+          path: |
+            migration-status.json
+            drift-report.json
+            schema-analysis.json
+            route-validation.json
+            fix-migrations.json
+          retention-days: 30
+
+      - name: Send notifications
+        if: steps.drift-check.outputs.has-drift == 'true' && env.NODE_ENV == 'production'
+        run: |
+          # Send Slack notification
+          if [[ -n "${{ secrets.SLACK_WEBHOOK_URL }}" ]]; then
+            curl -X POST ${{ secrets.SLACK_WEBHOOK_URL }} \
+              -H 'Content-Type: application/json' \
+              -d '{
+                "text": "🚨 Database schema drift detected in production!",
+                "attachments": [{
+                  "color": "danger",
+                  "fields": [{
+                    "title": "Environment",
+                    "value": "Production",
+                    "short": true
+                  }, {
+                    "title": "Repository",
+                    "value": "${{ github.repository }}",
+                    "short": true
+                  }, {
+                    "title": "Action",
+                    "value": "Review drift report and generate fix migrations",
+                    "short": false
+                  }]
+                }]
+              }'
+          fi
+          
+          # Create GitHub issue
+          if [[ "${{ github.event_name }}" != "pull_request" ]]; then
+            gh issue create \
+              --title "🚨 Database Schema Drift Detected" \
+              --body "Schema drift was detected in the production database. Please review the drift report and generate fix migrations." \
+              --label "database,urgent"
+          fi
+
+      - name: Fail if drift detected
+        if: steps.drift-check.outputs.has-drift == 'true' && github.event_name == 'pull_request'
+        run: |
+          echo "::error::Database schema drift detected. Please fix before merging."
+          exit 1
+
+  # Job to run on pull request to prevent drift
+  prevent-drift:
+    name: Prevent Schema Drift
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Checkout base
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: base
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Compare migration files
+        run: |
+          # Check if migrations were added/modified
+          MIGRATION_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '^migrations/' || true)
+          
+          if [[ -n "$MIGRATION_CHANGES" ]]; then
+            echo "### 📝 Migration Changes Detected" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "The following migration files were changed:" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "$MIGRATION_CHANGES" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please ensure these migrations:" >> $GITHUB_STEP_SUMMARY
+            echo "- Have corresponding rollback methods" >> $GITHUB_STEP_SUMMARY
+            echo "- Are tested in a development environment" >> $GITHUB_STEP_SUMMARY
+            echo "- Follow naming conventions" >> $GITHUB_STEP_SUMMARY
+            echo "- Include appropriate indexes" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Check for model changes without migrations
+        run: |
+          # Check if models changed without corresponding migrations
+          MODEL_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '^src/models/|^src/entities/|^prisma/schema.prisma' || true)
+          MIGRATION_CHANGES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} | grep -E '^migrations/' || true)
+          
+          if [[ -n "$MODEL_CHANGES" && -z "$MIGRATION_CHANGES" ]]; then
+            echo "::warning::Model changes detected without corresponding migrations"
+            echo "### ⚠️ Missing Migrations?" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Model files were changed but no new migrations were added." >> $GITHUB_STEP_SUMMARY
+            echo "If these changes affect the database schema, please add migrations." >> $GITHUB_STEP_SUMMARY
+          fi

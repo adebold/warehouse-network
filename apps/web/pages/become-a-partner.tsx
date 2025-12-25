@@ -255,52 +255,52 @@ const BecomeAPartner: NextPage = () => {
       <section className="py-24">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-16 text-center">
-            <h2 className="text-3xl font-bold tracking-tight">Why Partners Choose Our AI Platform</h2>
+            <h2 className="text-3xl font-bold tracking-tight">Why Partners Choose SkidSpace</h2>
             <p className="text-muted-foreground mt-4 text-lg">
-              Advanced autonomous AI management to maximize warehouse efficiency and revenue
+              Proven platform to maximize your warehouse revenue with flexible rentals
             </p>
           </div>
 
           <div className="grid gap-8 md:grid-cols-3">
             <Card className="relative overflow-hidden border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
               <CardHeader>
-                <Brain className="text-blue-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-blue-900">GOAP AI Management</CardTitle>
+                <TrendingUp className="text-blue-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-blue-900">Maximize Revenue</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-blue-700 mb-4">
-                  Autonomous agents optimize your warehouse operations 24/7, reducing costs and increasing efficiency.
+                  Fill unused space with flexible rentals. Set your own rates and terms to optimize income.
                 </p>
-                <p className="text-blue-600 text-2xl font-bold">+45%</p>
-                <p className="text-blue-600 text-sm">Operational efficiency gain</p>
+                <p className="text-blue-600 text-2xl font-bold">95%</p>
+                <p className="text-blue-600 text-sm">Average occupancy rate</p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden border-purple-200 bg-gradient-to-br from-purple-50 to-violet-50">
               <CardHeader>
-                <Bot className="text-purple-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-purple-900">Intelligent Automation</CardTitle>
+                <Users className="text-purple-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-purple-900">Verified Tenants</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-purple-700 mb-4">
-                  8 specialized AI agents handle inventory, shipping, quality control, and optimization automatically.
+                  Pre-screened businesses with verified insurance and payment history. Reduce risk, increase peace of mind.
                 </p>
-                <p className="text-purple-600 text-2xl font-bold">84.8%</p>
-                <p className="text-purple-600 text-sm">Task completion accuracy</p>
+                <p className="text-purple-600 text-2xl font-bold">500+</p>
+                <p className="text-purple-600 text-sm">Active business customers</p>
               </CardContent>
             </Card>
 
             <Card className="relative overflow-hidden border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
               <CardHeader>
-                <Workflow className="text-green-600 mb-4 h-10 w-10" />
-                <CardTitle className="text-green-900">Smart Planning</CardTitle>
+                <Shield className="text-green-600 mb-4 h-10 w-10" />
+                <CardTitle className="text-green-900">Full Protection</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-green-700 mb-4">
-                  A* pathfinding algorithm creates optimal action plans, reducing waste and maximizing throughput.
+                  $1M liability insurance included with every rental. Your property and business are fully protected.
                 </p>
-                <p className="text-green-600 text-2xl font-bold">15+</p>
-                <p className="text-green-600 text-sm">Autonomous warehouse actions</p>
+                <p className="text-green-600 text-2xl font-bold">100%</p>
+                <p className="text-green-600 text-sm">Coverage on all rentals</p>
               </CardContent>
             </Card>
           </div>
@@ -313,11 +313,11 @@ const BecomeAPartner: NextPage = () => {
           <div className="mx-auto max-w-3xl text-center">
             <BarChart3 className="text-primary mx-auto mb-6 h-16 w-16" />
             <h2 className="mb-4 text-3xl font-bold tracking-tight">
-              Your AI-powered warehouse could be earning
+              Your warehouse could be earning
             </h2>
             <p className="text-primary mb-2 text-5xl font-bold">$26,800/month</p>
             <p className="text-muted-foreground mb-8 text-lg">
-              Based on 10,000 sq ft with GOAP autonomous optimization (+45% efficiency)
+              Based on average 10,000 sq ft warehouse in the Greater Toronto Area
             </p>
             <Button
               size="lg"

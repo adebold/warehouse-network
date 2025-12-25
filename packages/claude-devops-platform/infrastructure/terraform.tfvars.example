@@ -1,0 +1,62 @@
+# Example Terraform variables file
+# Copy this to terraform.tfvars and adjust values as needed
+
+# General settings
+aws_region  = "us-east-1"
+environment = "development"
+
+# Network configuration
+vpc_cidr             = "10.0.0.0/16"
+private_subnet_cidrs = ["10.0.1.0/24", "10.0.2.0/24", "10.0.3.0/24"]
+public_subnet_cidrs  = ["10.0.101.0/24", "10.0.102.0/24", "10.0.103.0/24"]
+
+# EKS configuration
+kubernetes_version      = "1.28"
+node_instance_types     = ["t3.medium"]
+capacity_type          = "ON_DEMAND"
+node_group_min_size    = 2
+node_group_max_size    = 10
+node_group_desired_size = 3
+
+# Security
+allowed_cidr_blocks = ["0.0.0.0/0"] # Restrict this in production!
+
+# Database configuration
+db_instance_class    = "db.t3.medium"
+db_allocated_storage = 100
+postgres_version     = "16.1"
+
+# Redis configuration
+redis_node_type = "cache.t3.micro"
+
+# Feature flags
+enable_monitoring   = true
+enable_logging      = true
+enable_service_mesh = false
+enable_gitops       = true
+
+# Additional IAM roles for EKS access
+aws_auth_roles = [
+  # {
+  #   rolearn  = "arn:aws:iam::123456789012:role/DevOpsRole"
+  #   username = "devops-user"
+  #   groups   = ["system:masters"]
+  # }
+]
+
+# Additional IAM users for EKS access
+aws_auth_users = [
+  # {
+  #   userarn  = "arn:aws:iam::123456789012:user/developer"
+  #   username = "developer"
+  #   groups   = ["system:masters"]
+  # }
+]
+
+# Tags
+tags = {
+  Project     = "claude-platform"
+  ManagedBy   = "terraform"
+  Environment = "development"
+  Team        = "platform"
+}

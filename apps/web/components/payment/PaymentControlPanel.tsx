@@ -4,7 +4,13 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PaymentStatusBadge, AccountStatusIndicator } from './PaymentStatusBadge';
 import { CustomerAccountStatus, CustomerPaymentStatus } from '@prisma/client';
@@ -146,20 +152,23 @@ export function PaymentControlPanel({ customer, onUpdate }: PaymentControlPanelP
               <div>
                 <Label htmlFor="paymentStatus">Payment Status</Label>
                 <Select
-                  id="paymentStatus"
                   value={paymentData.paymentStatus}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  onValueChange={(value: string) =>
                     setPaymentData({
                       ...paymentData,
-                      paymentStatus: e.target.value as CustomerPaymentStatus,
+                      paymentStatus: value as CustomerPaymentStatus,
                     })
                   }
                   disabled={!canOverride || loading}
-                  className="mt-1"
                 >
-                  <option value="CURRENT">Current</option>
-                  <option value="OVERDUE">Overdue</option>
-                  <option value="DELINQUENT">Delinquent</option>
+                  <SelectTrigger className="mt-1" id="paymentStatus">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CURRENT">Current</SelectItem>
+                    <SelectItem value="OVERDUE">Overdue</SelectItem>
+                    <SelectItem value="DELINQUENT">Delinquent</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
 

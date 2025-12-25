@@ -32,7 +32,7 @@ export function AccountLockWarning({
   const getAlertVariant = () => {
     if (customer.accountStatus === 'LOCKED') return 'destructive';
     if (customer.accountStatus === 'SUSPENDED' || customer.paymentStatus === 'DELINQUENT')
-      return 'warning';
+      return 'destructive';
     return 'default';
   };
 

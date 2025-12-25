@@ -146,6 +146,28 @@ warehouse-network/
 └── .github/workflows/   # CI/CD pipelines
 ```
 
+## 🛡️ Database Integrity System
+
+The Warehouse Network Platform includes a comprehensive Database Integrity System that ensures data consistency, reliability, and integrity across all operations:
+
+### Key Features
+
+- 🔍 **Real-time Validation**: Automatic validation of all database operations against schema and business rules
+- 🔧 **Automatic Recovery**: Self-healing capabilities for common data issues
+- 📊 **Performance Monitoring**: Track slow queries and optimization opportunities
+- 📈 **Comprehensive Reporting**: Detailed integrity reports and audit trails
+- 🚨 **Proactive Alerts**: Immediate notification of integrity violations
+
+### Benefits
+
+- **Zero Data Corruption**: Prevent invalid data from entering the system
+- **Reduced Downtime**: Automatic recovery from common database issues
+- **Better Performance**: Identify and fix performance bottlenecks
+- **Audit Compliance**: Complete audit trail for all database changes
+- **Developer Productivity**: Clear error messages and automatic fixes
+
+[Learn more about Database Integrity →](./apps/web/docs/database-integrity.md)
+
 ## 🔒 Security Features
 
 ### VARAi Security Platform Integration
@@ -168,6 +190,7 @@ The Warehouse Network now includes enterprise-grade security configurations powe
 - ✅ **SQL Injection Protection**: Parameterized queries via Prisma
 - ✅ **XSS Prevention**: React's built-in protections + CSP
 - ✅ **HTTPS Enforcement**: HSTS header with preload
+- ✅ **Database Integrity**: Real-time validation and monitoring via Database Integrity System
 
 ### Compliance
 

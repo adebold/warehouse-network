@@ -1,14 +1,12 @@
-import type { User, Warehouse, Customer } from '@warehouse/types';
-
-import { Customer, User, AccountLockHistory } from '@prisma/client';
+import { Customer as PrismaCustomer, User as PrismaUser, AccountLockHistory } from '@prisma/client';
 import { sendEmail } from '../email';
 import prisma from '../prisma';
 
 interface NotificationData {
-  customer: Customer;
+  customer: PrismaCustomer;
   action: 'LOCKED' | 'UNLOCKED';
   reason?: string;
-  performedBy: User;
+  performedBy: PrismaUser;
 }
 
 export async function sendAccountLockNotification(data: NotificationData) {
@@ -32,7 +30,7 @@ export async function sendAccountLockNotification(data: NotificationData) {
   const textContent = generateEmailText(data);
 
   // Send emails to all customer users
-  const emailPromises = customerUsers.map(user =>
+  const emailPromises = customerUsers.map((user: PrismaUser) =>
     sendEmail({
       to: user.email,
       subject,
@@ -52,7 +50,7 @@ export async function sendAccountLockNotification(data: NotificationData) {
   const operatorSubject = `Account ${action.toLowerCase()}: ${customer.name}`;
   const operatorHtml = generateOperatorEmailHtml(data);
 
-  const operatorPromises = operators.map(operator =>
+  const operatorPromises = operators.map((operator: PrismaUser) =>
     sendEmail({
       to: operator.email,
       subject: operatorSubject,

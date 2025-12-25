@@ -1,0 +1,34 @@
+# Development files
+tests/
+*.test.js
+*.spec.js
+.eslintrc*
+.prettierrc*
+jest.config.js
+vitest.config.js
+
+# Source control
+.git/
+.gitignore
+.github/
+
+# Documentation source
+docs/
+
+# Build and temp files
+*.log
+.DS_Store
+.cache/
+coverage/
+.nyc_output/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local config
+.env
+.env.*
+!.env.example

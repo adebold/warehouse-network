@@ -1,0 +1,209 @@
+# Production values for claude-platform
+# This overrides the default values.yaml
+
+# Production replicas
+replicaCount: 5
+
+# Production image settings
+image:
+  pullPolicy: Always
+
+# Enhanced security for production
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+  sysctls:
+    - name: net.core.somaxconn
+      value: "32768"
+
+# Production service configuration
+service:
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-cross-zone-load-balancing-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-enabled: "true"
+    service.beta.kubernetes.io/aws-load-balancer-connection-draining-timeout: "60"
+
+# Production ingress
+ingress:
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/rate-limit-connections: "100"
+    nginx.ingress.kubernetes.io/rate-limit-rps: "200"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "60"
+  hosts:
+    - host: api.claude-platform.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: app.claude-platform.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: claude-platform-tls
+      hosts:
+        - api.claude-platform.com
+        - app.claude-platform.com
+
+# Production resources
+resources:
+  requests:
+    memory: "1Gi"
+    cpu: "500m"
+  limits:
+    memory: "4Gi"
+    cpu: "2000m"
+
+# Production autoscaling
+autoscaling:
+  enabled: true
+  minReplicas: 5
+  maxReplicas: 20
+  targetCPUUtilizationPercentage: 60
+  targetMemoryUtilizationPercentage: 70
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 10
+        periodSeconds: 60
+      - type: Pods
+        value: 2
+        periodSeconds: 120
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+      - type: Pods
+        value: 5
+        periodSeconds: 60
+
+# Production environment variables
+env:
+  NODE_ENV: production
+  LOG_LEVEL: warn
+  ENABLE_TELEMETRY: "true"
+  ENABLE_PROFILING: "true"
+  RATE_LIMIT_WINDOW: "15m"
+  RATE_LIMIT_MAX: "1000"
+  DATABASE_POOL_MIN: "5"
+  DATABASE_POOL_MAX: "20"
+  REDIS_MAX_RETRIES: "5"
+  REDIS_RETRY_DELAY: "500"
+
+# Production secrets (use external-secrets)
+secrets:
+  externalSecrets:
+    enabled: true
+    secretStore: "aws-secrets-manager"
+    refreshInterval: 5m
+
+# Production persistence
+persistence:
+  enabled: true
+  storageClass: gp3-encrypted
+  accessMode: ReadWriteOnce
+  size: 100Gi
+
+# Production PostgreSQL
+postgresql:
+  primary:
+    persistence:
+      size: 500Gi
+      storageClass: gp3-encrypted
+    resources:
+      requests:
+        memory: "2Gi"
+        cpu: "1000m"
+      limits:
+        memory: "8Gi"
+        cpu: "4000m"
+  replication:
+    enabled: true
+    readReplicas: 2
+  backup:
+    enabled: true
+    schedule: "0 3 * * *"
+    retentionDays: 30
+
+# Production Redis
+redis:
+  sentinel:
+    enabled: true
+  master:
+    persistence:
+      size: 50Gi
+      storageClass: gp3-encrypted
+    resources:
+      requests:
+        memory: "1Gi"
+        cpu: "500m"
+      limits:
+        memory: "4Gi"
+        cpu: "2000m"
+
+# Production monitoring
+monitoring:
+  prometheus:
+    enabled: true
+    retention: 30d
+  loki:
+    enabled: true
+    retention: 30d
+  grafana:
+    enabled: true
+    persistence:
+      enabled: true
+      size: 10Gi
+
+# Production network policy
+networkPolicy:
+  enabled: true
+  policyTypes:
+    - Ingress
+    - Egress
+
+# Production PDB
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 3
+
+# Production node affinity
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: node-role.kubernetes.io/production
+          operator: In
+          values:
+          - "true"
+  podAntiAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+    - labelSelector:
+        matchExpressions:
+        - key: app.kubernetes.io/name
+          operator: In
+          values:
+          - claude-platform
+      topologyKey: kubernetes.io/hostname
+
+# Production tolerations
+tolerations:
+  - key: "production"
+    operator: "Equal"
+    value: "true"
+    effect: "NoSchedule"

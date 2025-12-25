@@ -1,0 +1,158 @@
+# ServiceAccount for the application
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: claude-platform-sa
+  namespace: claude-platform
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: rbac
+  annotations:
+    # For AWS IAM roles for service accounts (IRSA)
+    eks.amazonaws.com/role-arn: arn:aws:iam::123456789012:role/claude-platform-role
+automountServiceAccountToken: true
+
+---
+# Role for application-specific permissions
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: claude-platform-role
+  namespace: claude-platform
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: rbac
+rules:
+# Allow reading config maps
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch"]
+# Allow reading secrets (for dynamic configuration)
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list"]
+# Allow reading and updating deployments (for self-management)
+- apiGroups: ["apps"]
+  resources: ["deployments", "replicasets"]
+  verbs: ["get", "list", "watch"]
+# Allow reading pods (for health checks and service discovery)
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "watch"]
+# Allow reading services and endpoints
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list", "watch"]
+# Allow creating events
+- apiGroups: [""]
+  resources: ["events"]
+  verbs: ["create", "patch"]
+
+---
+# RoleBinding to connect ServiceAccount with Role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: claude-platform-rolebinding
+  namespace: claude-platform
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: claude-platform-role
+subjects:
+- kind: ServiceAccount
+  name: claude-platform-sa
+  namespace: claude-platform
+
+---
+# ClusterRole for cross-namespace operations
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: claude-platform-clusterrole
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: rbac
+rules:
+# Allow reading namespaces
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list", "watch"]
+# Allow reading nodes (for scheduling decisions)
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list", "watch"]
+# Allow reading custom resources
+- apiGroups: ["apiextensions.k8s.io"]
+  resources: ["customresourcedefinitions"]
+  verbs: ["get", "list", "watch"]
+# Allow reading metrics
+- apiGroups: ["metrics.k8s.io"]
+  resources: ["nodes", "pods"]
+  verbs: ["get", "list"]
+
+---
+# ClusterRoleBinding for ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: claude-platform-clusterrolebinding
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: claude-platform-clusterrole
+subjects:
+- kind: ServiceAccount
+  name: claude-platform-sa
+  namespace: claude-platform
+
+---
+# SecurityPolicy for pod security standards
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: claude-platform-psp
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: security
+spec:
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+  - ALL
+  volumes:
+  - 'configMap'
+  - 'emptyDir'
+  - 'projected'
+  - 'secret'
+  - 'downwardAPI'
+  - 'persistentVolumeClaim'
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: 'MustRunAsNonRoot'
+  runAsGroup:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1000
+      max: 65535
+  supplementalGroups:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1000
+      max: 65535
+  fsGroup:
+    rule: 'MustRunAs'
+    ranges:
+    - min: 1000
+      max: 65535
+  readOnlyRootFilesystem: true
+  seLinux:
+    rule: 'RunAsAny'

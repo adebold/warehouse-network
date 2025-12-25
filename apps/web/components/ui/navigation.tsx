@@ -5,7 +5,7 @@ import { Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from './button';
 
-interface NavItem {
+export interface NavItem {
   title: string;
   href?: string;
   disabled?: boolean;
@@ -138,11 +138,6 @@ export function MobileNavigation({ items, logo, className, ...props }: MobileNav
   );
 }
 
-interface BreadcrumbItem {
-  title: string;
-  href?: string;
-}
-
 interface BreadcrumbProps extends React.HTMLAttributes<HTMLElement> {
   items: BreadcrumbItem[];
   separator?: React.ReactNode;
@@ -180,11 +175,12 @@ export function Breadcrumb({ items, separator = '/', className, ...props }: Brea
   );
 }
 
-interface TabItem {
+export interface TabItem {
   title: string;
   value: string;
   icon?: React.ReactNode;
   disabled?: boolean;
+  label?: string;
 }
 
 interface TabNavigationProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -316,14 +312,7 @@ export function Sidebar({
   );
 }
 
-export interface NavItem {
-  href: string
-  label: string
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
 }
-
-export interface TabItem {
-  value: string
-  label: string
-}
-
-export { BreadcrumbItem } from "./navigation"

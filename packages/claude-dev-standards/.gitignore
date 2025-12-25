@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+bower_components/
+
+# Build outputs
+dist/
+build/
+*.log
+.cache/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Claude standards
+.claude-standards-cache/
+validation-report.json
+
+# npm
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/

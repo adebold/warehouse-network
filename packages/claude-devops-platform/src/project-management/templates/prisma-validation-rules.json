@@ -1,0 +1,249 @@
+{
+  "rules": {
+    "naming": {
+      "models": {
+        "pattern": "^[A-Z][a-zA-Z0-9]*$",
+        "message": "Model names must be in PascalCase",
+        "severity": "error"
+      },
+      "fields": {
+        "pattern": "^[a-z][a-zA-Z0-9]*$",
+        "message": "Field names must be in camelCase",
+        "severity": "warning"
+      },
+      "enums": {
+        "pattern": "^[A-Z][a-zA-Z0-9]*$",
+        "message": "Enum names must be in PascalCase",
+        "severity": "error"
+      },
+      "enumValues": {
+        "pattern": "^[A-Z][A-Z0-9_]*$",
+        "message": "Enum values must be in UPPER_SNAKE_CASE",
+        "severity": "warning"
+      }
+    },
+    "relationships": {
+      "requireExplicitRelationNames": {
+        "enabled": true,
+        "message": "All relations must have explicit names",
+        "severity": "warning"
+      },
+      "requireBidirectionalRelations": {
+        "enabled": false,
+        "message": "Consider making relations bidirectional for better query performance",
+        "severity": "info"
+      },
+      "requireCascadeRules": {
+        "enabled": true,
+        "message": "Define onDelete and onUpdate rules for relations",
+        "severity": "warning"
+      }
+    },
+    "fields": {
+      "requireIdField": {
+        "enabled": true,
+        "message": "All models must have an 'id' field",
+        "severity": "error"
+      },
+      "requireTimestamps": {
+        "enabled": true,
+        "fields": ["createdAt", "updatedAt"],
+        "message": "Models should have createdAt and updatedAt fields",
+        "severity": "warning"
+      },
+      "requireDatabaseType": {
+        "enabled": true,
+        "forTypes": ["String", "Decimal"],
+        "message": "Specify database type with @db directive",
+        "severity": "warning"
+      },
+      "stringMaxLength": {
+        "enabled": true,
+        "maxLength": 255,
+        "message": "String fields should specify max length",
+        "severity": "warning"
+      }
+    },
+    "indexes": {
+      "requireIndexOnForeignKeys": {
+        "enabled": true,
+        "message": "Foreign key fields should have indexes",
+        "severity": "warning"
+      },
+      "requireUniqueConstraints": {
+        "forFields": ["email", "username", "slug"],
+        "message": "Fields like email should have unique constraints",
+        "severity": "warning"
+      },
+      "suggestCompositeIndexes": {
+        "enabled": true,
+        "patterns": [
+          {
+            "fields": ["status", "createdAt"],
+            "message": "Consider composite index on status and createdAt for common queries"
+          },
+          {
+            "fields": ["userId", "createdAt"],
+            "message": "Consider composite index on userId and createdAt for user queries"
+          }
+        ],
+        "severity": "info"
+      }
+    },
+    "security": {
+      "preventSensitiveFieldExposure": {
+        "enabled": true,
+        "sensitiveFields": ["password", "passwordHash", "token", "secret", "apiKey"],
+        "message": "Sensitive fields should not be included in default selections",
+        "severity": "error"
+      },
+      "requireEncryption": {
+        "forFields": ["ssn", "creditCard", "bankAccount"],
+        "message": "Sensitive data fields must be encrypted",
+        "severity": "error"
+      }
+    },
+    "performance": {
+      "maxFieldsPerModel": {
+        "enabled": true,
+        "max": 50,
+        "message": "Consider splitting models with too many fields",
+        "severity": "warning"
+      },
+      "warnLargeJsonFields": {
+        "enabled": true,
+        "message": "Large JSON fields can impact performance",
+        "severity": "warning"
+      },
+      "suggestPartitioning": {
+        "enabled": true,
+        "forTables": ["logs", "events", "metrics"],
+        "message": "Consider partitioning for time-series data",
+        "severity": "info"
+      }
+    },
+    "bestPractices": {
+      "preventReservedWords": {
+        "enabled": true,
+        "reservedWords": ["user", "order", "group", "table", "column"],
+        "message": "Avoid using SQL reserved words",
+        "severity": "error"
+      },
+      "requireEnumForStatus": {
+        "enabled": true,
+        "statusFields": ["status", "state", "type", "role"],
+        "message": "Use enums for status/type fields",
+        "severity": "warning"
+      },
+      "preventNullableRequiredFields": {
+        "enabled": true,
+        "message": "Required fields should not be nullable",
+        "severity": "error"
+      }
+    }
+  },
+  "optimizations": {
+    "indexSuggestions": [
+      {
+        "name": "ForeignKeyIndex",
+        "description": "Add index to foreign key fields",
+        "detection": "foreignKeyWithoutIndex",
+        "implementation": "@@index([{field}])",
+        "impact": "query_performance",
+        "estimatedImprovement": "20-50%"
+      },
+      {
+        "name": "CompositeIndex",
+        "description": "Add composite index for common query patterns",
+        "detection": "frequentWhereClause",
+        "implementation": "@@index([field1, field2])",
+        "impact": "query_performance",
+        "estimatedImprovement": "30-70%"
+      },
+      {
+        "name": "UniqueConstraint",
+        "description": "Add unique constraint to ensure data integrity",
+        "detection": "uniqueBusinessField",
+        "implementation": "@unique",
+        "impact": "data_integrity",
+        "estimatedImprovement": "prevents duplicates"
+      }
+    ],
+    "fieldOptimizations": [
+      {
+        "name": "StringLength",
+        "description": "Specify string length for better storage",
+        "detection": "unlimitedString",
+        "implementation": "@db.VarChar(255)",
+        "impact": "storage_efficiency",
+        "estimatedImprovement": "10-30% storage reduction"
+      },
+      {
+        "name": "DecimalPrecision",
+        "description": "Specify decimal precision",
+        "detection": "unlimitedDecimal",
+        "implementation": "@db.Decimal(10, 2)",
+        "impact": "storage_efficiency",
+        "estimatedImprovement": "improved accuracy"
+      },
+      {
+        "name": "DateTimeTimezone",
+        "description": "Use timezone-aware timestamps",
+        "detection": "dateTimeWithoutTimezone",
+        "implementation": "@db.Timestamptz",
+        "impact": "data_accuracy",
+        "estimatedImprovement": "prevents timezone issues"
+      }
+    ],
+    "modelOptimizations": [
+      {
+        "name": "SoftDelete",
+        "description": "Implement soft delete pattern",
+        "detection": "noSoftDelete",
+        "implementation": "deletedAt DateTime?",
+        "impact": "data_recovery",
+        "estimatedImprovement": "enables data recovery"
+      },
+      {
+        "name": "VersionControl",
+        "description": "Add version field for optimistic locking",
+        "detection": "noVersionField",
+        "implementation": "version Int @default(0)",
+        "impact": "concurrency_control",
+        "estimatedImprovement": "prevents race conditions"
+      }
+    ]
+  },
+  "migrations": {
+    "safety": {
+      "requireBackwardCompatibility": {
+        "enabled": true,
+        "message": "Migrations must be backward compatible",
+        "severity": "error"
+      },
+      "preventDataLoss": {
+        "enabled": true,
+        "message": "Migrations must not cause data loss",
+        "severity": "error"
+      },
+      "requireRollback": {
+        "enabled": true,
+        "message": "All migrations must have rollback scripts",
+        "severity": "warning"
+      }
+    },
+    "performance": {
+      "warnLongRunning": {
+        "enabled": true,
+        "threshold": 60,
+        "message": "Migration may take longer than 60 seconds",
+        "severity": "warning"
+      },
+      "requireConcurrentIndexes": {
+        "enabled": true,
+        "message": "Use concurrent index creation for large tables",
+        "severity": "warning"
+      }
+    }
+  }
+}

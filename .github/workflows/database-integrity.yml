@@ -1,0 +1,218 @@
+name: Database Integrity Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'packages/db/prisma/**'
+      - 'apps/web/pages/api/**'
+      - 'apps/web/components/**/*.tsx'
+      - '.github/workflows/database-integrity.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'packages/db/prisma/**'
+      - 'apps/web/pages/api/**'
+      - 'apps/web/components/**/*.tsx'
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  integrity-check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: warehouse_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup test database
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd packages/db
+          npx prisma migrate deploy
+          npx prisma db seed || true
+
+      - name: Run full integrity check
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js check
+
+      - name: Check schema drift
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js drift:detect
+
+      - name: Validate Prisma schema sync
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js drift:prisma
+
+      - name: Validate forms
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js validate:forms
+
+      - name: Validate API routes
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js validate:routes
+
+      - name: Validate warehouse-specific integrity
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js validate:warehouse
+
+      - name: Upload integrity report
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: integrity-report
+          path: |
+            logs/database-integrity.log
+            integrity-report.json
+
+  migration-validation:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: warehouse_migration_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check for migration conflicts
+        run: |
+          # Get changed migration files
+          CHANGED_MIGRATIONS=$(git diff --name-only origin/${{ github.base_ref }} -- 'packages/db/prisma/migrations/*.sql')
+          
+          if [ -n "$CHANGED_MIGRATIONS" ]; then
+            echo "⚠️  Migration files changed:"
+            echo "$CHANGED_MIGRATIONS"
+            
+            # Check if migrations are being modified (not allowed)
+            MODIFIED_MIGRATIONS=$(git diff --name-only --diff-filter=M origin/${{ github.base_ref }} -- 'packages/db/prisma/migrations/*.sql')
+            if [ -n "$MODIFIED_MIGRATIONS" ]; then
+              echo "❌ Error: Existing migrations cannot be modified!"
+              echo "Modified migrations:"
+              echo "$MODIFIED_MIGRATIONS"
+              exit 1
+            fi
+          fi
+
+      - name: Test migrations up and down
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_migration_test
+        run: |
+          cd packages/db
+          
+          # Apply all migrations
+          npx prisma migrate deploy
+          
+          # Run integrity check after migrations
+          cd ../../apps/web
+          node scripts/db-integrity.js migrate:status
+
+      - name: Validate schema after migrations
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/warehouse_migration_test
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js schema:analyze
+
+  drift-detection:
+    runs-on: ubuntu-latest
+    if: github.event.schedule
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check production drift
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+        run: |
+          cd apps/web
+          node scripts/db-integrity.js drift:detect --fix > drift-report.txt
+
+      - name: Create drift issue if needed
+        if: failure()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const driftReport = fs.readFileSync('drift-report.txt', 'utf8');
+            
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '🚨 Database Schema Drift Detected',
+              body: `## Database Schema Drift Report\n\n\`\`\`\n${driftReport}\n\`\`\`\n\nPlease review and fix the schema drift.`,
+              labels: ['database', 'drift', 'urgent']
+            });

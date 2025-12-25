@@ -1,0 +1,114 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-platform-config
+  namespace: claude-platform
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: config
+data:
+  # Application configuration
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  API_PORT: "9090"
+  METRICS_PORT: "9091"
+  ENABLE_TELEMETRY: "true"
+  
+  # Rate limiting
+  RATE_LIMIT_WINDOW: "15m"
+  RATE_LIMIT_MAX: "100"
+  
+  # JWT configuration
+  JWT_EXPIRY: "1h"
+  REFRESH_TOKEN_EXPIRY: "7d"
+  
+  # OpenTelemetry configuration
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.monitoring:4317"
+  OTEL_SERVICE_NAME: "claude-platform"
+  
+  # Database configuration (non-sensitive)
+  DATABASE_POOL_MIN: "2"
+  DATABASE_POOL_MAX: "10"
+  DATABASE_SSL: "require"
+  
+  # Redis configuration (non-sensitive)
+  REDIS_MAX_RETRIES: "3"
+  REDIS_RETRY_DELAY: "200"
+  
+  # Health check configuration
+  HEALTH_CHECK_INTERVAL: "30s"
+  HEALTH_CHECK_TIMEOUT: "10s"
+  
+  # Application features
+  ENABLE_METRICS: "true"
+  ENABLE_TRACING: "true"
+  ENABLE_PROFILING: "false"
+  
+  # CORS configuration
+  CORS_ORIGINS: "https://claude-platform.com,https://app.claude-platform.com"
+  CORS_CREDENTIALS: "true"
+  
+  # Security headers
+  HSTS_MAX_AGE: "31536000"
+  CSP_DIRECTIVES: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self';"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: claude-platform-scripts
+  namespace: claude-platform
+  labels:
+    app.kubernetes.io/name: claude-platform
+    app.kubernetes.io/component: scripts
+data:
+  # Health check script
+  health-check.sh: |
+    #!/bin/sh
+    set -e
+    
+    # Check if the application is responding
+    response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${API_PORT:-9090}/health)
+    
+    if [ "$response" = "200" ]; then
+      exit 0
+    else
+      echo "Health check failed with status: $response"
+      exit 1
+    fi
+  
+  # Database migration script
+  migrate.sh: |
+    #!/bin/sh
+    set -e
+    
+    echo "Running database migrations..."
+    npx prisma migrate deploy
+    
+    echo "Verifying database schema..."
+    npx prisma validate
+    
+    echo "Database migrations completed successfully"
+  
+  # Graceful shutdown script
+  shutdown.sh: |
+    #!/bin/sh
+    
+    echo "Initiating graceful shutdown..."
+    
+    # Send SIGTERM to the main process
+    kill -TERM 1
+    
+    # Wait for process to terminate
+    timeout=30
+    while [ $timeout -gt 0 ] && kill -0 1 2>/dev/null; do
+      sleep 1
+      timeout=$((timeout - 1))
+    done
+    
+    if kill -0 1 2>/dev/null; then
+      echo "Process did not terminate gracefully, forcing shutdown"
+      kill -KILL 1
+    fi
+    
+    echo "Shutdown complete"

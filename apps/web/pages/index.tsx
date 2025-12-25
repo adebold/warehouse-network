@@ -86,9 +86,9 @@ const Home: NextPage = () => {
           <div className="mx-auto max-w-4xl text-center">
             {/* Platform Badge */}
             <div className="mb-8 inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/30 px-4 py-2">
-              <Bot className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <Package className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <span className="text-sm font-medium text-blue-800 dark:text-blue-300">
-                AI-Powered Warehouse Marketplace
+                Flexible Warehouse Marketplace
               </span>
             </div>
 
@@ -97,7 +97,7 @@ const Home: NextPage = () => {
               <span className="text-primary block">Warehouse Space</span>
             </h1>
             <p className="text-muted-foreground mt-6 text-xl leading-relaxed max-w-2xl mx-auto">
-              Rent warehouse space by the pallet. List your unused space. All managed by AI.
+              Rent warehouse space by the pallet. List your unused space.
               No long-term contracts. Complete flexibility.
             </p>
 
@@ -139,10 +139,10 @@ const Home: NextPage = () => {
               </div>
               <div className="text-center">
                 <div className="h-12 w-12 mx-auto mb-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-                  <Bot className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                  <Clock className="h-6 w-6 text-purple-600 dark:text-purple-400" />
                 </div>
-                <p className="text-sm font-medium">AI-Managed</p>
-                <p className="text-xs text-muted-foreground">24/7 operations</p>
+                <p className="text-sm font-medium">Quick Setup</p>
+                <p className="text-xs text-muted-foreground">Get started fast</p>
               </div>
               <div className="text-center">
                 <div className="h-12 w-12 mx-auto mb-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center">
@@ -194,8 +194,8 @@ const Home: NextPage = () => {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold">AI-Managed Operations</p>
-                      <p className="text-sm text-muted-foreground">Autonomous agents handle inventory and shipping 24/7</p>
+                      <p className="font-semibold">Vetted Warehouse Partners</p>
+                      <p className="text-sm text-muted-foreground">Connect with verified warehouse operators</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -244,7 +244,7 @@ const Home: NextPage = () => {
                     </div>
                     <div>
                       <p className="font-semibold">Zero Management Hassle</p>
-                      <p className="text-sm text-muted-foreground">AI agents handle all operations automatically</p>
+                      <p className="text-sm text-muted-foreground">We handle tenant screening and operations</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
@@ -313,7 +313,7 @@ const Home: NextPage = () => {
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  All warehouse partners are verified and inspected. Quality standards enforced by AI monitoring.
+                  All warehouse partners are verified and inspected. Quality standards enforced through regular audits.
                 </p>
               </CardContent>
             </Card>
@@ -339,9 +339,9 @@ const Home: NextPage = () => {
       <section className="py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-12 text-center">
-            <h2 className="text-3xl font-bold tracking-tight mb-4">Powered by AI</h2>
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Platform Features</h2>
             <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-              Our GOAP (Goal-Oriented Action Planning) system manages operations autonomously
+              Everything you need for flexible warehouse operations
             </p>
           </div>
 
@@ -355,8 +355,8 @@ const Home: NextPage = () => {
                     <Brain className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-medium">Smart Inventory Management</p>
-                    <p className="text-sm text-muted-foreground">AI agents track and optimize your inventory placement</p>
+                    <p className="font-medium">Real-Time Inventory Tracking</p>
+                    <p className="text-sm text-muted-foreground">Track your inventory levels and locations online</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -364,8 +364,8 @@ const Home: NextPage = () => {
                     <Workflow className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                   <div>
-                    <p className="font-medium">Automated Workflows</p>
-                    <p className="text-sm text-muted-foreground">Receiving, putaway, picking, and shipping handled by AI</p>
+                    <p className="font-medium">Streamlined Operations</p>
+                    <p className="text-sm text-muted-foreground">Efficient receiving, putaway, picking, and shipping</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -389,8 +389,8 @@ const Home: NextPage = () => {
                     <DollarSign className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="font-medium">Revenue Optimization</p>
-                    <p className="text-sm text-muted-foreground">AI pricing adjusts to demand and seasonality</p>
+                    <p className="font-medium">Dynamic Pricing</p>
+                    <p className="text-sm text-muted-foreground">Set rates based on demand and seasonality</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -398,8 +398,8 @@ const Home: NextPage = () => {
                     <Bot className="h-5 w-5 text-green-600 dark:text-green-400" />
                   </div>
                   <div>
-                    <p className="font-medium">Autonomous Operations</p>
-                    <p className="text-sm text-muted-foreground">AI agents manage daily warehouse activities</p>
+                    <p className="font-medium">Hands-Off for You</p>
+                    <p className="text-sm text-muted-foreground">Warehouse operators handle daily activities</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-4">
@@ -456,7 +456,7 @@ const Home: NextPage = () => {
                   </div>
                   <div>
                     <p className="font-medium mb-1">Ship Your Inventory</p>
-                    <p className="text-sm text-muted-foreground">AI agents receive and organize your goods</p>
+                    <p className="text-sm text-muted-foreground">Warehouse partners receive and organize your goods</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -498,8 +498,8 @@ const Home: NextPage = () => {
                     <span className="text-sm font-bold text-green-600 dark:text-green-400">3</span>
                   </div>
                   <div>
-                    <p className="font-medium mb-1">AI Handles Operations</p>
-                    <p className="text-sm text-muted-foreground">Autonomous agents manage daily activities</p>
+                    <p className="font-medium mb-1">Partners Handle Operations</p>
+                    <p className="text-sm text-muted-foreground">Warehouse operators manage daily activities</p>
                   </div>
                 </div>
                 <div className="flex gap-4">
@@ -523,7 +523,7 @@ const Home: NextPage = () => {
         <div className="container relative mx-auto px-4 text-center sm:px-6 lg:px-8">
           <h2 className="mb-4 text-3xl font-bold sm:text-4xl">Ready to Transform Your Warehouse Operations?</h2>
           <p className="mb-8 text-xl opacity-90 max-w-2xl mx-auto">
-            Join SkidSpace today and experience the future of flexible, AI-powered warehouse management.
+            Join SkidSpace today and experience the simplicity of flexible warehouse management.
           </p>
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <Link href="/search">
@@ -552,7 +552,7 @@ const Home: NextPage = () => {
           <div className="mt-12 grid grid-cols-3 gap-8 max-w-lg mx-auto">
             <div>
               <p className="text-3xl font-bold">24/7</p>
-              <p className="text-sm opacity-90">AI Operations</p>
+              <p className="text-sm opacity-90">Support</p>
             </div>
             <div>
               <p className="text-3xl font-bold">$1M</p>

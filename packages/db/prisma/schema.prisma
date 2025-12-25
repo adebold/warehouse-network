@@ -11,45 +11,45 @@ generator client {
 }
 
 model Platform {
-  id        String      @id @default(cuid())
+  id        String     @id @default(cuid())
   name      String
   operators Operator[]
 }
 
 model Operator {
-  id                    String      @id @default(cuid())
-  legalName             String
-  platform              Platform    @relation(fields: [platformId], references: [id])
-  platformId            String
-  warehouses            Warehouse[]
-  users                 OperatorUser[]
-  ledger                OperatorLedgerEntry[]
-  payouts               Payout[]
-  status                OperatorStatus @default(APPLIED)
-  registrationDetails   String
-  primaryContact        String
-  operatingRegions      String
-  warehouseCount        Int
-  goodsCategories       String
-  insuranceAcknowledged Boolean
-  termsAccepted         Boolean   @default(false)
-  termsAcceptedAt       DateTime?
-  invitations           Invitation[]
-  stripeAccountId       String?   @unique
-  stripeOnboardingComplete Boolean @default(false)
-  referralsMade         Referral[] @relation("OperatorReferralsMade")
-  trustScore            OperatorTrustScore?
-  disputes              Dispute[] @relation("OperatorDisputes")
+  id                       String                @id @default(cuid())
+  legalName                String
+  platform                 Platform              @relation(fields: [platformId], references: [id])
+  platformId               String
+  warehouses               Warehouse[]
+  users                    OperatorUser[]
+  ledger                   OperatorLedgerEntry[]
+  payouts                  Payout[]
+  status                   OperatorStatus        @default(APPLIED)
+  registrationDetails      String
+  primaryContact           String
+  operatingRegions         String
+  warehouseCount           Int
+  goodsCategories          String
+  insuranceAcknowledged    Boolean
+  termsAccepted            Boolean               @default(false)
+  termsAcceptedAt          DateTime?
+  invitations              Invitation[]
+  stripeAccountId          String?               @unique
+  stripeOnboardingComplete Boolean               @default(false)
+  referralsMade            Referral[]            @relation("OperatorReferralsMade")
+  trustScore               OperatorTrustScore?
+  disputes                 Dispute[]             @relation("OperatorDisputes")
 }
 
 model Invitation {
-  id          String   @id @default(cuid())
-  email       String
-  token       String   @unique
-  expires     DateTime
-  operator    Operator @relation(fields: [operatorId], references: [id])
-  operatorId  String
-  role        UserRole
+  id         String   @id @default(cuid())
+  email      String
+  token      String   @unique
+  expires    DateTime
+  operator   Operator @relation(fields: [operatorId], references: [id])
+  operatorId String
+  role       UserRole
 }
 
 enum OperatorStatus {
@@ -63,33 +63,33 @@ enum OperatorStatus {
 }
 
 model OperatorUser {
-  id          String      @id @default(cuid())
-  operator    Operator    @relation(fields: [operatorId], references: [id])
+  id          String     @id @default(cuid())
+  operator    Operator   @relation(fields: [operatorId], references: [id])
   operatorId  String
-  user        User        @relation(fields: [userId], references: [id])
-  userId      String      @unique
-  warehouse   Warehouse?  @relation(fields: [warehouseId], references: [id])
+  user        User       @relation(fields: [userId], references: [id])
+  userId      String     @unique
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
   warehouseId String?
 }
 
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String?         @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?
-  role          UserRole        @default(CUSTOMER_USER)
-  accounts      Account[]
-  sessions      Session[]
-  operatorUser  OperatorUser?
-  auditEvents   AuditEvent[]
-  customer      Customer?       @relation(fields: [customerId], references: [id])
-  customerId    String?
-  cityPages     CityPage[]
-  credits       Credit[]
-  referralsMade Referral[] @relation("UserReferralsMade")
-  referralsReceived Referral[] @relation("UserReferralsReceived")
+  id                   String               @id @default(cuid())
+  name                 String?
+  email                String?              @unique
+  emailVerified        DateTime?
+  image                String?
+  password             String?
+  role                 UserRole             @default(CUSTOMER_USER)
+  accounts             Account[]
+  sessions             Session[]
+  operatorUser         OperatorUser?
+  auditEvents          AuditEvent[]
+  customer             Customer?            @relation(fields: [customerId], references: [id])
+  customerId           String?
+  cityPages            CityPage[]
+  credits              Credit[]
+  referralsMade        Referral[]           @relation("UserReferralsMade")
+  referralsReceived    Referral[]           @relation("UserReferralsReceived")
   lockActionsPerformed AccountLockHistory[]
 }
 
@@ -154,12 +154,12 @@ enum WarehouseStatus {
 }
 
 model PricingRule {
-  id              String        @id @default(cuid())
-  warehouse       Warehouse     @relation(fields: [warehouseId], references: [id])
-  warehouseId     String
-  chargeCategory  ChargeCategory
-  price           Float
-  currency        String
+  id             String         @id @default(cuid())
+  warehouse      Warehouse      @relation(fields: [warehouseId], references: [id])
+  warehouseId    String
+  chargeCategory ChargeCategory
+  price          Float
+  currency       String
 }
 
 enum ChargeCategory {
@@ -170,23 +170,25 @@ enum ChargeCategory {
 }
 
 model Warehouse {
-  id                      String    @id @default(cuid())
-  name                    String
-  address                 String
-  operatingHours          String
-  capacity                Int
-  supportedGoods          String
-  dockAccessInstructions  String
-  status                  WarehouseStatus @default(INACTIVE)
-  operator                Operator  @relation(fields: [operatorId], references: [id])
-  operatorId              String
-  skids                   Skid[]
-  pricingRules            PricingRule[]
-  operatorUsers           OperatorUser[]
-  locations               Location[]
-  releaseRequests         ReleaseRequest[]
-  qualityScore            WarehouseQualityScore?
-  disputes                Dispute[] @relation("WarehouseDisputes")
+  id                     String                 @id @default(cuid())
+  name                   String
+  address                String
+  operatingHours         String
+  capacity               Int
+  supportedGoods         String
+  dockAccessInstructions String
+  status                 WarehouseStatus        @default(INACTIVE)
+  operator               Operator               @relation(fields: [operatorId], references: [id])
+  operatorId             String
+  skids                  Skid[]
+  pricingRules           PricingRule[]
+  operatorUsers          OperatorUser[]
+  locations              Location[]
+  releaseRequests        ReleaseRequest[]
+  qualityScore           WarehouseQualityScore?
+  disputes               Dispute[]              @relation("WarehouseDisputes")
+  ReceivingOrder         ReceivingOrder[]
+  Quote                  Quote[]
 }
 
 model Location {
@@ -198,40 +200,40 @@ model Location {
 }
 
 model Skid {
-  id                      String          @id @default(cuid())
-  skidCode                String          @unique
-  customer                Customer        @relation(fields: [customerId], references: [id])
-  customerId              String
-  warehouse               Warehouse       @relation(fields: [warehouseId], references: [id])
-  warehouseId             String
-  status                  SkidStatus
-  receivingOrder          ReceivingOrder? @relation(fields: [receivingOrderId], references: [id])
-  receivingOrderId        String?
-  footprint               String? // standard / oversized
-  specialHandlingNotes    String?
-  location                Location?       @relation(fields: [locationId], references: [id])
-  locationId              String?
-  releaseRequests         SkidsOnReleaseRequests[]
-  chargeLines             ChargeLine[]
-  disputes                SkidsOnDisputes[]
+  id                   String                   @id @default(cuid())
+  skidCode             String                   @unique
+  customer             Customer                 @relation(fields: [customerId], references: [id])
+  customerId           String
+  warehouse            Warehouse                @relation(fields: [warehouseId], references: [id])
+  warehouseId          String
+  status               SkidStatus
+  receivingOrder       ReceivingOrder?          @relation(fields: [receivingOrderId], references: [id])
+  receivingOrderId     String?
+  footprint            String? // standard / oversized
+  specialHandlingNotes String?
+  location             Location?                @relation(fields: [locationId], references: [id])
+  locationId           String?
+  releaseRequests      SkidsOnReleaseRequests[]
+  chargeLines          ChargeLine[]
+  disputes             SkidsOnDisputes[]
 }
 
 model ReleaseRequest {
-  id                  String    @id @default(cuid())
-  requestedAt         DateTime
-  carrierDetails      String
-  status              ReleaseRequestStatus @default(PENDING)
-  customer            Customer  @relation(fields: [customerId], references: [id])
-  customerId          String
-  warehouse           Warehouse @relation(fields: [warehouseId], references: [id])
-  warehouseId         String
-  skids               SkidsOnReleaseRequests[]
+  id             String                   @id @default(cuid())
+  requestedAt    DateTime
+  carrierDetails String
+  status         ReleaseRequestStatus     @default(PENDING)
+  customer       Customer                 @relation(fields: [customerId], references: [id])
+  customerId     String
+  warehouse      Warehouse                @relation(fields: [warehouseId], references: [id])
+  warehouseId    String
+  skids          SkidsOnReleaseRequests[]
 }
 
 model SkidsOnReleaseRequests {
-  skid            Skid            @relation(fields: [skidId], references: [id])
-  skidId          String
-  releaseRequest  ReleaseRequest  @relation(fields: [releaseRequestId], references: [id])
+  skid             Skid           @relation(fields: [skidId], references: [id])
+  skidId           String
+  releaseRequest   ReleaseRequest @relation(fields: [releaseRequestId], references: [id])
   releaseRequestId String
 
   @@id([skidId, releaseRequestId])
@@ -268,26 +270,26 @@ enum SkidStatus {
 }
 
 model Customer {
-  id              String @id @default(cuid())
-  name            String
-  skids           Skid[]
-  users           User[]
-  releaseRequests ReleaseRequest[]
-  disputes        Dispute[] @relation("CustomerDisputes")
-  receivingOrders ReceivingOrder[]
-  rfqs            RFQ[]
-  deposits        Deposit[]
-  accountStatus   CustomerAccountStatus @default(ACTIVE)
-  paymentStatus   CustomerPaymentStatus @default(CURRENT)
-  lockReason      String?
-  lockedAt        DateTime?
-  lockedBy        String?
-  lockHistory     AccountLockHistory[]
-  paymentDueDate  DateTime?
-  overdueAmount   Float               @default(0)
-  totalOutstanding Float              @default(0)
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
+  id               String                @id @default(cuid())
+  name             String
+  skids            Skid[]
+  users            User[]
+  releaseRequests  ReleaseRequest[]
+  disputes         Dispute[]             @relation("CustomerDisputes")
+  receivingOrders  ReceivingOrder[]
+  rfqs             RFQ[]
+  deposits         Deposit[]
+  accountStatus    CustomerAccountStatus @default(ACTIVE)
+  paymentStatus    CustomerPaymentStatus @default(CURRENT)
+  lockReason       String?
+  lockedAt         DateTime?
+  lockedBy         String?
+  lockHistory      AccountLockHistory[]
+  paymentDueDate   DateTime?
+  overdueAmount    Float                 @default(0)
+  totalOutstanding Float                 @default(0)
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
 }
 
 model OperatorLedgerEntry {
@@ -308,15 +310,15 @@ enum OperatorLedgerEntryType {
 }
 
 model Payout {
-  id          String       @id @default(cuid())
-  operator    Operator     @relation(fields: [operatorId], references: [id])
-  operatorId  String
-  amount      Float
-  currency    String
-  status      PayoutStatus @default(PENDING)
-  stripePayoutId String?    @unique
-  createdAt   DateTime     @default(now())
-  processedAt DateTime?
+  id             String       @id @default(cuid())
+  operator       Operator     @relation(fields: [operatorId], references: [id])
+  operatorId     String
+  amount         Float
+  currency       String
+  status         PayoutStatus @default(PENDING)
+  stripePayoutId String?      @unique
+  createdAt      DateTime     @default(now())
+  processedAt    DateTime?
 }
 
 enum PayoutStatus {
@@ -327,24 +329,23 @@ enum PayoutStatus {
   CANCELED
 }
 
-
 model ChargeLine {
-  id              String        @id @default(cuid())
-  skid            Skid          @relation(fields: [skidId], references: [id])
-  skidId          String
-  chargeCategory  ChargeCategory
-  amount          Float
-  currency        String
-  timestamp       DateTime      @default(now())
+  id             String         @id @default(cuid())
+  skid           Skid           @relation(fields: [skidId], references: [id])
+  skidId         String
+  chargeCategory ChargeCategory
+  amount         Float
+  currency       String
+  timestamp      DateTime       @default(now())
 }
 
 model JobRun {
-  id          String    @id @default(cuid())
-  jobName     String
-  status      String
-  startedAt   DateTime  @default(now())
-  finishedAt  DateTime?
-  details     Json?
+  id         String    @id @default(cuid())
+  jobName    String
+  status     String
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  details    Json?
 }
 
 model RFQ {
@@ -368,23 +369,24 @@ enum RFQStatus {
 }
 
 model Quote {
-  id                String          @id @default(cuid())
-  rfq               RFQ             @relation(fields: [rfqId], references: [id])
+  id                String           @id @default(cuid())
+  rfq               RFQ              @relation(fields: [rfqId], references: [id])
   rfqId             String
-  warehouse         Warehouse       @relation(fields: [warehouseId], references: [id])
+  warehouse         Warehouse        @relation(fields: [warehouseId], references: [id])
   warehouseId       String
   items             QuoteItem[]
   currency          String
   assumptions       String?
-  guaranteedCharges Boolean         @default(false)
+  guaranteedCharges Boolean          @default(false)
   depositAmount     Float
   accrualStartRule  AccrualStartRule
   expiryDate        DateTime
-  version           Int             @default(1)
-  status            QuoteStatus     @default(PENDING)
-  paymentMethod     PaymentMethod   @default(INVOICE)
-  paymentTerms      String?         // e.g., "NET30", "NET60", "Due on receipt"
-  poNumber          String?         // Purchase Order number for PO payment method
+  version           Int              @default(1)
+  status            QuoteStatus      @default(PENDING)
+  paymentMethod     PaymentMethod    @default(INVOICE)
+  paymentTerms      String? // e.g., "NET30", "NET60", "Due on receipt"
+  poNumber          String? // Purchase Order number for PO payment method
+  Deposit           Deposit[]
 }
 
 enum AccrualStartRule {
@@ -404,12 +406,12 @@ enum PaymentMethod {
   CREDIT_CARD
   ACH
   WIRE
-  PO  // Purchase Order
+  PO // Purchase Order
 }
 
 model QuoteItem {
-  id             String        @id @default(cuid())
-  quote          Quote         @relation(fields: [quoteId], references: [id])
+  id             String         @id @default(cuid())
+  quote          Quote          @relation(fields: [quoteId], references: [id])
   quoteId        String
   chargeCategory ChargeCategory
   unitPrice      Float
@@ -418,45 +420,45 @@ model QuoteItem {
 }
 
 model Deposit {
-  id            String    @id @default(cuid())
-  customer      Customer  @relation(fields: [customerId], references: [id])
-  customerId    String
-  quote         Quote     @relation(fields: [quoteId], references: [id])
-  quoteId       String
-  amount        Float
-  currency      String
-  stripeChargeId String    @unique
-  status        String    @default("succeeded")
-  createdAt     DateTime  @default(now())
+  id             String   @id @default(cuid())
+  customer       Customer @relation(fields: [customerId], references: [id])
+  customerId     String
+  quote          Quote    @relation(fields: [quoteId], references: [id])
+  quoteId        String
+  amount         Float
+  currency       String
+  stripeChargeId String   @unique
+  status         String   @default("succeeded")
+  createdAt      DateTime @default(now())
 }
 
 model CityPage {
-  id            String    @id @default(cuid())
-  slug          String    @unique
-  city          String
-  region        String?
-  h1            String
-  introContent  String    @db.Text
-  isActive      Boolean   @default(false)
-  version       Int       @default(1)
-  author        User      @relation(fields: [authorId], references: [id])
-  authorId      String
-  lastEditedAt  DateTime  @default(now())
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  city         String
+  region       String?
+  h1           String
+  introContent String   @db.Text
+  isActive     Boolean  @default(false)
+  version      Int      @default(1)
+  author       User     @relation(fields: [authorId], references: [id])
+  authorId     String
+  lastEditedAt DateTime @default(now())
 }
 
 model Referral {
-  id              String         @id @default(cuid())
-  code            String         @unique
-  referrer        User           @relation("UserReferralsMade", fields: [referrerId], references: [id])
-  referrerId      String
-  referee         User?          @relation("UserReferralsReceived", fields: [refereeId], references: [id])
-  refereeId       String?
-  referralType    ReferralType
-  source          String
-  status          ReferralStatus @default(PENDING)
-  qualifiedAt     DateTime?
-  createdAt       DateTime       @default(now())
-  operatorReferrer Operator?      @relation("OperatorReferralsMade", fields: [operatorReferrerId], references: [id])
+  id                 String         @id @default(cuid())
+  code               String         @unique
+  referrer           User           @relation("UserReferralsMade", fields: [referrerId], references: [id])
+  referrerId         String
+  referee            User?          @relation("UserReferralsReceived", fields: [refereeId], references: [id])
+  refereeId          String?
+  referralType       ReferralType
+  source             String
+  status             ReferralStatus @default(PENDING)
+  qualifiedAt        DateTime?
+  createdAt          DateTime       @default(now())
+  operatorReferrer   Operator?      @relation("OperatorReferralsMade", fields: [operatorReferrerId], references: [id])
   operatorReferrerId String?
 }
 
@@ -473,57 +475,57 @@ enum ReferralStatus {
 }
 
 model Credit {
-  id            String    @id @default(cuid())
-  user          User      @relation(fields: [userId], references: [id])
-  userId        String
-  amount        Float
-  currency      String
-  description   String?
-  expiresAt     DateTime?
-  createdAt     DateTime  @default(now())
-  isConsumed    Boolean   @default(false)
+  id          String    @id @default(cuid())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  amount      Float
+  currency    String
+  description String?
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  isConsumed  Boolean   @default(false)
 }
 
 model OperatorTrustScore {
-  id                      String    @id @default(cuid())
-  operator                Operator  @relation(fields: [operatorId], references: [id])
-  operatorId              String    @unique
-  score                   Float
-  operationalReliability  Float
-  capacityIntegrity       Float
-  financialBehavior       Float
-  complianceSignals       Float
-  lastCalculatedAt        DateTime  @default(now())
+  id                     String   @id @default(cuid())
+  operator               Operator @relation(fields: [operatorId], references: [id])
+  operatorId             String   @unique
+  score                  Float
+  operationalReliability Float
+  capacityIntegrity      Float
+  financialBehavior      Float
+  complianceSignals      Float
+  lastCalculatedAt       DateTime @default(now())
 }
 
 model WarehouseQualityScore {
-  id                      String    @id @default(cuid())
-  warehouse               Warehouse @relation(fields: [warehouseId], references: [id])
-  warehouseId             String    @unique
-  score                   Float
-  throughputPerformance   Float
-  damageReports           Int
+  id                       String    @id @default(cuid())
+  warehouse                Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouseId              String    @unique
+  score                    Float
+  throughputPerformance    Float
+  damageReports            Int
   dockAppointmentAdherence Float
-  customerComplaints      Int
-  lastCalculatedAt        DateTime  @default(now())
+  customerComplaints       Int
+  lastCalculatedAt         DateTime  @default(now())
 }
 
 model Dispute {
-  id            String    @id @default(cuid())
-  customer      Customer  @relation("CustomerDisputes", fields: [customerId], references: [id])
-  customerId    String
-  operator      Operator  @relation("OperatorDisputes", fields: [operatorId], references: [id])
-  operatorId    String
-  warehouse     Warehouse @relation("WarehouseDisputes", fields: [warehouseId], references: [id])
-  warehouseId   String
-  type          DisputeType
-  status        DisputeStatus @default(OPEN)
-  description   String    @db.Text
-  evidence      Json?
-  resolution    String?   @db.Text
-  submittedAt   DateTime  @default(now())
-  resolvedAt    DateTime?
-  skids         SkidsOnDisputes[]
+  id          String            @id @default(cuid())
+  customer    Customer          @relation("CustomerDisputes", fields: [customerId], references: [id])
+  customerId  String
+  operator    Operator          @relation("OperatorDisputes", fields: [operatorId], references: [id])
+  operatorId  String
+  warehouse   Warehouse         @relation("WarehouseDisputes", fields: [warehouseId], references: [id])
+  warehouseId String
+  type        DisputeType
+  status      DisputeStatus     @default(OPEN)
+  description String            @db.Text
+  evidence    Json?
+  resolution  String?           @db.Text
+  submittedAt DateTime          @default(now())
+  resolvedAt  DateTime?
+  skids       SkidsOnDisputes[]
 }
 
 enum DisputeType {
@@ -542,10 +544,10 @@ enum DisputeStatus {
 }
 
 model SkidsOnDisputes {
-  skid          Skid          @relation(fields: [skidId], references: [id])
-  skidId        String
-  dispute       Dispute       @relation(fields: [disputeId], references: [id])
-  disputeId     String
+  skid      Skid    @relation(fields: [skidId], references: [id])
+  skidId    String
+  dispute   Dispute @relation(fields: [disputeId], references: [id])
+  disputeId String
 
   @@id([skidId, disputeId])
 }
@@ -563,20 +565,173 @@ enum CustomerPaymentStatus {
 }
 
 model AccountLockHistory {
-  id              String          @id @default(cuid())
-  customer        Customer        @relation(fields: [customerId], references: [id])
-  customerId      String
-  action          LockAction
-  reason          String?
-  performedBy     User            @relation(fields: [performedById], references: [id])
-  performedById   String
-  timestamp       DateTime        @default(now())
-  overrideReason  String?
-  metadata        Json?
+  id             String     @id @default(cuid())
+  customer       Customer   @relation(fields: [customerId], references: [id])
+  customerId     String
+  action         LockAction
+  reason         String?
+  performedBy    User       @relation(fields: [performedById], references: [id])
+  performedById  String
+  timestamp      DateTime   @default(now())
+  overrideReason String?
+  metadata       Json?
 }
 
 enum LockAction {
   LOCKED
   UNLOCKED
   OVERRIDE
+}
+
+// Database Integrity Memory Bank Models
+model IntegrityLog {
+  id            String               @id @default(cuid())
+  category      IntegrityLogCategory
+  level         IntegrityLogLevel
+  operation     String
+  component     String
+  message       String               @db.Text
+  details       Json?
+  metadata      Json?
+  duration      Int? // milliseconds
+  success       Boolean
+  errorCode     String?
+  stackTrace    String?              @db.Text
+  userId        String?
+  correlationId String?
+  timestamp     DateTime             @default(now())
+
+  @@index([category, timestamp])
+  @@index([level, timestamp])
+  @@index([component, timestamp])
+  @@index([correlationId])
+}
+
+model IntegritySnapshot {
+  id                 String       @id @default(cuid())
+  snapshotType       SnapshotType
+  schemaHash         String
+  modelCount         Int
+  fieldCount         Int
+  relationCount      Int
+  indexCount         Int
+  enumCount          Int
+  validationsPassed  Int
+  validationsFailed  Int
+  driftDetected      Boolean      @default(false)
+  driftDetails       Json?
+  performanceMetrics Json?
+  timestamp          DateTime     @default(now())
+
+  @@index([snapshotType, timestamp])
+  @@index([driftDetected, timestamp])
+}
+
+model IntegrityAlert {
+  id              String                 @id @default(cuid())
+  alertType       IntegrityAlertType
+  severity        IntegrityAlertSeverity
+  title           String
+  description     String                 @db.Text
+  affectedModels  String[] // Array of affected model names
+  affectedFields  String[] // Array of affected field paths
+  details         Json?
+  status          IntegrityAlertStatus   @default(ACTIVE)
+  acknowledged    Boolean                @default(false)
+  acknowledgedBy  String?
+  acknowledgedAt  DateTime?
+  resolvedBy      String?
+  resolvedAt      DateTime?
+  resolutionNotes String?                @db.Text
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@index([alertType, status])
+  @@index([severity, status])
+  @@index([createdAt])
+}
+
+model IntegrityMetric {
+  id         String              @id @default(cuid())
+  metricType IntegrityMetricType
+  component  String
+  name       String
+  value      Float
+  unit       String?
+  tags       Json? // Additional categorization
+  timestamp  DateTime            @default(now())
+
+  @@index([metricType, timestamp])
+  @@index([component, timestamp])
+  @@index([name, timestamp])
+}
+
+// Enums for Integrity Models
+enum IntegrityLogCategory {
+  VALIDATION
+  MIGRATION
+  DRIFT_DETECTION
+  SCHEMA_ANALYSIS
+  FORM_VALIDATION
+  ROUTE_VALIDATION
+  PERFORMANCE
+  ERROR
+  AUDIT
+  MAINTENANCE
+}
+
+enum IntegrityLogLevel {
+  DEBUG
+  INFO
+  WARNING
+  ERROR
+  CRITICAL
+}
+
+enum SnapshotType {
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  ON_DEMAND
+  PRE_MIGRATION
+  POST_MIGRATION
+}
+
+enum IntegrityAlertType {
+  DRIFT_DETECTED
+  VALIDATION_FAILURE
+  MIGRATION_ERROR
+  PERFORMANCE_DEGRADATION
+  SCHEMA_MISMATCH
+  DATA_CORRUPTION
+  SECURITY_ISSUE
+  MAINTENANCE_REQUIRED
+}
+
+enum IntegrityAlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IntegrityAlertStatus {
+  ACTIVE
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  DISMISSED
+}
+
+enum IntegrityMetricType {
+  VALIDATION_TIME
+  MIGRATION_TIME
+  DRIFT_CHECK_TIME
+  ERROR_RATE
+  SUCCESS_RATE
+  MEMORY_USAGE
+  CPU_USAGE
+  THROUGHPUT
+  LATENCY
 }

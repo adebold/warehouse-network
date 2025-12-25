@@ -1,0 +1,12 @@
+{{- if .Values.configMaps.create }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "claude-platform.fullname" . }}-config
+  labels:
+    {{- include "claude-platform.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.configMaps.data }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}
+{{- end }}

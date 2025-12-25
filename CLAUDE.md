@@ -385,3 +385,83 @@ NEVER create files unless they're absolutely necessary for achieving your goal.
 ALWAYS prefer editing an existing file to creating a new one.
 NEVER proactively create documentation files (\*.md) or README files. Only create documentation files if explicitly requested by the User.
 Never save working files, text/mds and tests to the root folder.
+
+## 🚨 DEVELOPMENT STANDARDS PROTOCOL
+
+### MANDATORY: Pre-Development Checklist
+Before making ANY code changes:
+```bash
+# 1. Check current state (REQUIRED)
+npx claude-flow@alpha hooks pre-edit --check-only
+
+# 2. If TypeScript project exists
+npm run typecheck 2>/dev/null || echo "No TypeScript"
+
+# 3. If linting is configured
+npm run lint 2>/dev/null || echo "No linting"
+```
+
+### MANDATORY: Post-Change Validation
+After EVERY file edit:
+```bash
+# 1. Run post-edit validation (REQUIRED)
+npx claude-flow@alpha hooks post-edit --file "[edited-file]"
+
+# 2. If TypeScript project
+npm run typecheck || npx tsc --noEmit
+
+# 3. Fix any errors IMMEDIATELY - do not proceed with errors
+```
+
+### MANDATORY: Dependency Management
+Before using ANY external package:
+```bash
+# 1. Check if installed
+npm ls [package-name] 2>/dev/null || echo "Not installed"
+
+# 2. Check existing usage
+grep -r "from '[package-name]'" . --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" 2>/dev/null
+
+# 3. Install if needed
+npm install [package-name] # or npm install --save-dev for dev dependencies
+```
+
+### MANDATORY: Type Safety Rules
+1. **Check for existing types** before creating new ones:
+   ```bash
+   grep -r "interface.*User" . --include="*.ts" --include="*.tsx"
+   grep -r "type.*User" . --include="*.ts" --include="*.tsx"
+   ```
+
+2. **Use proper imports**:
+   ```typescript
+   // ✅ CORRECT: Type imports for types
+   import type { User, Customer } from './types';
+   
+   // ❌ WRONG: Regular imports for types
+   import { User, Customer } from './types';
+   ```
+
+3. **Never use 'any'** without explicit justification
+
+### MANDATORY: Quality Gates
+Before marking ANY task complete:
+- ✅ Zero TypeScript errors
+- ✅ Zero ESLint errors (or documented exceptions)
+- ✅ All imports resolve correctly
+- ✅ No duplicate type definitions
+- ✅ Tests pass (if they exist)
+
+### MANDATORY: Error Recovery Protocol
+If errors are found:
+1. STOP immediately
+2. Fix ALL errors in current file
+3. Re-run validation
+4. Only proceed when clean
+
+### Hook Integration
+These standards are enforced via Claude-flow hooks:
+- `pre-edit`: Validates before changes
+- `post-edit`: Validates after changes
+- `pre-task`: Ensures clean state
+- `post-task`: Verifies task quality

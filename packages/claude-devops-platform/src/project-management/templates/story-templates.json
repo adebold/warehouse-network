@@ -1,0 +1,312 @@
+{
+  "api-feature": {
+    "title": "Implement [Feature] API Endpoint",
+    "asA": "API consumer",
+    "iWant": "to access [feature] functionality via REST API",
+    "soThat": "I can integrate this feature into my application",
+    "type": "story",
+    "priority": "medium",
+    "acceptanceCriteria": [
+      {
+        "description": "API endpoint accepts valid requests and returns expected response",
+        "testable": true
+      },
+      {
+        "description": "API validates input parameters and returns appropriate errors",
+        "testable": true
+      },
+      {
+        "description": "API endpoint is documented with OpenAPI specification",
+        "testable": true
+      },
+      {
+        "description": "API endpoint has rate limiting implemented",
+        "testable": true
+      },
+      {
+        "description": "API endpoint requires authentication",
+        "testable": true
+      }
+    ],
+    "labels": ["api", "backend"]
+  },
+  "ui-component": {
+    "title": "Create [Component] UI Component",
+    "asA": "user",
+    "iWant": "to interact with [component] in the application",
+    "soThat": "I can [benefit/action]",
+    "type": "story",
+    "priority": "medium",
+    "acceptanceCriteria": [
+      {
+        "description": "Component renders correctly with provided props",
+        "testable": true
+      },
+      {
+        "description": "Component is accessible (WCAG 2.1 AA compliant)",
+        "testable": true
+      },
+      {
+        "description": "Component is responsive across all breakpoints",
+        "testable": true
+      },
+      {
+        "description": "Component has unit tests with >90% coverage",
+        "testable": true
+      },
+      {
+        "description": "Component is documented in Storybook",
+        "testable": true
+      }
+    ],
+    "labels": ["ui", "frontend"]
+  },
+  "database-migration": {
+    "title": "Add [Entity] Database Schema",
+    "asA": "developer",
+    "iWant": "to store [entity] data in the database",
+    "soThat": "the application can persist and query this information",
+    "type": "task",
+    "priority": "high",
+    "acceptanceCriteria": [
+      {
+        "description": "Database migration runs without errors",
+        "testable": true
+      },
+      {
+        "description": "Rollback migration is provided and tested",
+        "testable": true
+      },
+      {
+        "description": "Indexes are created for frequently queried fields",
+        "testable": true
+      },
+      {
+        "description": "Foreign key constraints are properly defined",
+        "testable": true
+      },
+      {
+        "description": "Schema changes are backward compatible",
+        "testable": true
+      }
+    ],
+    "labels": ["database", "backend"]
+  },
+  "performance-optimization": {
+    "title": "Optimize [Feature] Performance",
+    "asA": "user",
+    "iWant": "[feature] to load/respond quickly",
+    "soThat": "I have a smooth user experience",
+    "type": "task",
+    "priority": "medium",
+    "acceptanceCriteria": [
+      {
+        "description": "Page load time is under 3 seconds",
+        "testable": true
+      },
+      {
+        "description": "API response time is under 200ms for 95th percentile",
+        "testable": true
+      },
+      {
+        "description": "Memory usage does not increase over time (no leaks)",
+        "testable": true
+      },
+      {
+        "description": "Performance metrics are tracked and monitored",
+        "testable": true
+      },
+      {
+        "description": "Caching strategy is implemented where appropriate",
+        "testable": true
+      }
+    ],
+    "labels": ["performance", "optimization"]
+  },
+  "security-enhancement": {
+    "title": "Implement [Security Feature]",
+    "asA": "security engineer",
+    "iWant": "to protect against [threat/vulnerability]",
+    "soThat": "user data and system integrity are maintained",
+    "type": "story",
+    "priority": "high",
+    "acceptanceCriteria": [
+      {
+        "description": "Security feature passes penetration testing",
+        "testable": true
+      },
+      {
+        "description": "No new vulnerabilities introduced (security scan passes)",
+        "testable": true
+      },
+      {
+        "description": "Security headers are properly configured",
+        "testable": true
+      },
+      {
+        "description": "Audit logging is implemented for security events",
+        "testable": true
+      },
+      {
+        "description": "Security documentation is updated",
+        "testable": true
+      }
+    ],
+    "labels": ["security", "compliance"]
+  },
+  "bug-fix": {
+    "title": "Fix [Bug Description]",
+    "asA": "user",
+    "iWant": "[expected behavior]",
+    "soThat": "I can [complete action without issue]",
+    "type": "bug",
+    "priority": "high",
+    "acceptanceCriteria": [
+      {
+        "description": "Bug no longer reproduces with provided steps",
+        "testable": true
+      },
+      {
+        "description": "Regression test is added to prevent recurrence",
+        "testable": true
+      },
+      {
+        "description": "No new bugs introduced (existing tests pass)",
+        "testable": true
+      },
+      {
+        "description": "Root cause is documented",
+        "testable": false
+      },
+      {
+        "description": "Fix is verified in production environment",
+        "testable": true
+      }
+    ],
+    "labels": ["bug", "production"]
+  },
+  "feature-flag": {
+    "title": "Add Feature Flag for [Feature]",
+    "asA": "product manager",
+    "iWant": "to control the rollout of [feature]",
+    "soThat": "we can safely deploy and test in production",
+    "type": "task",
+    "priority": "medium",
+    "acceptanceCriteria": [
+      {
+        "description": "Feature flag can be toggled without deployment",
+        "testable": true
+      },
+      {
+        "description": "Feature works correctly when flag is enabled",
+        "testable": true
+      },
+      {
+        "description": "Feature is completely hidden when flag is disabled",
+        "testable": true
+      },
+      {
+        "description": "Feature flag can target specific users/groups",
+        "testable": true
+      },
+      {
+        "description": "Metrics are collected for flag usage",
+        "testable": true
+      }
+    ],
+    "labels": ["feature-flag", "deployment"]
+  },
+  "integration": {
+    "title": "Integrate with [External Service]",
+    "asA": "developer",
+    "iWant": "to connect our system with [service]",
+    "soThat": "we can [benefit/functionality]",
+    "type": "story",
+    "priority": "medium",
+    "acceptanceCriteria": [
+      {
+        "description": "Integration successfully connects and authenticates",
+        "testable": true
+      },
+      {
+        "description": "Error handling covers all failure scenarios",
+        "testable": true
+      },
+      {
+        "description": "Integration is configurable via environment variables",
+        "testable": true
+      },
+      {
+        "description": "Circuit breaker pattern is implemented",
+        "testable": true
+      },
+      {
+        "description": "Integration is monitored with alerts",
+        "testable": true
+      }
+    ],
+    "labels": ["integration", "external-service"]
+  },
+  "data-migration": {
+    "title": "Migrate [Data] from [Source] to [Destination]",
+    "asA": "system administrator",
+    "iWant": "to move data safely between systems",
+    "soThat": "we can [reason for migration]",
+    "type": "task",
+    "priority": "high",
+    "acceptanceCriteria": [
+      {
+        "description": "All data is migrated without loss",
+        "testable": true
+      },
+      {
+        "description": "Data integrity is verified post-migration",
+        "testable": true
+      },
+      {
+        "description": "Migration can be rolled back if needed",
+        "testable": true
+      },
+      {
+        "description": "Downtime is minimized (< 30 minutes)",
+        "testable": true
+      },
+      {
+        "description": "Migration process is documented",
+        "testable": false
+      }
+    ],
+    "labels": ["data-migration", "infrastructure"]
+  },
+  "monitoring": {
+    "title": "Add Monitoring for [Component/Service]",
+    "asA": "DevOps engineer",
+    "iWant": "to monitor [component] health and performance",
+    "soThat": "we can proactively identify and resolve issues",
+    "type": "task",
+    "priority": "medium",
+    "acceptanceCriteria": [
+      {
+        "description": "Key metrics are identified and collected",
+        "testable": true
+      },
+      {
+        "description": "Dashboards are created for visualization",
+        "testable": true
+      },
+      {
+        "description": "Alerts are configured for critical thresholds",
+        "testable": true
+      },
+      {
+        "description": "Logs are structured and searchable",
+        "testable": true
+      },
+      {
+        "description": "SLIs and SLOs are defined and tracked",
+        "testable": true
+      }
+    ],
+    "labels": ["monitoring", "observability"]
+  }
+}

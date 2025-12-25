@@ -1,0 +1,63 @@
+{
+  "extends": "claude-dev-standards/recommended",
+  "projectType": "auto",
+  "checks": {
+    "noMocks": true,
+    "realDatabase": true,
+    "authentication": true,
+    "errorHandling": true,
+    "logging": true,
+    "testing": true,
+    "docker": true,
+    "ci": true,
+    "security": true,
+    "monitoring": true
+  },
+  "custom": {
+    "minTestCoverage": 80,
+    "requiredEnvVars": [
+      "NODE_ENV",
+      "PORT",
+      "DATABASE_URL",
+      "REDIS_URL",
+      "JWT_SECRET",
+      "JWT_REFRESH_SECRET",
+      "SESSION_SECRET"
+    ],
+    "forbiddenPatterns": [
+      "console.log",
+      "console.error",
+      "any as any",
+      "// @ts-ignore",
+      "// eslint-disable",
+      "TODO",
+      "FIXME"
+    ],
+    "requiredFiles": [
+      ".env.example",
+      "docker-compose.yml",
+      "Dockerfile",
+      ".gitignore",
+      "README.md",
+      ".github/workflows"
+    ],
+    "databases": ["postgres", "redis"],
+    "security": {
+      "headers": [
+        "X-Frame-Options",
+        "X-Content-Type-Options",
+        "X-XSS-Protection",
+        "Strict-Transport-Security"
+      ],
+      "rateLimit": {
+        "windowMs": 900000,
+        "max": 100
+      }
+    }
+  },
+  "hooks": {
+    "preCommit": ["validate", "test"],
+    "prePush": ["validate --strict", "test:coverage"],
+    "postInstall": ["check all"]
+  }
+}
