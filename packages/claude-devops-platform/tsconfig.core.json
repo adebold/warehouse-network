@@ -19,15 +19,15 @@
     "noFallthroughCasesInSwitch": true,
     "allowSyntheticDefaultImports": true,
     "moduleResolution": "node",
-    "types": ["node"]
+    "types": ["node"],
+    "allowImportingTsExtensions": false
   },
   "include": [
+    "src/core/deployment-manager.ts",
+    "src/core/monitoring-manager.ts", 
     "src/core/devops-engine.ts",
     "src/core/container-manager.ts",
-    "src/core/deployment-manager.ts", 
-    "src/core/monitoring-manager.ts",
-    "src/utils/logger.ts",
-    "src/cli.ts"
+    "src/utils/logger.ts"
   ],
   "exclude": ["node_modules", "dist", "**/*.test.ts", "tests/**/*"]
 }

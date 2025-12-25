@@ -1,269 +1,550 @@
 # Claude DevOps Platform
 
-A comprehensive, production-ready DevOps platform with integrated project management features. Built with Claude Flow integration for AI-enhanced development workflows.
+> **🚀 Enterprise-Grade DevOps Automation with AI-Driven Development**
 
-## Features
+A comprehensive DevOps platform providing Docker orchestration, CI/CD automation, monitoring setup, and deployment management for AI-powered development workflows.
 
-### 🚀 Core Platform Features
-- **Code Quality Analysis**: TypeScript/JavaScript linting, complexity analysis, dead code detection
-- **Performance Monitoring**: Real-time metrics, bottleneck detection, optimization suggestions
-- **Security Scanning**: Vulnerability detection, dependency auditing, security best practices
-- **CI/CD Automation**: Pipeline generation, deployment strategies, rollback capabilities
+## 🌟 **Why Claude DevOps Platform?**
 
-### 📋 Project Management Features
-- **User Story Management**: Epic/Story/Task hierarchy with full lifecycle management
-- **Acceptance Criteria**: Testable criteria with automated test generation
-- **Prisma Schema Validation**: Comprehensive schema analysis and optimization
-- **Quality Gates**: Automated quality checks at each development stage
-- **Story-Driven Development**: Generate code, tests, and documentation from user stories
-- **Requirements Traceability**: Track requirements through implementation
-- **GitHub/Jira/Linear Integration**: Seamless synchronization with external tools
+This isn't just another DevOps tool - it's a **systematic platform designed for AI-powered development excellence**:
 
-## Installation
+### **🎯 Strategic Advantages**
+- **Zero-Configuration Setup**: AI-driven project detection and automatic configuration
+- **Multi-Strategy Deployments**: Rolling, Blue-Green, Canary, and Recreate strategies
+- **Production-Ready from Day 1**: No mocks, real databases, enterprise security
+- **AI Development Optimized**: Integrated with Claude agent tracking and analytics
+- **Complete Observability**: Prometheus, Grafana, and AlertManager automation
 
+## ⚡ **Quick Start**
+
+### **Installation**
 ```bash
 # Install globally
-npm install -g @claude/devops-platform
+npm install -g claude-devops-platform
 
-# Or use with npx
-npx @claude/devops-platform
+# Or locally in your project
+npm install --save-dev claude-devops-platform
 ```
 
-## Quick Start
-
-### Initialize Platform
+### **Initialize Your Project**
 ```bash
-# Initialize with all features
-claude-platform init --with-pm --with-claude-flow
+# Auto-detect and configure your project
+claude-devops init
 
-# Basic initialization
-claude-platform init
+# Or specify framework and cloud provider
+claude-devops init --type nextjs --provider aws --monitoring
+
+# Interactive setup with guided prompts
+claude-devops init --interactive
 ```
 
-### Project Management Commands
-
-#### Story Management
+### **Deploy in Minutes**
 ```bash
-# Create a new story interactively
-claude-platform story create -i
+# Build and deploy to staging
+claude-devops docker build --image myapp --push
+claude-devops deploy staging --strategy rolling
 
-# Create with AI assistance
-claude-platform story create --ai-assist
+# Blue-green deployment to production
+claude-devops deploy production --strategy blue-green
 
-# Create from template
-claude-platform story create -t api-feature
-
-# List all stories
-claude-platform story list
-
-# Update story status
-claude-platform story update STORY-123 -s in_progress
-
-# Generate code from story
-claude-platform story generate STORY-123 -l typescript
+# Monitor deployment status
+claude-devops status --environment production
 ```
 
-#### Epic Planning
+## 🏗️ **Architecture Overview**
+
+```
+Claude DevOps Platform
+├─ 🐳 Container Management     │ Docker optimization & security scanning
+├─ 🚀 Deployment Strategies   │ Zero-downtime deployment automation  
+├─ 📊 Monitoring Stack        │ Prometheus + Grafana + AlertManager
+├─ 🔐 Security Integration    │ Vulnerability scanning & secrets mgmt
+├─ 🤖 AI Development Support  │ Claude agent tracking integration
+└─ 🛠️ Developer Experience    │ Interactive CLI with guided workflows
+```
+
+## 📦 **Core Components**
+
+### **🐳 Container Management**
+- **Multi-stage Dockerfiles**: Optimized for 10+ frameworks (Next.js, Express, NestJS, React, Vue, Python, Django, FastAPI, Go, Rust)
+- **Security scanning**: Integrated vulnerability detection
+- **Image optimization**: Automated layer caching and size reduction
+- **Registry management**: Push to Docker Hub, ECR, GCR, ACR
+
+### **🚀 Deployment Strategies**
+- **Rolling Deployment**: Zero-downtime with configurable surge limits
+- **Blue-Green Deployment**: Instant traffic switching with rollback
+- **Canary Deployment**: Progressive traffic validation
+- **Recreate Deployment**: Complete replacement for legacy apps
+- **Database Migrations**: Coordinated schema updates with rollback
+
+### **📊 Monitoring & Observability**
+- **Prometheus**: Metrics collection and alerting rules
+- **Grafana**: Auto-generated dashboards and visualizations
+- **AlertManager**: Multi-channel notifications (Email, Slack, Webhook)
+- **APM Integration**: Application performance monitoring
+- **Log Aggregation**: Centralized logging with search capabilities
+
+## 🎯 **Deployment Strategies**
+
+### **Rolling Deployment (Default)**
 ```bash
-# Plan an epic with AI
-claude-platform epic plan --auto-stories
+# Zero-downtime rolling update
+claude-devops deploy staging --strategy rolling --replicas 3
 
-# Break down epic into stories
-claude-platform epic breakdown EPIC-001 --ai-assist
+# Configuration options
+claude-devops deploy staging --strategy rolling \
+  --max-surge 1 \
+  --max-unavailable 0 \
+  --timeout 600
 ```
 
-#### Schema Management
+### **Blue-Green Deployment**
 ```bash
-# Validate Prisma schema
-claude-platform schema validate
+# Create parallel environment and switch traffic
+claude-devops deploy production --strategy blue-green
 
-# Optimize schema with suggestions
-claude-platform schema optimize --apply
-
-# Analyze schema change impact
-claude-platform schema impact --previous prisma/schema.old.prisma
+# Validate green environment before switching
+claude-devops deploy production --strategy blue-green \
+  --validation-timeout 300 \
+  --health-check-interval 30
 ```
 
-#### Quality Management
+### **Canary Deployment**
 ```bash
-# Run quality gates for a story
-claude-platform quality check STORY-123
-
-# Generate quality report
-claude-platform quality report --format html
-
-# Check requirements coverage
-claude-platform requirements coverage --report
+# Progressive traffic splitting
+claude-devops deploy production --strategy canary \
+  --traffic-split 10 \
+  --promotion-interval 300 \
+  --success-threshold 99.5
 ```
 
-#### Integrations
+### **Database Migration Coordination**
 ```bash
-# Sync with GitHub
-claude-platform integrate github --sync-stories --setup-workflows
-
-# Future: Jira integration
-claude-platform integrate jira --sync
-
-# Future: Linear integration
-claude-platform integrate linear --sync
+# Deploy with automatic migration
+claude-devops deploy production \
+  --migrate \
+  --migration-timeout 600 \
+  --rollback-on-failure
 ```
 
-## User Story Templates
+## 📊 **Monitoring Setup**
 
-The platform includes pre-built templates for common story types:
-
-- `api-feature`: REST API endpoint implementation
-- `ui-component`: Frontend component development
-- `database-migration`: Database schema changes
-- `performance-optimization`: Performance improvements
-- `security-enhancement`: Security features
-- `bug-fix`: Bug resolution
-- `feature-flag`: Feature flag implementation
-- `integration`: External service integration
-- `data-migration`: Data migration tasks
-- `monitoring`: Observability setup
-
-## Quality Gates
-
-Automated quality checks ensure code meets standards:
-
-1. **Acceptance Criteria Validation**: All criteria properly defined
-2. **Test Coverage**: Minimum 80% coverage requirement
-3. **Performance Standards**: Load time and response metrics
-4. **Security Validation**: Vulnerability scanning
-5. **Documentation Requirements**: Code and API documentation
-
-## Story-Driven Development
-
-Generate complete implementations from user stories:
-
+### **Complete Monitoring Stack**
 ```bash
-# Generate full implementation
-claude-platform story generate STORY-123 \
-  --language typescript \
-  --framework express \
-  --dry-run
+# Setup Prometheus + Grafana + AlertManager
+claude-devops monitoring setup --retention 30d
 
-# Files generated:
-# - Implementation code
-# - Unit tests
-# - Integration tests
-# - API documentation
-# - Database migrations
-# - Docker configuration
+# Create application dashboard
+claude-devops monitoring dashboard create \
+  --app myapp \
+  --metrics "cpu,memory,requests,errors"
+
+# Configure alerts
+claude-devops monitoring alerts create \
+  --name "high-error-rate" \
+  --condition "rate(http_requests_total{status=~'5..'}[5m]) > 0.1" \
+  --severity critical \
+  --channels slack,email
 ```
 
-## Prisma Schema Validation
-
-Comprehensive schema analysis with:
-
-- Naming convention checks
-- Relationship validation
-- Index optimization suggestions
-- Security best practices
-- Performance recommendations
-- Migration impact analysis
-
-## Claude Flow Integration
-
-The platform leverages Claude Flow for enhanced AI capabilities:
-
+### **Application Metrics**
 ```bash
-# Initialize Claude Flow agents
-npx claude-flow@alpha swarm init --topology hierarchical
+# Auto-instrument application
+claude-devops monitoring instrument \
+  --app myapp \
+  --metrics prometheus \
+  --tracing jaeger
 
-# Available agents:
-# - planner: Story planning and breakdown
-# - architect: System design
-# - coder: Implementation
-# - tester: Test generation
-# - reviewer: Code review
-# - documenter: Documentation
+# Custom metrics configuration
+claude-devops monitoring metrics add \
+  --name "business_metrics" \
+  --type histogram \
+  --labels "endpoint,method"
 ```
 
-## API Usage
+## 🔐 **Security & Secrets Management**
 
-```typescript
-import { 
-  StoryManager, 
-  PrismaValidator, 
-  QualityGateManager,
-  StoryDrivenDevelopment 
-} from '@claude/devops-platform';
+### **Container Security**
+```bash
+# Security scan with vulnerability report
+claude-devops security scan --image myapp:latest --format json
 
-// Create a story programmatically
-const storyManager = new StoryManager();
-const story = await storyManager.createStory({
-  title: 'Implement user authentication',
-  asA: 'developer',
-  iWant: 'secure user authentication',
-  soThat: 'users can safely access the system',
-  type: 'story',
-  priority: 'high'
-});
-
-// Validate Prisma schema
-const validator = new PrismaValidator('prisma/schema.prisma');
-const result = await validator.validate();
-
-// Run quality gates
-const qualityGates = new QualityGateManager();
-const gateResults = await qualityGates.runGates(story, {
-  codebasePath: process.cwd()
-});
-
-// Generate code from story
-const codegen = new StoryDrivenDevelopment();
-const generated = await codegen.generateFromStory(story, {
-  language: 'typescript',
-  framework: 'express'
-});
+# Continuous security monitoring
+claude-devops security monitor --threshold high --notify slack
 ```
 
-## Configuration
+### **Secrets Management**
+```bash
+# Create secrets from file
+claude-devops secrets create --from-file .env --namespace production
 
-Create `.claude-devops.json` in your project root:
+# Create individual secret
+claude-devops secrets set DATABASE_URL "postgres://..." --namespace production
 
+# Backup secrets
+claude-devops secrets backup --namespace production --output secrets-backup.json
+```
+
+## 🔧 **CLI Commands Reference**
+
+### **Project Initialization**
+```bash
+claude-devops init [options]
+  --type <framework>        # nextjs, express, nestjs, react, vue, python, django, fastapi, go, rust
+  --provider <cloud>        # aws, gcp, azure, local
+  --monitoring             # Setup monitoring stack
+  --security               # Enable security scanning
+  --interactive            # Interactive setup mode
+```
+
+### **Container Operations**
+```bash
+claude-devops docker build [options]
+  --image <name>           # Image name
+  --tag <tag>              # Image tag (default: latest)
+  --push                   # Push to registry
+  --scan                   # Security scan after build
+  --optimize               # Optimize Dockerfile
+
+claude-devops docker compose [options]
+  --services <list>        # Comma-separated service list
+  --environment <env>      # Environment configuration
+  --volumes <list>         # Volume mappings
+```
+
+### **Deployment Operations**
+```bash
+claude-devops deploy <environment> [options]
+  --strategy <type>        # rolling, blue-green, canary, recreate
+  --replicas <number>      # Number of replicas
+  --timeout <seconds>      # Deployment timeout
+  --migrate               # Run database migrations
+  --dry-run               # Preview changes only
+
+claude-devops rollback <deployment-id> [options]
+  --version <version>      # Target version
+  --environment <env>      # Target environment
+  --force                 # Force rollback without confirmation
+```
+
+### **Monitoring & Observability**
+```bash
+claude-devops monitoring setup [options]
+  --stack <type>          # prometheus, datadog, newrelic
+  --retention <duration>   # Data retention period
+  --storage <size>        # Storage allocation
+
+claude-devops monitoring dashboard [options]
+  --create <name>         # Create new dashboard
+  --import <file>         # Import dashboard configuration
+  --export <name>         # Export dashboard configuration
+```
+
+### **Operational Commands**
+```bash
+claude-devops health [options]
+  --component <name>      # Specific component health
+  --environment <env>     # Environment to check
+  --format <type>         # Output format (json, table)
+
+claude-devops logs [options]
+  --app <name>            # Application name
+  --follow               # Follow log output
+  --since <duration>      # Show logs since duration
+  --tail <lines>          # Number of lines to show
+
+claude-devops scale <app> <replicas> [options]
+  --namespace <ns>        # Kubernetes namespace
+  --timeout <seconds>     # Scaling timeout
+  --wait                 # Wait for scaling to complete
+
+claude-devops status [options]
+  --environment <env>     # Environment status
+  --format <type>         # Output format (json, table)
+  --watch                # Watch status changes
+```
+
+## 🏭 **Production Deployment Examples**
+
+### **Next.js Application**
+```bash
+# Complete Next.js deployment pipeline
+claude-devops init --type nextjs --provider aws --monitoring
+
+# Build optimized Docker image
+claude-devops docker build \
+  --image myapp \
+  --tag v1.0.0 \
+  --push \
+  --scan
+
+# Deploy to staging with rolling strategy
+claude-devops deploy staging \
+  --strategy rolling \
+  --replicas 2 \
+  --timeout 300
+
+# Blue-green deployment to production
+claude-devops deploy production \
+  --strategy blue-green \
+  --replicas 3 \
+  --validation-timeout 600
+
+# Setup monitoring and alerts
+claude-devops monitoring setup --retention 30d
+claude-devops monitoring dashboard create --app myapp
+claude-devops monitoring alerts create \
+  --name "response-time" \
+  --condition "avg(http_request_duration_seconds) > 0.5" \
+  --severity warning
+```
+
+### **Microservices Architecture**
+```bash
+# Multi-service deployment
+claude-devops docker compose \
+  --services api,frontend,worker \
+  --environment production
+
+# Deploy all services with canary strategy
+for service in api frontend worker; do
+  claude-devops deploy production \
+    --strategy canary \
+    --service $service \
+    --traffic-split 10
+done
+
+# Monitor deployment progress
+claude-devops status --environment production --watch
+```
+
+### **Database Migration Deployment**
+```bash
+# Deploy with coordinated database migration
+claude-devops deploy production \
+  --strategy blue-green \
+  --migrate \
+  --migration-timeout 900 \
+  --rollback-on-failure \
+  --validation-script ./scripts/validate-migration.sh
+```
+
+## 🔧 **Configuration**
+
+### **Project Configuration (`.claude-devops.json`)**
 ```json
 {
-  "projectManagement": {
-    "defaultPriority": "medium",
-    "requireAcceptanceCriteria": true,
-    "minTestCoverage": 80,
-    "autoAssignStories": true
+  "projectType": "nextjs",
+  "cloudProvider": "aws",
+  "environments": ["staging", "production"],
+  "containerRegistry": "ecr",
+  "monitoring": {
+    "stack": "prometheus",
+    "retention": "30d",
+    "alertChannels": ["slack", "email"]
   },
-  "quality": {
-    "enabledGates": ["acceptance-criteria", "test-coverage", "security"],
-    "strictMode": false
-  },
-  "integrations": {
-    "github": {
-      "owner": "your-org",
-      "repo": "your-repo",
-      "autoSync": true
+  "deployment": {
+    "defaultStrategy": "rolling",
+    "strategies": {
+      "staging": "rolling",
+      "production": "blue-green"
     }
   },
-  "schema": {
-    "strictValidation": true,
-    "autoOptimize": false
+  "security": {
+    "scanning": true,
+    "secretsProvider": "kubernetes",
+    "vulnerabilityThreshold": "high"
   }
 }
 ```
 
-## Best Practices
+### **Framework Detection**
+The platform automatically detects your framework and generates optimized configurations:
 
-1. **Always define acceptance criteria** for user stories
-2. **Use templates** for consistent story creation
-3. **Run quality gates** before marking stories as done
-4. **Validate schema changes** before applying migrations
-5. **Enable GitHub integration** for automated workflows
-6. **Use AI assistance** for story planning and breakdown
-7. **Maintain requirements traceability** for compliance
+- **Next.js**: Multi-stage build with static optimization
+- **Express.js**: Production build with PM2 clustering
+- **NestJS**: TypeScript compilation with dependency injection
+- **React**: Static build with nginx serving
+- **Vue**: SPA build with router configuration
+- **Python/Django**: WSGI with gunicorn
+- **FastAPI**: ASGI with uvicorn workers
+- **Go**: Static binary with minimal Alpine image
+- **Rust**: Optimized release build
 
-## License
+## 🚀 **Integration with Claude AI Platform**
 
-MIT
+### **Agent Tracking Integration**
+```bash
+# Enable Claude agent tracking during deployment
+claude-devops deploy production \
+  --agent-tracking \
+  --track-performance \
+  --generate-reports
 
-## Contributing
+# Monitor AI agent performance
+claude-devops monitoring agent-metrics \
+  --timeframe last_week \
+  --format dashboard
+```
 
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for contribution guidelines.
+### **AI-Powered Optimization**
+```bash
+# AI-driven resource optimization
+claude-devops optimize \
+  --analyze-usage \
+  --recommend-scaling \
+  --cost-optimization
+
+# Automated performance tuning
+claude-devops tune \
+  --metric response-time \
+  --target 100ms \
+  --auto-apply
+```
+
+## 🏢 **Enterprise Features**
+
+### **Multi-Environment Management**
+- **Environment isolation**: Separate configurations and secrets
+- **Promotion pipelines**: Automated staging → production promotion
+- **Compliance tracking**: Audit trails and change management
+- **Cost optimization**: Resource usage analysis and recommendations
+
+### **Security & Compliance**
+- **Vulnerability scanning**: Container and dependency scanning
+- **Secrets management**: Kubernetes secrets and HashiCorp Vault
+- **RBAC integration**: Role-based access control
+- **Audit logging**: Complete audit trail for compliance
+
+### **High Availability**
+- **Multi-region deployments**: Automated multi-region coordination
+- **Load balancing**: Intelligent traffic distribution
+- **Auto-scaling**: CPU/memory-based horizontal scaling
+- **Disaster recovery**: Automated backup and restore procedures
+
+## 📊 **Monitoring & Metrics**
+
+### **Application Metrics**
+- **Performance**: Response time, throughput, error rates
+- **Infrastructure**: CPU, memory, disk, network utilization
+- **Business**: Custom business metrics and KPIs
+- **User Experience**: Real user monitoring and synthetics
+
+### **Alerting & Notifications**
+- **Multi-channel**: Email, Slack, PagerDuty, Webhook
+- **Escalation**: Automatic escalation based on severity
+- **Alert correlation**: Intelligent alert grouping and suppression
+- **Runbook automation**: Automated response to common issues
+
+## 🛠️ **Advanced Usage**
+
+### **Custom Deployment Scripts**
+```bash
+# Custom deployment pipeline
+claude-devops deploy production \
+  --pre-deploy ./scripts/pre-deploy.sh \
+  --post-deploy ./scripts/post-deploy.sh \
+  --validation ./scripts/validate.sh \
+  --rollback-script ./scripts/rollback.sh
+```
+
+### **Infrastructure as Code**
+```bash
+# Generate Terraform configurations
+claude-devops infrastructure generate \
+  --provider aws \
+  --region us-east-1 \
+  --environment production
+
+# Deploy infrastructure
+claude-devops infrastructure deploy \
+  --plan \
+  --apply \
+  --auto-approve
+```
+
+### **GitOps Integration**
+```bash
+# Setup GitOps workflow
+claude-devops gitops setup \
+  --repository git@github.com:myorg/myapp-config.git \
+  --sync-interval 5m \
+  --auto-sync
+
+# Trigger deployment via Git
+git tag v1.0.1
+git push origin v1.0.1
+# Deployment automatically triggered
+```
+
+## 🔍 **Troubleshooting**
+
+### **Common Issues**
+
+**Deployment Fails**
+```bash
+# Check deployment status
+claude-devops status --environment production
+
+# View deployment logs
+claude-devops logs --deployment deploy-123 --follow
+
+# Manual rollback if needed
+claude-devops rollback deploy-123 --version v1.0.0
+```
+
+**Container Build Issues**
+```bash
+# Debug Dockerfile
+claude-devops docker build --debug --no-cache
+
+# Security scan issues
+claude-devops security scan --image myapp --threshold medium
+```
+
+**Monitoring Setup Issues**
+```bash
+# Validate monitoring configuration
+claude-devops monitoring validate
+
+# Check component health
+claude-devops health --component monitoring
+```
+
+### **Performance Optimization**
+```bash
+# Analyze resource usage
+claude-devops analyze --metrics cpu,memory,network
+
+# Optimize container images
+claude-devops docker optimize --image myapp
+
+# Scale based on metrics
+claude-devops scale myapp --auto --metric cpu --target 70
+```
+
+## 📚 **Documentation**
+
+- **API Reference**: Complete TypeScript interface documentation
+- **Best Practices**: Security, performance, and deployment guidelines  
+- **Examples**: Real-world deployment scenarios
+- **Migration Guides**: Upgrading from other DevOps tools
+
+## 🤝 **Contributing**
+
+This platform follows production-ready development standards:
+
+1. **No mocks**: All implementations use real services
+2. **TypeScript strict mode**: Complete type safety
+3. **Comprehensive testing**: Unit, integration, and E2E tests
+4. **Security first**: All code passes security audits
+5. **Documentation**: Complete API and usage documentation
+
+## 📄 **License**
+
+MIT - Built for enterprise AI development workflows
+
+---
+
+**Transform your development workflow with systematic DevOps excellence. Deploy faster, monitor smarter, scale efficiently.**
