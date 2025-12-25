@@ -1,0 +1,55 @@
+{
+  "id": "end_user",
+  "name": "End User - Bob",
+  "role": "user",
+  "department": "Sales",
+  "permissions": ["read"],
+  "characteristics": {
+    "experienceLevel": "beginner",
+    "techSavvy": false,
+    "primaryGoals": [
+      "Complete daily tasks quickly",
+      "Find customer information",
+      "Generate sales reports",
+      "Update customer records"
+    ],
+    "painPoints": [
+      "Complex navigation",
+      "Too many form fields",
+      "Unclear error messages",
+      "Slow page loading",
+      "Mobile interface issues"
+    ]
+  },
+  "credentials": {
+    "email": "bob.sales@example.com",
+    "password": "User123!",
+    "userId": "user-001"
+  },
+  "deviceProfile": {
+    "screenWidth": 375,
+    "screenHeight": 812,
+    "mobile": true,
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"
+  },
+  "accessibility": {
+    "screenReader": false,
+    "keyboardOnly": false,
+    "highContrast": false,
+    "reducedMotion": true,
+    "darkMode": false,
+    "fontSize": 18
+  },
+  "networkProfile": {
+    "downloadSpeed": 5000000,
+    "uploadSpeed": 1000000,
+    "latency": 100
+  },
+  "locale": "en-US",
+  "sessionData": {
+    "theme": "light",
+    "helpTooltips": true,
+    "mobileOptimized": true
+  },
+  "tags": ["end-user", "mobile", "beginner", "sales"]
+}

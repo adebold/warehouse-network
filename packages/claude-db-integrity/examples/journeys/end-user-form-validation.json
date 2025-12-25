@@ -1,0 +1,206 @@
+{
+  "id": "end_user_form_validation",
+  "name": "End User Form Validation Journey",
+  "description": "End user submitting forms with real-time validation and accessibility testing",
+  "personaId": "end_user",
+  "epic": "form-validation",
+  "scenarios": [
+    {
+      "id": "mobile_login_form",
+      "name": "Mobile user login form validation",
+      "description": "Test mobile-optimized login form with validation",
+      "steps": [
+        {
+          "action": "navigate",
+          "target": "/login"
+        },
+        {
+          "action": "type",
+          "target": "[name='email']",
+          "data": "invalid-email"
+        },
+        {
+          "action": "click",
+          "target": "[type='submit']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='email-error']"
+        },
+        {
+          "action": "type",
+          "target": "[name='email']",
+          "data": "bob.sales@example.com"
+        },
+        {
+          "action": "type",
+          "target": "[name='password']",
+          "data": "wrongpassword"
+        },
+        {
+          "action": "click",
+          "target": "[type='submit']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='login-error']"
+        },
+        {
+          "action": "type",
+          "target": "[name='password']",
+          "data": "User123!"
+        },
+        {
+          "action": "submit",
+          "target": "[type='submit']"
+        }
+      ],
+      "assertions": [
+        {
+          "type": "element_exists",
+          "selector": "[data-testid='email-error']",
+          "message": "Email validation error should be shown for invalid email"
+        },
+        {
+          "type": "text_contains",
+          "selector": "[data-testid='email-error']",
+          "expected": "Please enter a valid email",
+          "message": "Email error message should be user-friendly"
+        },
+        {
+          "type": "accessibility",
+          "message": "Login form should be accessible for mobile users"
+        },
+        {
+          "type": "performance",
+          "threshold": 3000,
+          "message": "Login form should load within 3 seconds on mobile"
+        },
+        {
+          "type": "url_matches",
+          "pattern": "/dashboard",
+          "message": "Should redirect to dashboard after successful login"
+        }
+      ],
+      "timeout": 20000
+    },
+    {
+      "id": "customer_contact_form",
+      "name": "Customer contact form submission",
+      "description": "Test customer contact form with field validation",
+      "steps": [
+        {
+          "action": "navigate",
+          "target": "/customer-contact"
+        },
+        {
+          "action": "fill_form",
+          "data": {
+            "customerName": "ABC Manufacturing",
+            "contactPerson": "Jane Smith",
+            "email": "jane.smith@abcmanufacturing.com",
+            "phone": "+1-555-0199",
+            "inquiryType": "technical-support",
+            "message": "We are experiencing issues with database connectivity and need assistance."
+          }
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='terms-checkbox']"
+        },
+        {
+          "action": "submit",
+          "target": "[data-testid='submit-contact-form']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='form-success']",
+          "timeout": 10000
+        }
+      ],
+      "assertions": [
+        {
+          "type": "element_exists",
+          "selector": "[data-testid='form-success']",
+          "message": "Success message should be displayed after form submission"
+        },
+        {
+          "type": "database_integrity",
+          "query": "SELECT COUNT(*) FROM contact_inquiries WHERE email = ?",
+          "params": ["jane.smith@abcmanufacturing.com"],
+          "expected": 1,
+          "message": "Contact inquiry should be saved to database"
+        },
+        {
+          "type": "database_integrity",
+          "query": "SELECT status FROM contact_inquiries WHERE email = ?",
+          "params": ["jane.smith@abcmanufacturing.com"],
+          "expected": "pending",
+          "message": "Contact inquiry should have correct initial status"
+        },
+        {
+          "type": "performance",
+          "threshold": 2000,
+          "message": "Form submission should complete within 2 seconds"
+        }
+      ]
+    },
+    {
+      "id": "mobile_accessibility_test",
+      "name": "Mobile accessibility validation",
+      "description": "Test form accessibility for users with disabilities",
+      "steps": [
+        {
+          "action": "navigate",
+          "target": "/profile/edit"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='profile-form']"
+        },
+        {
+          "action": "type",
+          "target": "[name='firstName']",
+          "data": "Robert"
+        },
+        {
+          "action": "type",
+          "target": "[name='lastName']",
+          "data": "Johnson"
+        },
+        {
+          "action": "select",
+          "target": "[name='department']",
+          "value": "Sales"
+        }
+      ],
+      "assertions": [
+        {
+          "type": "accessibility",
+          "message": "Profile form should meet WCAG accessibility guidelines"
+        },
+        {
+          "type": "element_exists",
+          "selector": "label[for='firstName']",
+          "message": "Form fields should have proper labels"
+        },
+        {
+          "type": "attribute_equals",
+          "selector": "[name='firstName']",
+          "attribute": "aria-required",
+          "expected": "true",
+          "message": "Required fields should have aria-required attribute"
+        },
+        {
+          "type": "performance",
+          "threshold": 1500,
+          "message": "Profile page should load quickly on mobile"
+        }
+      ]
+    }
+  ],
+  "tags": ["end-user", "mobile", "forms", "validation", "accessibility"],
+  "priority": "high",
+  "createdAt": "2024-12-25T00:00:00.000Z",
+  "updatedAt": "2024-12-25T00:00:00.000Z"
+}

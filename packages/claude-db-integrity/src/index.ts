@@ -7,6 +7,10 @@ export { ConfigManager } from './utils/config';
 export { TemplateManager } from './utils/templates';
 export { CLIController } from './cli/controller';
 
+// Persona-based testing exports
+export { PersonaManager } from './personas/PersonaManager';
+export { BrowserAutomation } from './testing/BrowserAutomation';
+
 // Type exports
 export type {
   IntegrityConfig,
@@ -20,7 +24,20 @@ export type {
   MigrationResult,
   MonitoringEvent,
   CLIOptions,
-  TemplateMetadata
+  TemplateMetadata,
+  // Persona testing types
+  Persona,
+  UserJourney,
+  TestScenario,
+  TestStep,
+  TestAssertion,
+  PersonaTestSuite,
+  PersonaValidationResult,
+  PersonaViolation,
+  PersonaConfig,
+  BrowserConfig,
+  AutomationResult,
+  ScreenshotOptions
 } from './types';
 
 // Utility exports

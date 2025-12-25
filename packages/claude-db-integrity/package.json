@@ -64,7 +64,9 @@
     "cron": "^3.1.6",
     "dotenv": "^16.3.1",
     "yaml": "^2.3.4",
-    "glob": "^10.3.10"
+    "glob": "^10.3.10",
+    "puppeteer": "^21.6.1",
+    "axe-core": "^4.8.3"
   },
   "devDependencies": {
     "@types/node": "^20.10.5",

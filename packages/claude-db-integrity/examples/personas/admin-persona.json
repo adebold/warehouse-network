@@ -1,0 +1,63 @@
+{
+  "id": "admin",
+  "name": "System Administrator - Alice",
+  "role": "admin",
+  "department": "IT",
+  "permissions": ["read", "write", "delete", "admin", "user-management"],
+  "characteristics": {
+    "experienceLevel": "expert",
+    "techSavvy": true,
+    "primaryGoals": [
+      "Manage system configurations",
+      "Monitor application health",
+      "Troubleshoot database issues",
+      "Ensure data integrity",
+      "Manage user permissions"
+    ],
+    "painPoints": [
+      "Complex admin interfaces",
+      "Slow database queries",
+      "Unclear error messages",
+      "Missing audit trails"
+    ]
+  },
+  "credentials": {
+    "email": "alice.admin@example.com",
+    "password": "Admin123!",
+    "userId": "admin-001"
+  },
+  "deviceProfile": {
+    "screenWidth": 2560,
+    "screenHeight": 1440,
+    "mobile": false,
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+  },
+  "accessibility": {
+    "screenReader": false,
+    "keyboardOnly": false,
+    "highContrast": false,
+    "reducedMotion": false,
+    "darkMode": true,
+    "fontSize": 14
+  },
+  "networkProfile": {
+    "downloadSpeed": 100000000,
+    "uploadSpeed": 50000000,
+    "latency": 10
+  },
+  "locale": "en-US",
+  "sessionData": {
+    "theme": "dark",
+    "adminMode": true,
+    "dashboardLayout": "advanced"
+  },
+  "cookies": [
+    {
+      "name": "session-preference",
+      "value": "admin-dashboard",
+      "domain": "localhost",
+      "path": "/"
+    }
+  ],
+  "tags": ["admin", "power-user", "database-expert"]
+}

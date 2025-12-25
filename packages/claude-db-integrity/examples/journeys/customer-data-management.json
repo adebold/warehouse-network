@@ -1,0 +1,187 @@
+{
+  "id": "customer_data_mgmt_admin",
+  "name": "Customer Data Management (Admin)",
+  "description": "Admin persona managing customer data with database integrity validation",
+  "personaId": "admin",
+  "epic": "customer-management",
+  "scenarios": [
+    {
+      "id": "admin_create_customer",
+      "name": "Admin creates new customer record",
+      "description": "Test admin creating customer with database integrity checks",
+      "steps": [
+        {
+          "action": "navigate",
+          "target": "/login",
+          "screenshot": true
+        },
+        {
+          "action": "authenticate",
+          "credentials": {
+            "email": "alice.admin@example.com",
+            "password": "Admin123!"
+          }
+        },
+        {
+          "action": "navigate",
+          "target": "/admin/customers"
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='create-customer-btn']"
+        },
+        {
+          "action": "fill_form",
+          "data": {
+            "firstName": "John",
+            "lastName": "Doe",
+            "email": "john.doe@example.com",
+            "phone": "+1-555-0123",
+            "company": "Test Corp",
+            "department": "Engineering",
+            "role": "user"
+          }
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='submit-customer']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='success-message']",
+          "timeout": 10000
+        },
+        {
+          "action": "take_screenshot",
+          "name": "customer-created"
+        }
+      ],
+      "assertions": [
+        {
+          "type": "element_exists",
+          "selector": "[data-testid='success-message']",
+          "message": "Success message should be displayed after customer creation"
+        },
+        {
+          "type": "text_contains",
+          "selector": "[data-testid='success-message']",
+          "expected": "Customer created successfully",
+          "message": "Success message should confirm customer creation"
+        },
+        {
+          "type": "database_integrity",
+          "query": "SELECT COUNT(*) FROM customers WHERE email = ?",
+          "params": ["john.doe@example.com"],
+          "expected": 1,
+          "message": "Customer record should be saved in database"
+        },
+        {
+          "type": "database_integrity",
+          "query": "SELECT created_by FROM customers WHERE email = ?",
+          "params": ["john.doe@example.com"],
+          "expected": "admin-001",
+          "message": "Customer record should track admin who created it"
+        },
+        {
+          "type": "url_matches",
+          "pattern": "/admin/customers/(\\d+)",
+          "message": "Should redirect to customer detail page"
+        }
+      ],
+      "timeout": 30000,
+      "continueOnFailure": false
+    },
+    {
+      "id": "admin_validate_customer_data",
+      "name": "Admin validates customer data integrity",
+      "description": "Test admin viewing customer with data integrity validation",
+      "steps": [
+        {
+          "action": "navigate",
+          "target": "/admin/customers/1"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='customer-details']"
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='validate-data-btn']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='validation-results']",
+          "timeout": 15000
+        }
+      ],
+      "assertions": [
+        {
+          "type": "element_exists",
+          "selector": "[data-testid='validation-results']",
+          "message": "Data validation results should be displayed"
+        },
+        {
+          "type": "element_exists",
+          "selector": "[data-testid='integrity-status'][data-status='passed']",
+          "message": "Data integrity checks should pass"
+        },
+        {
+          "type": "database_integrity",
+          "query": "SELECT COUNT(*) FROM audit_log WHERE table_name = 'customers' AND action = 'validate'",
+          "expected": "at_least_one",
+          "message": "Data validation should be logged in audit trail"
+        }
+      ]
+    },
+    {
+      "id": "admin_bulk_data_operations",
+      "name": "Admin performs bulk customer operations",
+      "description": "Test admin bulk operations with integrity monitoring",
+      "steps": [
+        {
+          "action": "navigate",
+          "target": "/admin/customers"
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='select-all-checkbox']"
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='bulk-actions-dropdown']"
+        },
+        {
+          "action": "click",
+          "target": "[data-testid='export-selected']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='export-progress']"
+        },
+        {
+          "action": "wait_for_element",
+          "target": "[data-testid='download-link']",
+          "timeout": 30000
+        }
+      ],
+      "assertions": [
+        {
+          "type": "element_exists",
+          "selector": "[data-testid='download-link']",
+          "message": "Download link should be available after export"
+        },
+        {
+          "type": "database_integrity",
+          "query": "SELECT COUNT(*) FROM export_jobs WHERE status = 'completed' AND created_by = ?",
+          "params": ["admin-001"],
+          "expected": "at_least_one",
+          "message": "Export job should be tracked in database"
+        }
+      ]
+    }
+  ],
+  "tags": ["admin", "customer-management", "database-integrity", "crud-operations"],
+  "priority": "high",
+  "createdAt": "2024-12-25T00:00:00.000Z",
+  "updatedAt": "2024-12-25T00:00:00.000Z"
+}

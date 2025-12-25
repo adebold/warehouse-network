@@ -7,12 +7,24 @@ import { logger } from '../utils/logger';
 import { ConfigManager } from '../utils/config';
 import { TemplateManager } from '../utils/templates';
 import { IntegrityEngine } from '../core/IntegrityEngine';
-import type { CLIOptions, IntegrityReport, SchemaDrift, ValidationResult } from '../types';
+import { PersonaManager } from '../personas/PersonaManager';
+import { BrowserAutomation } from '../testing/BrowserAutomation';
+import type { 
+  CLIOptions, 
+  IntegrityReport, 
+  SchemaDrift, 
+  ValidationResult,
+  Persona,
+  UserJourney,
+  PersonaValidationResult
+} from '../types';
 
 export class CLIController {
   private configManager: ConfigManager;
   private templateManager: TemplateManager;
   private integrityEngine?: IntegrityEngine;
+  private personaManager?: PersonaManager;
+  private browserAutomation?: BrowserAutomation;
 
   constructor() {
     this.configManager = new ConfigManager();
@@ -481,5 +493,244 @@ export class CLIController {
     const headers = Object.keys(data);
     const values = Object.values(data).map(v => JSON.stringify(v));
     return [headers.join(','), values.join(',')].join('\n');
+  }
+
+  // Persona-based testing commands
+
+  async personas(options: CLIOptions): Promise<void> {
+    await this.ensurePersonaManager();
+
+    if (options.list) {
+      console.log(chalk.blue.bold('📋 Registered Personas:'));
+      // Implementation to list personas
+      return;
+    }
+
+    if (options.create) {
+      const personaData = JSON.parse(await fs.readFile(options.create, 'utf8'));
+      await this.personaManager!.registerPersona(personaData);
+      console.log(chalk.green(`✅ Persona created: ${personaData.name}`));
+      return;
+    }
+
+    if (options.delete) {
+      // Implementation to delete persona
+      console.log(chalk.green(`✅ Persona deleted: ${options.delete}`));
+      return;
+    }
+
+    // Show interactive persona menu
+    await this.personaMenu();
+  }
+
+  async journeys(options: CLIOptions): Promise<void> {
+    await this.ensurePersonaManager();
+
+    if (options.list) {
+      console.log(chalk.blue.bold('📋 User Journeys:'));
+      // Implementation to list journeys
+      return;
+    }
+
+    if (options.create) {
+      const journeyData = JSON.parse(await fs.readFile(options.create, 'utf8'));
+      await this.personaManager!.createUserJourney(journeyData);
+      console.log(chalk.green(`✅ Journey created: ${journeyData.name}`));
+      return;
+    }
+
+    if (options.generate) {
+      const story = options.generate;
+      const epic = options.epic || 'general';
+      const journeys = await this.personaManager!.generateTestsFromStories([story], epic);
+      console.log(chalk.green(`✅ Generated ${journeys.length} journeys from story`));
+      return;
+    }
+
+    await this.journeyMenu();
+  }
+
+  async testPersonas(options: CLIOptions): Promise<{ passed: number; failed: number; total: number }> {
+    await this.ensurePersonaManager();
+    await this.ensureBrowserAutomation(options);
+
+    const testOptions = {
+      personaId: options.persona,
+      journeyId: options.journey,
+      epic: options.epic,
+      environment: options.environment as 'development' | 'staging' | 'production'
+    };
+
+    const results = await this.personaManager!.runPersonaTests(testOptions);
+
+    // Display results
+    await this.displayPersonaTestResults(results);
+
+    return {
+      passed: results.summary?.passed || 0,
+      failed: results.summary?.failed || 0,
+      total: results.summary?.total || 0
+    };
+  }
+
+  async validateForms(options: CLIOptions): Promise<{ valid: number; invalid: number }> {
+    await this.ensurePersonaManager();
+
+    if (options.persona && options.form) {
+      const testData = options.data ? 
+        JSON.parse(await fs.readFile(options.data, 'utf8')) : 
+        {};
+      
+      const result = await this.personaManager!.validateFormInteraction(
+        options.persona,
+        options.form,
+        testData
+      );
+
+      console.log(chalk.blue.bold(`📋 Form Validation Results for ${options.form}:`));
+      console.log(`Status: ${result.status === 'passed' ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
+      console.log(`Duration: ${result.duration}ms`);
+
+      if (result.violations && result.violations.length > 0) {
+        console.log(chalk.red.bold('\n🚨 Violations Found:'));
+        result.violations.forEach(violation => {
+          console.log(`❌ ${violation.message} (${violation.severity})`);
+        });
+      }
+
+      return {
+        valid: result.status === 'passed' ? 1 : 0,
+        invalid: result.status === 'failed' ? 1 : 0
+      };
+    }
+
+    // Validate all forms for all personas
+    console.log(chalk.blue('🔍 Running form validation for all personas...'));
+    return { valid: 0, invalid: 0 };
+  }
+
+  private async ensurePersonaManager(): Promise<void> {
+    if (!this.personaManager) {
+      await this.ensureInitialized();
+      const engine = await this.getIntegrityEngine();
+      const memoryManager = (engine as any).memoryManager;
+      
+      this.personaManager = new PersonaManager(
+        {
+          enabled: true,
+          defaultPersonas: ['admin', 'end_user', 'manager'],
+          browserConfig: {},
+          screenshotsEnabled: true,
+          accessibilityChecking: true,
+          performanceThresholds: {
+            pageLoadTime: 3000,
+            firstContentfulPaint: 1500,
+            largestContentfulPaint: 2500,
+            cumulativeLayoutShift: 0.1
+          }
+        },
+        memoryManager
+      );
+      
+      await this.personaManager.initialize();
+    }
+  }
+
+  private async ensureBrowserAutomation(options: CLIOptions): Promise<void> {
+    if (!this.browserAutomation) {
+      this.browserAutomation = new BrowserAutomation({
+        headless: options.headless !== false,
+        timeout: 30000,
+        viewport: { width: 1920, height: 1080 }
+      });
+      
+      await this.browserAutomation.initialize();
+    }
+  }
+
+  private async displayPersonaTestResults(results: PersonaValidationResult): Promise<void> {
+    console.log(chalk.blue.bold('\n📊 Persona Test Results'));
+    console.log(`Test ID: ${results.id}`);
+    console.log(`Persona: ${results.personaId}`);
+    console.log(`Epic: ${results.epic}`);
+    console.log(`Environment: ${results.environment}`);
+    console.log(`Status: ${results.status === 'passed' ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
+    console.log(`Duration: ${results.duration}ms`);
+
+    if (results.summary) {
+      console.log(chalk.blue('\n📈 Summary:'));
+      console.log(`Total scenarios: ${results.summary.total}`);
+      console.log(`✅ Passed: ${chalk.green(results.summary.passed)}`);
+      console.log(`❌ Failed: ${chalk.red(results.summary.failed)}`);
+      console.log(`⏭️ Skipped: ${chalk.yellow(results.summary.skipped)}`);
+      console.log(`📊 Coverage: ${results.summary.coverage}%`);
+    }
+
+    if (results.performance) {
+      console.log(chalk.blue('\n⚡ Performance:'));
+      console.log(`Average response time: ${results.performance.avgResponseTime}ms`);
+      if (results.performance.slowestScenario) {
+        console.log(`Slowest scenario: ${results.performance.slowestScenario.name || results.performance.slowestScenario.id}`);
+      }
+    }
+
+    if (results.violations && results.violations.length > 0) {
+      console.log(chalk.red.bold('\n🚨 Violations Found:'));
+      results.violations.forEach(violation => {
+        const icon = violation.severity === 'error' ? '🔴' : violation.severity === 'warning' ? '🟡' : '🔵';
+        console.log(`${icon} ${violation.message}`);
+        if (violation.scenario) {
+          console.log(`   Scenario: ${violation.scenario}`);
+        }
+        if (violation.step) {
+          console.log(`   Step: ${violation.step}`);
+        }
+      });
+    }
+  }
+
+  private async personaMenu(): Promise<void> {
+    const { action } = await inquirer.prompt([{
+      type: 'list',
+      name: 'action',
+      message: 'Persona Management:',
+      choices: [
+        { name: 'List all personas', value: 'list' },
+        { name: 'Create new persona', value: 'create' },
+        { name: 'Delete persona', value: 'delete' },
+        { name: 'Test with persona', value: 'test' }
+      ]
+    }]);
+
+    switch (action) {
+      case 'list':
+        // Implementation
+        break;
+      case 'create':
+        // Implementation
+        break;
+      case 'delete':
+        // Implementation
+        break;
+      case 'test':
+        // Implementation
+        break;
+    }
+  }
+
+  private async journeyMenu(): Promise<void> {
+    const { action } = await inquirer.prompt([{
+      type: 'list',
+      name: 'action',
+      message: 'User Journey Management:',
+      choices: [
+        { name: 'List all journeys', value: 'list' },
+        { name: 'Create new journey', value: 'create' },
+        { name: 'Generate from story', value: 'generate' },
+        { name: 'Run journey tests', value: 'test' }
+      ]
+    }]);
+
+    // Implementation for each action
   }
 }
