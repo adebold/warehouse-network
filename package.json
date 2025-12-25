@@ -7,6 +7,11 @@
     "packages/*",
     "apps/*"
   ],
+  "claudeAiPlatformDependencies": {
+    "@claude-ai/agent-tracker": "^1.0.0",
+    "@claude-ai/devops-platform": "^1.0.0", 
+    "@claude-ai/enterprise": "^1.0.0"
+  },
   "scripts": {
     "dev": "npm run --workspace=@warehouse-network/web dev",
     "build": "npm run build:packages && npm run --workspace=@warehouse-network/web build",
