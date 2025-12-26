@@ -128,8 +128,8 @@ const Home: NextPage = () => {
                 <div className="h-12 w-12 mx-auto mb-2 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <p className="text-sm font-medium">Insured</p>
-                <p className="text-xs text-muted-foreground">$1M coverage</p>
+                <p className="text-sm font-medium">Verified</p>
+                <p className="text-xs text-muted-foreground">Quality spaces</p>
               </div>
               <div className="text-center">
                 <div className="h-12 w-12 mx-auto mb-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
@@ -262,8 +262,8 @@ const Home: NextPage = () => {
                       <Check className="h-4 w-4 text-white" />
                     </div>
                     <div>
-                      <p className="font-semibold">Protected & Insured</p>
-                      <p className="text-sm text-muted-foreground">$1M liability coverage and verified renters</p>
+                      <p className="font-semibold">Secure Platform</p>
+                      <p className="text-sm text-muted-foreground">Verified renters and secure transactions</p>
                     </div>
                   </div>
                 </div>
@@ -296,11 +296,11 @@ const Home: NextPage = () => {
                 <div className="h-12 w-12 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
                   <Shield className="h-6 w-6 text-green-600 dark:text-green-400" />
                 </div>
-                <CardTitle>Fully Insured</CardTitle>
+                <CardTitle>Secure Platform</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground">
-                  Every booking includes $1M liability coverage. Your inventory is protected from day one.
+                  Our platform connects verified renters with quality warehouse spaces. Secure transactions and trusted partners.
                 </p>
               </CardContent>
             </Card>
@@ -556,8 +556,8 @@ const Home: NextPage = () => {
               <p className="text-sm opacity-90">Support</p>
             </div>
             <div>
-              <p className="text-3xl font-bold">$1M</p>
-              <p className="text-sm opacity-90">Insurance</p>
+              <p className="text-3xl font-bold">100%</p>
+              <p className="text-sm opacity-90">Secure</p>
             </div>
             <div>
               <p className="text-3xl font-bold">0%</p>
