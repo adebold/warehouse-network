@@ -72,7 +72,7 @@ case $METHOD in
         cd apps/web
         
         echo ""
-        echo "📝 Using project: easyreno-demo-20251219144606"
+        echo "📝 Using project: aindustries-warehouse"
         echo "📍 Region: us-central1"
         echo ""
         
@@ -98,7 +98,7 @@ EOF
             --cpu=2 \
             --max-instances=10 \
             --set-env-vars="NODE_ENV=production,SKIP_ENV_VALIDATION=true" \
-            --project easyreno-demo-20251219144606
+            --project aindustries-warehouse
             
         echo ""
         echo "✅ Deployment complete!"

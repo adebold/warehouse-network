@@ -1,16 +1,19 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
-  
-  // Skip static generation for deployment
   output: 'standalone',
-  
-  // Skip type checking and linting in production builds
-  typescript: {
-    ignoreBuildErrors: true,
+  reactStrictMode: true,
+  transpilePackages: ['@warehouse/types'],
+  images: {
+    domains: ['localhost'],
   },
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  experimental: {
+    serverActions: true,
   },
 }
 
