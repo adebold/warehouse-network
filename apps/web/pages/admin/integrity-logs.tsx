@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { GetServerSideProps } from 'next';
 import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../api/auth/[...nextauth]';
-import AdminLayout from '../../components/layouts/AdminLayout';
+// import AdminLayout from '../../components/layouts/AdminLayout';
 import { prisma } from '@warehouse-network/db';
 import {
   IntegrityLog,
@@ -144,7 +144,6 @@ export default function IntegrityLogsPage({ initialLogs, initialAlerts, analytic
   });
 
   return (
-    <AdminLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Database Integrity Logs</h1>
@@ -417,7 +416,6 @@ export default function IntegrityLogsPage({ initialLogs, initialAlerts, analytic
           </TabsContent>
         </Tabs>
       </div>
-    </AdminLayout>
   );
 }
 

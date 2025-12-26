@@ -25,6 +25,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { useAnalytics } from '@/hooks/useAnalytics';
+import { AIChat } from '@/components/ai/AIChat';
 
 const Home: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -598,6 +599,15 @@ const Home: NextPage = () => {
           </div>
         </div>
       </footer>
+      
+      {/* AI Chat Assistant */}
+      <AIChat 
+        onWarehouseSelect={(warehouse) => {
+          console.log('Selected warehouse:', warehouse);
+          // Navigate to warehouse detail page
+          window.location.href = `/warehouses/${warehouse.id}`;
+        }}
+      />
     </div>
   );
 };
