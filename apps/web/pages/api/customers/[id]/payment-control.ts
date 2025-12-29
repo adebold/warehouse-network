@@ -1,15 +1,12 @@
-import type { Customer } from '@warehouse/types';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/pages/api/auth/[...nextauth]';
-import { PrismaClient } from '@prisma/client';
+
 import {
   lockCustomerAccount,
   unlockCustomerAccount,
-  canUserOverrideLock,
 } from '@/lib/payment-control';
-
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);

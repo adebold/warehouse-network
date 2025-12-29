@@ -3,6 +3,11 @@
  * Generates database migrations from various sources
  */
 
+import crypto from 'crypto';
+
+import winston from 'winston';
+
+import { MigrationEngine } from '../migration/migration-engine';
 import {
   Migration,
   MigrationType,
@@ -10,12 +15,8 @@ import {
   DatabaseSchema,
   DriftReport,
   FormValidationResult,
-  IntegrityResult,
-  IntegrityError
+  IntegrityResult
 } from '../types';
-import { MigrationEngine } from '../migration/migration-engine';
-import crypto from 'crypto';
-import winston from 'winston';
 
 export interface MigrationGeneratorOptions {
   name: string;
@@ -499,9 +500,9 @@ export class MigrationGenerator {
   }
 
   private formatDefaultValue(value: any): string {
-    if (value === null) return 'NULL';
-    if (typeof value === 'string') return `'${value}'`;
-    if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
+    if (value === null) {return 'NULL';}
+    if (typeof value === 'string') {return `'${value}'`;}
+    if (typeof value === 'boolean') {return value ? 'TRUE' : 'FALSE';}
     return String(value);
   }
 

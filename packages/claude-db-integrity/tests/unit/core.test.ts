@@ -1,7 +1,7 @@
 import { IntegrityEngine } from '../../src/core/IntegrityEngine';
-import { ValidationManager } from '../../src/validators/ValidationManager';
-import { ClaudeMemoryManager } from '../../src/memory/ClaudeMemoryManager';
 import { SchemaManager } from '../../src/core/SchemaManager';
+import { ClaudeMemoryManager } from '../../src/memory/ClaudeMemoryManager';
+import { ValidationManager } from '../../src/validators/ValidationManager';
 
 describe('Core Functionality', () => {
   describe('IntegrityEngine', () => {

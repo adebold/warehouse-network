@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Clock, Database, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface IntegrityReport {
   id: string;
@@ -83,7 +84,7 @@ export function IntegrityDashboard() {
   };
 
   const getStatusColor = (status: string, severity: string) => {
-    if (status === 'passed') return 'bg-green-100 text-green-800';
+    if (status === 'passed') {return 'bg-green-100 text-green-800';}
     if (status === 'failed') {
       return severity === 'error' ? 
         'bg-red-100 text-red-800' : 

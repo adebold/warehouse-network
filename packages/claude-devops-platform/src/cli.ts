@@ -43,13 +43,17 @@ program
       const engine = new DevOpsEngine();
       
       const config = await engine.generateStack({
-        framework: options.type || 'auto-detect',
+        projectType: options.type || 'auto-detect',
         cloudProvider: options.provider || 'aws',
-        enableMonitoring: options.monitoring || false
+        environments: ['staging', 'production'],
+        monitoring: options.monitoring || false,
+        security: true,
+        cicd: true,
+        database: ['postgresql']
       });
       
       console.log('✅ Claude DevOps Platform initialized successfully!');
-      console.log(`📁 Configuration saved to: ${config.configPath}`);
+      console.log(`📁 Stack created with ID: ${config.stackId}`);
     } catch (error: any) {
       console.error('❌ Initialization failed:', error.message);
       process.exit(1);
@@ -73,10 +77,9 @@ program
       switch (action) {
         case 'build':
           console.log('🔨 Building Docker image...');
-          const buildResult = await containerManager.buildImage({
+          const buildResult = await containerManager.buildAndPush({
             imageName: options.image || 'app',
-            tag: options.tag || 'latest',
-            framework: 'auto-detect'
+            tag: options.tag || 'latest'
           });
           console.log(`✅ Image built: ${buildResult.imageName}:${buildResult.tag}`);
           break;
@@ -107,11 +110,18 @@ program
       const { DeploymentManager } = await import('./core/deployment-manager');
       const deploymentManager = new DeploymentManager();
       
-      const result = await deploymentManager.deploy({
+      const deploymentId = `deploy-${Date.now()}`;
+      const result = await deploymentManager.deployToEnvironment(
         environment,
-        strategy: options.strategy || 'rolling',
-        image: 'app:latest'
-      });
+        deploymentId,
+        {
+          environment,
+          version: 'latest',
+          strategy: options.strategy || 'rolling',
+          replicas: 3,
+          rollbackOnFailure: true
+        }
+      );
       
       console.log(`✅ Deployment ${result.deploymentId} completed successfully`);
     } catch (error: any) {

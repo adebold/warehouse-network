@@ -3,22 +3,23 @@
  * Handles database migrations with Prisma integration
  */
 
+import crypto from 'crypto';
+import fs from 'fs/promises';
+import path from 'path';
+
+import { IntegrityLogCategory, IntegrityLogLevel, IntegrityMetricType, IntegrityAlertType, IntegrityAlertSeverity } from '@warehouse-network/db';
+import winston from 'winston';
+
+import { DatabaseConnection } from '../core/database-connection';
+import { memoryBank } from '../memory-bank/memory-bank';
 import {
   Migration,
   MigrationConfig,
   MigrationStatus,
   MigrationOptions,
   IntegrityResult,
-  IntegrityError,
   MigrationType
 } from '../types';
-import { DatabaseConnection } from '../core/database-connection';
-import crypto from 'crypto';
-import fs from 'fs/promises';
-import path from 'path';
-import winston from 'winston';
-import { memoryBank } from '../memory-bank/memory-bank';
-import { IntegrityLogCategory, IntegrityLogLevel, IntegrityMetricType, IntegrityAlertType, IntegrityAlertSeverity } from '@warehouse-network/db';
 
 export class MigrationEngine {
   private connection: DatabaseConnection;

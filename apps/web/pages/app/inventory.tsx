@@ -1,20 +1,21 @@
-import type { Customer } from '@warehouse/types';
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import type { Skid, Customer } from '@prisma/client';
-import prisma from '../../lib/prisma';
+import type { Customer } from '@warehouse/types';
+import { Package, Search, Filter, Download, Plus } from 'lucide-react';
+import type { NextPage, GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../lib/prisma';
 import { authOptions } from '../api/auth/[...nextauth]';
+
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { DataTable } from '@/components/ui/table';
+import { AccountLockWarning } from '@/components/ui/account-lock-warning';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { AccountLockWarning } from '@/components/ui/account-lock-warning';
-import { Package, Search, Filter, Download, Plus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { DataTable } from '@/components/ui/table';
 
 interface InventoryProps {
   skids: (Skid & { location: { name: string } | null })[];
@@ -37,8 +39,8 @@ const Inventory: NextPage<InventoryProps> = ({ skids: initialSkids, customer }) 
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
     if (session?.user?.role !== 'CUSTOMER_ADMIN' && session?.user?.role !== 'CUSTOMER_USER') {
       router.push('/unauthorized');
     }

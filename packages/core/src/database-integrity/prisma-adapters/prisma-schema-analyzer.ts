@@ -3,10 +3,12 @@
  * Analyzes Prisma schema files and extracts model information
  */
 
-import { PrismaConfig, DatabaseSchema, PrismaModel, PrismaField, PrismaIndex, IntegrityResult, IntegrityError } from '../types';
 import { readFileSync } from 'fs';
 import path from 'path';
+
 import winston from 'winston';
+
+import { PrismaConfig, DatabaseSchema, PrismaModel, PrismaField, PrismaIndex, IntegrityResult, IntegrityError } from '../types';
 
 export class PrismaSchemaAnalyzer {
   private config: PrismaConfig;
@@ -92,7 +94,7 @@ export class PrismaSchemaAnalyzer {
     const lines = modelContent.split('\n').map(line => line.trim()).filter(line => line && !line.startsWith('@@'));
 
     for (const line of lines) {
-      if (!line || line.startsWith('//')) continue;
+      if (!line || line.startsWith('//')) {continue;}
 
       const field = this.parseFieldLine(line);
       if (field) {
@@ -107,7 +109,7 @@ export class PrismaSchemaAnalyzer {
     // Parse field definition: name Type modifiers
     const fieldMatch = line.match(/^(\w+)\s+(\w+)(\[\])?(\?)?(.*)$/);
     
-    if (!fieldMatch) return null;
+    if (!fieldMatch) {return null;}
 
     const [, fieldName, fieldType, isList, isOptional, modifiers] = fieldMatch;
     
@@ -197,7 +199,7 @@ export class PrismaSchemaAnalyzer {
 
   private extractFieldsFromDirective(line: string): string[] {
     const match = line.match(/\[([^\]]+)\]/);
-    if (!match) return [];
+    if (!match) {return [];}
     
     return match[1]
       .split(',')
@@ -219,13 +221,13 @@ export class PrismaSchemaAnalyzer {
     defaultStr = defaultStr.trim();
     
     // Handle common Prisma defaults
-    if (defaultStr === 'now()') return 'CURRENT_TIMESTAMP';
-    if (defaultStr === 'cuid()') return 'cuid';
-    if (defaultStr === 'uuid()') return 'uuid';
-    if (defaultStr === 'autoincrement()') return 'autoincrement';
-    if (defaultStr === 'true' || defaultStr === 'false') return defaultStr === 'true';
-    if (/^\d+$/.test(defaultStr)) return parseInt(defaultStr);
-    if (/^\d+\.\d+$/.test(defaultStr)) return parseFloat(defaultStr);
+    if (defaultStr === 'now()') {return 'CURRENT_TIMESTAMP';}
+    if (defaultStr === 'cuid()') {return 'cuid';}
+    if (defaultStr === 'uuid()') {return 'uuid';}
+    if (defaultStr === 'autoincrement()') {return 'autoincrement';}
+    if (defaultStr === 'true' || defaultStr === 'false') {return defaultStr === 'true';}
+    if (/^\d+$/.test(defaultStr)) {return parseInt(defaultStr);}
+    if (/^\d+\.\d+$/.test(defaultStr)) {return parseFloat(defaultStr);}
     if (defaultStr.startsWith('"') && defaultStr.endsWith('"')) {
       return defaultStr.slice(1, -1);
     }

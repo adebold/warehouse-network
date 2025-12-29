@@ -1,9 +1,21 @@
-import type { User } from '@warehouse/types';
 
-import { useState, useEffect } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import {
+  ArrowLeft,
+  Lock,
+  Unlock,
+  AlertTriangle,
+  History,
+  Ban,
+} from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -12,12 +24,6 @@ import {
   CardTitle,
   CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -27,23 +33,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  ArrowLeft,
-  Lock,
-  Unlock,
-  AlertTriangle,
-  Package,
-  DollarSign,
-  Calendar,
-  User,
-  History,
-  Ban,
-  CheckCircle,
-  XCircle,
-  FileText,
-  Truck,
-} from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
+
 
 interface CustomerDetail {
   id: string;
@@ -123,7 +116,7 @@ export default function CustomerDetailPage() {
   };
 
   const handleLockUnlock = async () => {
-    if (!customer) return;
+    if (!customer) {return;}
 
     setActionLoading(true);
     try {

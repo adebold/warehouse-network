@@ -224,7 +224,7 @@ export class DeploymentManager {
           try {
             await this.rollbackDeployment(deploymentId, {});
           } catch (rollbackError) {
-            logger.error('Auto-rollback failed', rollbackError, logContext);
+            logger.error('Auto-rollback failed', rollbackError instanceof Error ? rollbackError : new Error(String(rollbackError)), logContext);
           }
         }
 
@@ -534,7 +534,7 @@ export class DeploymentManager {
 
     try {
       // Get all deployments
-      const deploymentsOutput = await this.executeCommand('kubectl get deployments --all-namespaces -o json');
+      const deploymentsOutput = await this.executeCommand('kubectl get deployments --all-namespaces -o json', {});
       const deployments = JSON.parse(deploymentsOutput);
 
       for (const deployment of deployments.items || []) {
@@ -576,8 +576,8 @@ export class DeploymentManager {
     const match = duration.match(/^(\d+)([smh])$/);
     if (!match) throw new Error(`Invalid duration format: ${duration}`);
     
-    const value = parseInt(match[1]);
-    const unit = match[2];
+    const value = parseInt(match[1]!);
+    const unit = match[2]!;
     
     switch (unit) {
       case 's': return value * 1000;
@@ -596,20 +596,24 @@ export class DeploymentManager {
       logger.debug(`Executing command: ${command}`, logContext);
       
       const [cmd, ...args] = command.split(' ');
-      const process = spawn(cmd, args, { stdio: ['inherit', 'pipe', 'pipe'] });
+      const childProcess = spawn(cmd!, args, { stdio: ['inherit', 'pipe', 'pipe'] });
       
       let stdout = '';
       let stderr = '';
       
-      process.stdout?.on('data', (data) => {
-        stdout += data.toString();
-      });
+      if (childProcess.stdout) {
+        childProcess.stdout.on('data', (data: Buffer) => {
+          stdout += data.toString();
+        });
+      }
       
-      process.stderr?.on('data', (data) => {
-        stderr += data.toString();
-      });
+      if (childProcess.stderr) {
+        childProcess.stderr.on('data', (data: Buffer) => {
+          stderr += data.toString();
+        });
+      }
       
-      process.on('close', (code) => {
+      childProcess.on('close', (code: number | null) => {
         if (code === 0) {
           logger.debug(`Command completed successfully: ${command}`, logContext);
           resolve(stdout);

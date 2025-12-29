@@ -1,13 +1,15 @@
-import { useSession } from 'next-auth/react';
+import { Users, FileText, DollarSign, Package } from 'lucide-react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Users, FileText, DollarSign, TrendingUp, Package } from 'lucide-react';
-import { BRAND_ASSETS } from '@/lib/asset-urls';
-import Link from 'next/link';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BRAND_ASSETS } from '@/lib/asset-urls';
+
+
 
 const AdminDashboard: NextPage = () => {
   const { data: session, status } = useSession();
@@ -22,7 +24,7 @@ const AdminDashboard: NextPage = () => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push('/login');

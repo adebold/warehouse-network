@@ -1,0 +1,342 @@
+# Full Docker Compose configuration with complete security environment
+version: '3.9'
+
+x-app-environment: &app-environment
+  # Database Configuration (Using Docker PostgreSQL on internal port)
+  DATABASE_URL: postgresql://${DB_USER:-warehouse}:${DB_PASSWORD:-warehouse123}@postgres:5432/${DB_NAME:-warehouse_network}
+  
+  # Application Configuration
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-key-change-in-production}
+  NODE_ENV: ${NODE_ENV:-development}
+  LOG_LEVEL: ${LOG_LEVEL:-debug}
+  
+  # Redis Configuration
+  REDIS_URL: redis://:${REDIS_PASSWORD:-redis-password}@redis:6379
+  
+  # Payment Integration
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+  
+  # Cron Jobs
+  CRON_SECRET_ACCRUAL: ${CRON_SECRET_ACCRUAL}
+  CRON_SECRET_PAYOUTS: ${CRON_SECRET_PAYOUTS}
+  CRON_SECRET_SCORES: ${CRON_SECRET_SCORES}
+  
+  # Authentication Security
+  JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-change-in-production}
+  JWT_MAX_AGE: ${JWT_MAX_AGE:-86400}
+  BCRYPT_ROUNDS: ${BCRYPT_ROUNDS:-12}
+  SESSION_MAX_AGE: ${SESSION_MAX_AGE:-2592000}
+  
+  # Rate Limiting Configuration
+  RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+  RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+  AUTH_RATE_LIMIT_WINDOW_MS: ${AUTH_RATE_LIMIT_WINDOW_MS:-900000}
+  AUTH_RATE_LIMIT_MAX: ${AUTH_RATE_LIMIT_MAX:-5}
+  API_RATE_LIMIT_WINDOW_MS: ${API_RATE_LIMIT_WINDOW_MS:-900000}
+  API_RATE_LIMIT_MAX: ${API_RATE_LIMIT_MAX:-100}
+  PASSWORD_RESET_RATE_LIMIT_WINDOW_MS: ${PASSWORD_RESET_RATE_LIMIT_WINDOW_MS:-3600000}
+  PASSWORD_RESET_RATE_LIMIT_MAX: ${PASSWORD_RESET_RATE_LIMIT_MAX:-3}
+  
+  # CSRF Protection
+  CSRF_PROTECTION_ENABLED: ${CSRF_PROTECTION_ENABLED:-true}
+  CSRF_TOKEN_LENGTH: ${CSRF_TOKEN_LENGTH:-32}
+  CSRF_COOKIE_NAME: ${CSRF_COOKIE_NAME:-_csrf}
+  CSRF_HEADER_NAME: ${CSRF_HEADER_NAME:-x-csrf-token}
+  CSRF_TOKEN_TTL: ${CSRF_TOKEN_TTL:-86400000}
+  
+  # CORS Configuration
+  ENABLE_CORS: ${ENABLE_CORS:-true}
+  CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000}
+  CORS_ALLOW_CREDENTIALS: ${CORS_ALLOW_CREDENTIALS:-true}
+  
+  # Security Headers
+  ENABLE_HELMET: ${ENABLE_HELMET:-true}
+  HSTS_MAX_AGE: ${HSTS_MAX_AGE:-31536000}
+  X_FRAME_OPTIONS: ${X_FRAME_OPTIONS:-DENY}
+  
+  # Password Policy
+  PASSWORD_MIN_LENGTH: ${PASSWORD_MIN_LENGTH:-8}
+  PASSWORD_REQUIRE_UPPERCASE: ${PASSWORD_REQUIRE_UPPERCASE:-true}
+  PASSWORD_REQUIRE_LOWERCASE: ${PASSWORD_REQUIRE_LOWERCASE:-true}
+  PASSWORD_REQUIRE_NUMBERS: ${PASSWORD_REQUIRE_NUMBERS:-true}
+  PASSWORD_REQUIRE_SYMBOLS: ${PASSWORD_REQUIRE_SYMBOLS:-false}
+  PASSWORD_MAX_ATTEMPTS: ${PASSWORD_MAX_ATTEMPTS:-5}
+  PASSWORD_LOCKOUT_DURATION: ${PASSWORD_LOCKOUT_DURATION:-900000}
+  
+  # Session Security
+  SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME:-__Secure-next-auth.session-token}
+  SESSION_SAME_SITE: ${SESSION_SAME_SITE:-lax}
+  
+  # Monitoring
+  MONITORING_ENABLED: ${MONITORING_ENABLED:-true}
+  METRICS_INTERVAL: ${METRICS_INTERVAL:-60000}
+  HEALTH_CHECK_INTERVAL: ${HEALTH_CHECK_INTERVAL:-30000}
+
+x-security-labels: &security-labels
+  labels:
+    - "security.scan=enabled"
+    - "security.monitoring=enabled"
+    - "security.compliance=pci-dss"
+
+services:
+  # PostgreSQL Database with enhanced security
+  postgres:
+    image: postgres:15-alpine
+    container_name: warehouse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-warehouse}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-warehouse123}
+      POSTGRES_DB: ${DB_NAME:-warehouse_network}
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # PostgreSQL security settings
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    volumes:
+      - warehouse-postgres-data:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-warehouse} -d ${DB_NAME:-warehouse_network}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - warehouse-network
+    <<: *security-labels
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Redis with enhanced security
+  redis:
+    image: redis:7-alpine
+    container_name: warehouse-redis
+    restart: unless-stopped
+    command: >
+      redis-server 
+      --appendonly yes 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --requirepass ${REDIS_PASSWORD:-redis-password}
+      --bind 0.0.0.0
+      --protected-mode yes
+      --tcp-backlog 511
+      --timeout 300
+      --tcp-keepalive 300
+    volumes:
+      - warehouse-redis-data:/data
+      - ./docker/redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis-password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - warehouse-network
+    <<: *security-labels
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Main Application with security enhancements
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+      args:
+        - BUILD_DATE=${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        - VCS_REF=${VCS_REF:-$(git rev-parse --short HEAD)}
+    container_name: warehouse-app
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    networks:
+      - warehouse-network
+    volumes:
+      - warehouse-uploads:/app/uploads
+      - warehouse-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    <<: *security-labels
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+    security_opt:
+      - no-new-privileges:true
+      - seccomp:unconfined
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+
+  # Nginx Reverse Proxy with Security Headers
+  nginx:
+    image: nginx:alpine
+    container_name: warehouse-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+      - warehouse-static:/var/www/static:ro
+    depends_on:
+      - app
+    networks:
+      - warehouse-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    <<: *security-labels
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Security Scanner Service
+  security-scanner:
+    image: aquasec/trivy:latest
+    container_name: warehouse-security-scanner
+    restart: unless-stopped
+    command: server --listen 0.0.0.0:8080
+    ports:
+      - "8080:8080"
+    networks:
+      - warehouse-network
+    volumes:
+      - trivy-cache:/root/.cache/trivy
+    environment:
+      TRIVY_CACHE_DIR: /root/.cache/trivy
+      TRIVY_QUIET: "false"
+      TRIVY_DEBUG: ${DEBUG:-false}
+    <<: *security-labels
+
+  # Monitoring - Prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: warehouse-prometheus
+    restart: unless-stopped
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./docker/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    networks:
+      - warehouse-network
+    <<: *security-labels
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Monitoring - Grafana
+  grafana:
+    image: grafana/grafana:latest
+    container_name: warehouse-grafana
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-simple-json-datasource"
+      GF_SERVER_ROOT_URL: ${GF_SERVER_ROOT_URL:-http://localhost:3001}
+      GF_SECURITY_DISABLE_GRAVATAR: "true"
+      GF_SECURITY_COOKIE_SECURE: ${GF_SECURITY_COOKIE_SECURE:-false}
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY: "true"
+      GF_SECURITY_STRICT_TRANSPORT_SECURITY_MAX_AGE_SECONDS: "86400"
+      GF_SECURITY_CONTENT_SECURITY_POLICY: "true"
+    ports:
+      - "3001:3000"
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+    depends_on:
+      - prometheus
+    networks:
+      - warehouse-network
+    <<: *security-labels
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+volumes:
+  warehouse-postgres-data:
+    driver: local
+  warehouse-redis-data:
+    driver: local
+  warehouse-uploads:
+    driver: local
+  warehouse-logs:
+    driver: local
+  warehouse-static:
+    driver: local
+  trivy-cache:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  warehouse-network:
+    driver: bridge
+    name: warehouse-network
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+          gateway: 172.20.0.1

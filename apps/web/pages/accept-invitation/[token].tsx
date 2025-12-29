@@ -1,8 +1,9 @@
-import type { NextPage, GetServerSideProps } from 'next';
-import { useState } from 'react';
-import { useRouter } from 'next/router';
-import prisma from '../../lib/prisma';
 import type { Invitation } from '@prisma/client';
+import type { NextPage, GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { useState } from 'react';
+
+import prisma from '../../lib/prisma';
 
 interface AcceptInvitationProps {
   invitation: Invitation | null;

@@ -1,5 +1,6 @@
-import { useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
+import { useEffect, useCallback } from 'react';
+
 import {
   logPageView,
   logEvent,
@@ -112,7 +113,7 @@ function throttle(func: Function, wait: number) {
       func(...args);
       lastCall = now;
     } else {
-      if (timeout) clearTimeout(timeout);
+      if (timeout) {clearTimeout(timeout);}
       timeout = setTimeout(
         () => {
           func(...args);

@@ -1,4 +1,3 @@
-import type { User } from '@warehouse/types';
 import ReactGA from 'react-ga4';
 
 // Initialize Google Analytics

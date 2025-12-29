@@ -1,7 +1,6 @@
-import type { Order, Customer } from '@warehouse/types';
 import type { NextPage } from 'next';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 const Receive: NextPage = () => {
@@ -15,8 +14,8 @@ const Receive: NextPage = () => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
     if (session?.user?.role !== 'OPERATOR_ADMIN' && session?.user?.role !== 'WAREHOUSE_STAFF') {
       router.push('/unauthorized');
     }

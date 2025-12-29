@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { logger } from '../utils/logger';
+
 import { ClaudeMemoryManager } from '../memory/ClaudeMemoryManager';
 import type { 
   Persona, 
@@ -9,6 +9,7 @@ import type {
   PersonaValidationResult,
   PersonaConfig
 } from '../types';
+import { logger } from '../utils/logger';
 
 export class PersonaManager extends EventEmitter {
   private memoryManager: ClaudeMemoryManager;
@@ -36,7 +37,7 @@ export class PersonaManager extends EventEmitter {
       
       logger.info(`Persona Manager initialized with ${this.personas.size} personas and ${this.journeys.size} journeys`);
     } catch (error) {
-      logger.error('Failed to initialize Persona Manager:', error);
+      logger.error('Failed to initialize Persona Manager:', error instanceof Error ? error : String(error));
       throw error;
     }
   }
@@ -72,7 +73,7 @@ export class PersonaManager extends EventEmitter {
     // Store journey in memory
     await this.memoryManager.store(`journeys/${journey.id}`, journey, {
       namespace: 'persona-testing',
-      tags: ['journey', journey.personaId, journey.epic],
+      tags: ['journey', journey.personaId, ...(journey.epic ? [journey.epic] : [])],
       ttl: 86400 * 30 // 30 days
     });
     
@@ -105,7 +106,7 @@ export class PersonaManager extends EventEmitter {
         // Store individual test result
         await this.memoryManager.store(`test-results/${result.id}`, result, {
           namespace: 'persona-testing',
-          tags: ['test-result', test.personaId, test.epic]
+          tags: ['test-result', test.personaId, ...(test.epic ? [test.epic] : [])]
         });
       }
       
@@ -141,12 +142,12 @@ export class PersonaManager extends EventEmitter {
         tags: ['test-suite', 'summary']
       });
       
-      logger.info(`Persona tests completed: ${summary.summary.passed}/${summary.summary.total} passed`);
+      logger.info(`Persona tests completed: ${summary.summary?.passed || 0}/${summary.summary?.total || 0} passed`);
       this.emit('tests:complete', summary);
       
       return summary;
     } catch (error) {
-      logger.error('Persona tests failed:', error);
+      logger.error('Persona tests failed:', error instanceof Error ? error : String(error));
       throw error;
     }
   }
@@ -225,8 +226,9 @@ export class PersonaManager extends EventEmitter {
           expected: 'Form submits successfully'
         },
         {
-          action: 'verify_result',
-          target: 'success_message',
+          action: 'wait_for_text',
+          target: '.success-message',
+          text: 'Success',
           expected: 'Success confirmation displayed'
         }
       ],
@@ -239,7 +241,7 @@ export class PersonaManager extends EventEmitter {
         {
           type: 'database_integrity',
           query: 'SELECT COUNT(*) FROM form_submissions WHERE user_id = ?',
-          params: [persona.userId],
+          params: [persona.credentials?.userId || persona.id],
           expected: 'at_least_one',
           message: 'Form submission should be saved to database'
         }
@@ -276,15 +278,15 @@ export class PersonaManager extends EventEmitter {
             violations.push(...scenarioResult.violations || []);
           }
         } catch (error) {
-          logger.error(`Scenario failed: ${scenario.name}`, error);
+          logger.error(`Scenario failed: ${scenario.name}`, error instanceof Error ? error : String(error));
           results.push({
             id: scenario.id,
             status: 'failed',
-            error: error.message,
+            error: error instanceof Error ? error.message : String(error),
             violations: [{
               type: 'execution_error',
               severity: 'error',
-              message: error.message,
+              message: error instanceof Error ? error.message : String(error),
               scenario: scenario.name
             }]
           });
@@ -314,7 +316,7 @@ export class PersonaManager extends EventEmitter {
         }
       };
     } catch (error) {
-      logger.error(`Persona test failed for ${persona.name}:`, error);
+      logger.error(`Persona test failed for ${persona.name}:`, error instanceof Error ? error : String(error));
       throw error;
     }
   }
@@ -371,11 +373,11 @@ export class PersonaManager extends EventEmitter {
         name: scenario.name,
         status: 'failed',
         duration: Date.now() - startTime,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         violations: [{
           type: 'execution_error',
           severity: 'error',
-          message: error.message,
+          message: error instanceof Error ? error.message : String(error),
           scenario: scenario.name
         }]
       };
@@ -452,7 +454,7 @@ export class PersonaManager extends EventEmitter {
     // Set session data
     if (persona.sessionData) {
       for (const [key, value] of Object.entries(persona.sessionData)) {
-        await page.evaluate((k, v) => {
+        await page.evaluate((k: any, v: any) => {
           localStorage.setItem(k, JSON.stringify(v));
         }, key, value);
       }
@@ -538,7 +540,7 @@ export class PersonaManager extends EventEmitter {
     } catch (error) {
       return { 
         passed: false, 
-        details: { error: error.message } 
+        details: { error: error instanceof Error ? error.message : String(error) } 
       };
     }
   }
@@ -666,16 +668,16 @@ export class PersonaManager extends EventEmitter {
     
     // Filter journeys based on criteria
     for (const [journeyId, journey] of this.journeys) {
-      if (options.personaId && journey.personaId !== options.personaId) continue;
-      if (options.journeyId && journey.id !== options.journeyId) continue;
-      if (options.epic && journey.epic !== options.epic) continue;
+      if (options.personaId && journey.personaId !== options.personaId) {continue;}
+      if (options.journeyId && journey.id !== options.journeyId) {continue;}
+      if (options.epic && journey.epic !== options.epic) {continue;}
       
       const testSuite: PersonaTestSuite = {
         id: journey.id,
         personaId: journey.personaId,
         name: journey.name,
         scenarios: journey.scenarios,
-        epic: journey.epic
+        ...(journey.epic && { epic: journey.epic })
       };
       
       tests.push(testSuite);
@@ -697,13 +699,13 @@ export class PersonaManager extends EventEmitter {
     return durations.length > 0 ? durations.reduce((sum, d) => sum + d, 0) / durations.length : 0;
   }
 
-  private findSlowestScenario(results: PersonaValidationResult[]): any {
-    return results.reduce((slowest, current) => 
+  private findSlowestScenario(results: PersonaValidationResult[]): PersonaValidationResult | null {
+    return results.reduce<PersonaValidationResult | null>((slowest, current) => 
       current.duration > (slowest?.duration || 0) ? current : slowest, null);
   }
 
-  private findFastestScenario(results: PersonaValidationResult[]): any {
-    return results.reduce((fastest, current) => 
+  private findFastestScenario(results: PersonaValidationResult[]): PersonaValidationResult | null {
+    return results.reduce<PersonaValidationResult | null>((fastest, current) => 
       current.duration < (fastest?.duration || Infinity) ? current : fastest, null);
   }
 
@@ -722,8 +724,8 @@ export class PersonaManager extends EventEmitter {
     const adaptedData = { ...testData };
     
     // Add persona-specific fields
-    if (persona.userId) {
-      adaptedData.userId = persona.userId;
+    if (persona.credentials?.userId) {
+      adaptedData.userId = persona.credentials.userId;
     }
     
     if (persona.department) {

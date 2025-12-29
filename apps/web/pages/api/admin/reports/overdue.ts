@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
+
 import { authOptions } from '../../auth/[...nextauth]';
+
 import prisma from '@/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
@@ -79,15 +81,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       // Populate age groups and status counts
       customersWithDays.forEach(customer => {
         // Age groups
-        if (customer.daysOverdue <= 30) stats.byAgeGroup['0-30']++;
-        else if (customer.daysOverdue <= 60) stats.byAgeGroup['31-60']++;
-        else if (customer.daysOverdue <= 90) stats.byAgeGroup['61-90']++;
-        else stats.byAgeGroup['90+']++;
+        if (customer.daysOverdue <= 30) {stats.byAgeGroup['0-30']++;}
+        else if (customer.daysOverdue <= 60) {stats.byAgeGroup['31-60']++;}
+        else if (customer.daysOverdue <= 90) {stats.byAgeGroup['61-90']++;}
+        else {stats.byAgeGroup['90+']++;}
 
         // Status counts
-        if (customer.paymentStatus === 'OVERDUE') stats.byStatus.overdue++;
-        if (customer.paymentStatus === 'DELINQUENT') stats.byStatus.delinquent++;
-        if (customer.accountStatus === 'LOCKED') stats.byStatus.locked++;
+        if (customer.paymentStatus === 'OVERDUE') {stats.byStatus.overdue++;}
+        if (customer.paymentStatus === 'DELINQUENT') {stats.byStatus.delinquent++;}
+        if (customer.accountStatus === 'LOCKED') {stats.byStatus.locked++;}
       });
 
       return res.status(200).json({

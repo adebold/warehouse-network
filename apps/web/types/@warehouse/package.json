@@ -1,0 +1,17 @@
+{
+  "name": "@warehouse/types",
+  "version": "1.0.0",
+  "description": "Type definitions for warehouse management system",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "import": "./index.js",
+      "require": "./index.js"
+    }
+  },
+  "peerDependencies": {
+    "@prisma/client": "^5.0.0"
+  }
+}

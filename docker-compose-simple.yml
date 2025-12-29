@@ -1,0 +1,62 @@
+x-app-environment: &app-environment
+  DATABASE_URL: postgresql://${DB_USER:-warehouse}:${DB_PASSWORD:-warehouse123}@postgres:5432/${DB_NAME:-warehouse_network}
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-key-change-in-production}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+  CRON_SECRET_ACCRUAL: ${CRON_SECRET_ACCRUAL}
+  CRON_SECRET_PAYOUTS: ${CRON_SECRET_PAYOUTS}
+  CRON_SECRET_SCORES: ${CRON_SECRET_SCORES}
+  REDIS_URL: redis://redis:6379
+  NODE_ENV: development
+  LOG_LEVEL: debug
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: warehouse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-warehouse}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-warehouse123}
+      POSTGRES_DB: ${DB_NAME:-warehouse_network}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - warehouse-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-warehouse} -d ${DB_NAME:-warehouse_network}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - warehouse-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: warehouse-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - warehouse-redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - warehouse-network
+
+volumes:
+  warehouse-postgres-data:
+    driver: local
+  warehouse-redis-data:
+    driver: local
+
+networks:
+  warehouse-network:
+    driver: bridge
+    name: warehouse-network

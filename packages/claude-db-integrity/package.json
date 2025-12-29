@@ -1,7 +1,7 @@
 {
-  "name": "claude-db-integrity",
+  "name": "@warehouse-network/claude-db-integrity",
   "version": "1.0.0",
-  "description": "Comprehensive database integrity system with Claude Flow memory integration for production applications",
+  "description": "Enterprise database integrity management with real-time drift detection, automated schema validation, PostgreSQL optimization, and production-grade monitoring",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
@@ -56,12 +56,13 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/warehouse-network/claude-db-integrity.git"
+    "url": "git+https://github.com/warehouse-network/platform.git",
+    "directory": "packages/claude-db-integrity"
   },
   "bugs": {
-    "url": "https://github.com/warehouse-network/claude-db-integrity/issues"
+    "url": "https://github.com/warehouse-network/platform/issues"
   },
-  "homepage": "https://github.com/warehouse-network/claude-db-integrity#readme",
+  "homepage": "https://github.com/warehouse-network/platform/tree/main/packages/claude-db-integrity#readme",
   "files": [
     "dist/**/*",
     "bin/**/*",

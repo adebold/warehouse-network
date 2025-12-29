@@ -3,22 +3,23 @@
  * Scans and validates forms against database schema
  */
 
+import { readFileSync } from 'fs';
+import path from 'path';
+
+import { IntegrityLogCategory, IntegrityLogLevel } from '@warehouse-network/db';
+import { glob } from 'glob';
+import winston from 'winston';
+
+import { memoryBank } from '../memory-bank/memory-bank';
 import {
   DatabaseSchema,
   FormValidationResult,
   FormValidationConfig,
   IntegrityResult,
-  IntegrityError,
   ValidationResult,
   FormField,
   FormSuggestion
 } from '../types';
-import { glob } from 'glob';
-import { readFileSync } from 'fs';
-import path from 'path';
-import winston from 'winston';
-import { memoryBank } from '../memory-bank/memory-bank';
-import { IntegrityLogCategory, IntegrityLogLevel } from '@warehouse-network/db';
 
 export class FormScanner {
   private schema: DatabaseSchema;

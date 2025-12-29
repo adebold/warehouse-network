@@ -1,4 +1,3 @@
-import type { Warehouse } from '@warehouse/types';
 /**
  * Design System Tokens
  * Centralized design tokens for the Warehouse Network application

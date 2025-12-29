@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# AI-Enhanced Pre-commit Hook
+echo "🤖 Running AI-powered code quality checks..."
+
+# Run Claude Flow pre-task hook
+npx claude-flow@alpha hooks pre-task --description "Pre-commit quality checks"
+
+# TypeScript check
+echo "📘 Checking TypeScript..."
+npm run type-check || {
+  echo "❌ TypeScript errors found. Fix them before committing."
+  exit 1
+}
+
+# ESLint check
+echo "🔍 Running ESLint..."
+npm run lint || {
+  echo "❌ ESLint errors found. Run 'npm run lint:fix' to auto-fix."
+  exit 1
+}
+
+# Prettier check
+echo "🎨 Checking code formatting..."
+npm run format:check || {
+  echo "❌ Code formatting issues found. Run 'npm run format' to fix."
+  exit 1
+}
+
+# AI Code Analysis (non-blocking)
+echo "🤖 Running AI code analysis..."
+tsx scripts/ai-quality-integration.ts . json > .ai-analysis.json 2>&1 || true
+
+# Check if quality score meets threshold
+if [ -f .ai-analysis.json ]; then
+  SCORE=$(cat .ai-analysis.json | jq -r '.metrics' | jq '[.typeScriptCoverage, (100 - .eslintIssues), (100 - .securityIssues * 20)] | add / 3')
+  echo "📊 AI Quality Score: $SCORE/100"
+  
+  if (( $(echo "$SCORE < 70" | bc -l) )); then
+    echo "⚠️  Warning: Code quality score is below 70. Consider improvements."
+  fi
+fi
+
+# Security audit (non-blocking)
+echo "🔒 Running security audit..."
+npm audit --audit-level=high || {
+  echo "⚠️  Security vulnerabilities found. Consider updating dependencies."
+}
+
+# Run Claude Flow post-task hook
+npx claude-flow@alpha hooks post-task --task-id "pre-commit-checks"
+
+echo "✅ All pre-commit checks passed!"

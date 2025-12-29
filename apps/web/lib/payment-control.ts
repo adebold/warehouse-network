@@ -1,11 +1,10 @@
-import type { Customer } from '@warehouse/types';
 
-import { PrismaClient, CustomerAccountStatus } from '@prisma/client';
+import { CustomerAccountStatus } from '@prisma/client';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
-const prisma = new PrismaClient();
+import prisma from '@/lib/prisma';
+import { authOptions } from '@/pages/api/auth/[...nextauth]';
 
 export interface PaymentControlResult {
   allowed: boolean;
@@ -129,7 +128,7 @@ export async function unlockCustomerAccount(
   ]);
 }
 
-export async function canUserOverrideLock(userRole: string): boolean {
+export async function canUserOverrideLock(userRole: string): Promise<boolean> {
   return ['SUPER_ADMIN', 'FINANCE_ADMIN', 'OPERATOR_ADMIN'].includes(userRole);
 }
 

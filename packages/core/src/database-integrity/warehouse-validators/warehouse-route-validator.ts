@@ -3,16 +3,18 @@
  * Validates warehouse-specific API routes
  */
 
+import { readFileSync } from 'fs';
+import path from 'path';
+
+import { glob } from 'glob';
+import winston from 'winston';
+
 import {
   DatabaseSchema,
   IntegrityResult,
   ApiRouteValidation,
   ParamValidation
 } from '../types';
-import { glob } from 'glob';
-import { readFileSync } from 'fs';
-import path from 'path';
-import winston from 'winston';
 
 export class WarehouseRouteValidator {
   private schema: DatabaseSchema;
@@ -133,7 +135,7 @@ export class WarehouseRouteValidator {
   private validateRoute(route: RouteInfo): ApiRouteValidation | null {
     // Determine which model this route is for
     const model = this.detectModel(route.path);
-    if (!model) return null;
+    if (!model) {return null;}
     
     // Extract query and body parameters
     const queryParams = this.extractQueryParams(route.content);

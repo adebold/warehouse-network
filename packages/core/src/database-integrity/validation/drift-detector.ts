@@ -3,6 +3,14 @@
  * Detects schema drifts between expected and actual database state
  */
 
+import crypto from 'crypto';
+
+import { IntegrityLogCategory, IntegrityLogLevel, IntegrityAlertType, IntegrityAlertSeverity, IntegrityMetricType, SnapshotType } from '@warehouse-network/db';
+import winston from 'winston';
+
+import { DatabaseConnection } from '../core/database-connection';
+import { memoryBank } from '../memory-bank/memory-bank';
+import { SchemaAnalyzer } from '../schema/schema-analyzer';
 import {
   DatabaseSchema,
   DriftReport,
@@ -11,17 +19,8 @@ import {
   DriftSeverity,
   DriftConfig,
   IntegrityResult,
-  IntegrityError,
-  Table,
-  Column,
   PrismaModel
 } from '../types';
-import { DatabaseConnection } from '../core/database-connection';
-import { SchemaAnalyzer } from '../schema/schema-analyzer';
-import winston from 'winston';
-import crypto from 'crypto';
-import { memoryBank } from '../memory-bank/memory-bank';
-import { IntegrityLogCategory, IntegrityLogLevel, IntegrityAlertType, IntegrityAlertSeverity, IntegrityMetricType, SnapshotType } from '@warehouse-network/db';
 
 export class DriftDetector {
   private connection: DatabaseConnection;
@@ -235,7 +234,7 @@ export class DriftDetector {
 
         // Check fields
         for (const field of model.fields) {
-          if (field.relationName) continue; // Skip relation fields
+          if (field.relationName) {continue;} // Skip relation fields
 
           const column = dbTable.columns.find(c => c.name === field.name);
           
@@ -557,7 +556,7 @@ export class DriftDetector {
     actual = actual.toLowerCase();
     
     // Direct match
-    if (expected === actual) return true;
+    if (expected === actual) {return true;}
     
     // Common equivalences
     const equivalences: Record<string, string[]> = {

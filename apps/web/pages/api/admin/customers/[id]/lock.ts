@@ -1,10 +1,11 @@
-import type { Customer } from '@warehouse/types';
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
+
 import { authOptions } from '../../../auth/[...nextauth]';
-import prisma from '@/lib/prisma';
+
 import { sendAccountLockNotification } from '@/lib/notifications/accountNotifications';
+import prisma from '@/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);

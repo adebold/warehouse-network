@@ -53,7 +53,7 @@ export class GitOpsCommand extends Command {
           logger.info('  3. Configure secrets in your repository settings');
           logger.info('  4. Set up ArgoCD or Flux in your cluster');
         } catch (error) {
-          logger.error('Failed to set up GitOps:', error);
+          logger.error('Failed to set up GitOps:', error as Error);
           process.exit(1);
         }
       });
@@ -99,7 +99,7 @@ export class GitOpsCommand extends Command {
             logger.info('ArgoCD/Flux will automatically sync the changes.');
           }
         } catch (error) {
-          logger.error('Deployment failed:', error);
+          logger.error('Deployment failed:', error as Error);
           process.exit(1);
         }
       });
@@ -135,7 +135,7 @@ export class GitOpsCommand extends Command {
 
           logger.success('Sync completed successfully!');
         } catch (error) {
-          logger.error('Sync failed:', error);
+          logger.error('Sync failed:', error as Error);
           process.exit(1);
         }
       });
@@ -173,7 +173,7 @@ export class GitOpsCommand extends Command {
           logger.success('Rollback initiated via GitOps!');
           logger.info('The previous state will be restored automatically.');
         } catch (error) {
-          logger.error('Rollback failed:', error);
+          logger.error('Rollback failed:', error as Error);
           process.exit(1);
         }
       });
@@ -209,7 +209,7 @@ export class GitOpsCommand extends Command {
             process.exit(1);
           }
         } catch (error) {
-          logger.error('Validation failed:', error);
+          logger.error('Validation failed:', error as Error);
           process.exit(1);
         }
       });
@@ -249,7 +249,7 @@ export class GitOpsCommand extends Command {
 
       logger.success('Branch protection configured!');
     } catch (error) {
-      logger.warn('Could not set up branch protection:', error);
+      logger.warn('Could not set up branch protection:', error as Error);
     }
   }
 
@@ -269,7 +269,7 @@ export class GitOpsCommand extends Command {
 
       return { success: true, message: 'Git repository configured' };
     } catch (error) {
-      return { success: false, message: `Git check failed: ${error}` };
+      return { success: false, message: `Git check failed: ${String(error)}` };
     }
   }
 
@@ -347,7 +347,7 @@ export class GitOpsCommand extends Command {
       // This would check branch protection via GitHub API
       return { success: true, message: 'Branch protection check passed' };
     } catch (error) {
-      return { success: false, message: `Branch protection check failed: ${error}` };
+      return { success: false, message: `Branch protection check failed: ${String(error)}` };
     }
   }
 }

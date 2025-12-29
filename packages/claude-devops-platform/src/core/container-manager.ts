@@ -134,7 +134,14 @@ export class ContainerManager {
   async generateCompose(services: Service[]): Promise<string> {
     logger.info(`Generating docker-compose.yml for ${services.length} services`);
 
-    const compose = {
+    interface ComposeFile {
+      version: string;
+      services: { [key: string]: any };
+      networks: { [key: string]: any };
+      volumes: { [key: string]: any };
+    }
+
+    const compose: ComposeFile = {
       version: '3.8',
       services: {},
       networks: {
@@ -172,7 +179,7 @@ export class ContainerManager {
       if (service.volumes) {
         for (const volume of service.volumes) {
           if (!volume.host.startsWith('/') && !volume.host.startsWith('.')) {
-            compose.volumes[volume.host] = {};
+            (compose.volumes as Record<string, any>)[volume.host] = {};
           }
         }
       }
@@ -240,7 +247,7 @@ export class ContainerManager {
         tag: config.tag,
         size: inspect.Size,
         buildTime,
-        layers: inspect.RootFS.Layers.length
+        layers: inspect.RootFS?.Layers?.length || 0
       };
 
       // Push to registry if specified
@@ -252,7 +259,7 @@ export class ContainerManager {
       return result;
 
     } catch (error) {
-      logger.error(`Failed to build image: ${config.imageName}:${config.tag}`, error);
+      logger.error(`Failed to build image: ${config.imageName}:${config.tag}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -292,7 +299,7 @@ export class ContainerManager {
       return result;
 
     } catch (error) {
-      logger.error(`Security scan failed for: ${image}`, error);
+      logger.error(`Security scan failed for: ${image}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -357,7 +364,7 @@ export class ContainerManager {
       return healthChecks;
 
     } catch (error) {
-      logger.error('Container health check failed', error);
+      logger.error('Container health check failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }

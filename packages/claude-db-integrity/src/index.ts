@@ -4,7 +4,7 @@ export { ClaudeMemoryManager } from './memory/ClaudeMemoryManager';
 export { ValidationManager } from './validators/ValidationManager';
 export { SchemaManager } from './core/SchemaManager';
 export { ConfigManager } from './utils/config';
-export { TemplateManager } from './utils/templates';
+export { generateConfigTemplate, generateMigrationTemplate, generateValidationTemplate, generateTestTemplate } from './utils/templates';
 export { CLIController } from './cli/controller';
 
 // Persona-based testing exports
@@ -42,12 +42,12 @@ export type {
 
 // Utility exports
 export { logger } from './utils/logger';
-export { createDefaultConfig } from './utils/defaults';
+export { DEFAULT_CONFIG as createDefaultConfig } from './utils/defaults';
 
 // Framework integrations
-export { NextJSIntegration } from './integrations/nextjs';
-export { ExpressIntegration } from './integrations/express';
-export { NestJSIntegration } from './integrations/nestjs';
+export * from './integrations/nextjs';
+export * from './integrations/express';
+export * from './integrations/nestjs';
 
 // Constants
 export const VERSION = '1.0.0';
@@ -55,7 +55,8 @@ export const SUPPORTED_DATABASES = ['prisma', 'typeorm', 'generic'];
 export const SUPPORTED_FRAMEWORKS = ['nextjs', 'express', 'nestjs', 'generic'];
 
 // Default configuration factory
-export function createIntegrityEngine(configPath?: string): IntegrityEngine {
+export function createIntegrityEngine(configPath?: string): import('./core/IntegrityEngine').IntegrityEngine {
+  const { IntegrityEngine } = require('./core/IntegrityEngine');
   return new IntegrityEngine(configPath);
 }
 
@@ -77,6 +78,7 @@ export async function healthCheck(configPath?: string): Promise<{
   timestamp: string;
 }> {
   try {
+    const { IntegrityEngine } = await import('./core/IntegrityEngine');
     const engine = new IntegrityEngine(configPath);
     await engine.initialize();
     
@@ -105,7 +107,8 @@ export async function healthCheck(configPath?: string): Promise<{
 }
 
 // Memory management helper
-export function createMemoryManager(config?: any): ClaudeMemoryManager {
+export function createMemoryManager(config?: any): import('./memory/ClaudeMemoryManager').ClaudeMemoryManager {
+  const { ClaudeMemoryManager } = require('./memory/ClaudeMemoryManager');
   const defaultConfig = {
     claude: {
       enabled: true,
@@ -124,18 +127,19 @@ export function createMemoryManager(config?: any): ClaudeMemoryManager {
 
 // Express middleware factory
 export function createExpressMiddleware(config?: any) {
-  const IntegrityMiddleware = require('./integrations/express').ExpressIntegration;
-  return new IntegrityMiddleware(config);
+  const { createIntegrityMiddleware } = require('./integrations/express');
+  return createIntegrityMiddleware(config);
 }
 
 // Next.js middleware factory
 export function createNextJSMiddleware(config?: any) {
-  const { NextJSIntegration } = require('./integrations/nextjs');
-  return NextJSIntegration.createMiddleware(config);
+  const { createNextIntegrityMiddleware } = require('./integrations/nextjs');
+  return createNextIntegrityMiddleware(config);
 }
 
 // CLI runner for programmatic usage
 export async function runCLI(args: string[]) {
+  const { CLIController } = await import('./cli/controller');
   const cli = new CLIController();
   
   // Parse basic commands

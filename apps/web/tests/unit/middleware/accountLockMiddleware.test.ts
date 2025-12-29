@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
+
 import { accountLockMiddleware } from '../../../lib/middleware/accountLockMiddleware';
 import { prisma } from '../../../lib/prisma';
 

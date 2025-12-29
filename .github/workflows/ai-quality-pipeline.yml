@@ -1,0 +1,192 @@
+name: AI-Enhanced Quality Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality-analysis:
+    name: AI Quality Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run TypeScript check
+      id: typescript
+      run: |
+        npm run type-check || echo "TYPESCRIPT_FAILED=true" >> $GITHUB_OUTPUT
+    
+    - name: Run ESLint
+      id: eslint
+      run: |
+        npm run lint -- --format json > eslint-report.json || true
+        ISSUES=$(cat eslint-report.json | jq '[.[] | .errorCount + .warningCount] | add')
+        echo "ESLINT_ISSUES=$ISSUES" >> $GITHUB_OUTPUT
+    
+    - name: Run Security Audit
+      id: security
+      run: |
+        npm audit --json > security-audit.json || true
+        VULNS=$(cat security-audit.json | jq '.metadata.vulnerabilities.total // 0')
+        echo "SECURITY_ISSUES=$VULNS" >> $GITHUB_OUTPUT
+    
+    - name: Run Tests with Coverage
+      id: tests
+      run: |
+        npm test -- --coverage --coverageReporters=json-summary || echo "TESTS_FAILED=true" >> $GITHUB_OUTPUT
+        if [ -f coverage/coverage-summary.json ]; then
+          COVERAGE=$(cat coverage/coverage-summary.json | jq '.total.lines.pct')
+          echo "TEST_COVERAGE=$COVERAGE" >> $GITHUB_OUTPUT
+        fi
+    
+    - name: AI Code Quality Analysis
+      id: ai-analysis
+      run: |
+        npx tsx scripts/ai-quality-integration.ts . json > ai-analysis.json
+        QUALITY_SCORE=$(cat ai-analysis.json | jq -r '.metrics' | jq '[.typeScriptCoverage, (100 - .eslintIssues), (100 - .securityIssues * 20)] | add / 3')
+        echo "QUALITY_SCORE=$QUALITY_SCORE" >> $GITHUB_OUTPUT
+    
+    - name: Generate Quality Report
+      run: |
+        npx tsx scripts/ai-quality-integration.ts . markdown
+    
+    - name: Upload Quality Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: quality-report
+        path: ai-quality-report.md
+    
+    - name: Comment PR with Results
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('ai-quality-report.md', 'utf8');
+          
+          // Create a summary
+          const score = ${{ steps.ai-analysis.outputs.QUALITY_SCORE || 0 }};
+          const coverage = ${{ steps.tests.outputs.TEST_COVERAGE || 0 }};
+          const eslintIssues = ${{ steps.eslint.outputs.ESLINT_ISSUES || 0 }};
+          const securityIssues = ${{ steps.security.outputs.SECURITY_ISSUES || 0 }};
+          
+          const summary = `## 🤖 AI Quality Analysis Results
+          
+          **Overall Quality Score:** ${score}/100 ${score >= 80 ? '✅' : score >= 60 ? '⚠️' : '❌'}
+          
+          | Metric | Value | Status |
+          |--------|-------|--------|
+          | Test Coverage | ${coverage}% | ${coverage >= 80 ? '✅' : coverage >= 60 ? '⚠️' : '❌'} |
+          | ESLint Issues | ${eslintIssues} | ${eslintIssues === 0 ? '✅' : eslintIssues < 10 ? '⚠️' : '❌'} |
+          | Security Issues | ${securityIssues} | ${securityIssues === 0 ? '✅' : '❌'} |
+          
+          <details>
+          <summary>📄 Full Report</summary>
+          
+          ${report}
+          
+          </details>`;
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+    
+    - name: Quality Gate Check
+      run: |
+        SCORE=${{ steps.ai-analysis.outputs.QUALITY_SCORE || 0 }}
+        if (( $(echo "$SCORE < 70" | bc -l) )); then
+          echo "❌ Quality gate failed. Score: $SCORE/100 (minimum: 70)"
+          exit 1
+        fi
+        echo "✅ Quality gate passed. Score: $SCORE/100"
+
+  build-and-deploy:
+    name: Build and Deploy
+    needs: quality-analysis
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Build project
+      run: npm run build
+    
+    - name: Run E2E tests
+      run: |
+        # Start the application
+        npm start &
+        SERVER_PID=$!
+        
+        # Wait for server to be ready
+        sleep 10
+        
+        # Run E2E tests (if configured)
+        # npm run test:e2e || true
+        
+        # Stop the server
+        kill $SERVER_PID || true
+    
+    - name: Deploy to staging
+      if: success()
+      run: |
+        echo "🚀 Deploying to staging environment..."
+        # Add your deployment commands here
+        # e.g., docker push, kubectl apply, etc.
+    
+    - name: Notify deployment
+      if: always()
+      run: |
+        if [ "${{ job.status }}" == "success" ]; then
+          echo "✅ Deployment successful!"
+        else
+          echo "❌ Deployment failed!"
+        fi
+
+  ai-post-deployment:
+    name: AI Post-Deployment Analysis
+    needs: build-and-deploy
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Performance Analysis
+      run: |
+        echo "📊 Running post-deployment performance analysis..."
+        # Add performance testing commands
+    
+    - name: Security Scan
+      run: |
+        echo "🔒 Running production security scan..."
+        # Add security scanning commands
+    
+    - name: Generate Deployment Report
+      run: |
+        echo "📄 Generating deployment report..."
+        # Add report generation

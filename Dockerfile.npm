@@ -1,0 +1,71 @@
+# Multi-stage Dockerfile for Next.js application with npm
+FROM node:20-slim AS deps
+WORKDIR /app
+
+# Install OpenSSL and other dependencies
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+# Copy package files for web app
+COPY apps/web/package.json apps/web/package-lock.json* ./
+
+# Install dependencies
+RUN npm ci
+
+# Builder stage
+FROM node:20-slim AS builder
+WORKDIR /app
+
+# Install OpenSSL
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
+# Copy node modules from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY apps/web .
+
+# Generate Prisma Client
+RUN npx prisma generate
+
+# Build the application
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+ENV SKIP_ENV_VALIDATION=1
+RUN npm run build
+
+# Runner stage
+FROM node:20-slim AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Install runtime dependencies including security packages
+RUN apt-get update && apt-get install -y \
+    curl \
+    openssl \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/* && \
+    update-ca-certificates
+
+# Create non-root user
+RUN groupadd -g 1001 nodejs && \
+    useradd -m -u 1001 -g nodejs nextjs
+
+# Create necessary directories
+RUN mkdir -p /app/.next && \
+    chown -R nextjs:nodejs /app
+
+# For development mode, we'll copy everything and run dev
+COPY --from=builder --chown=nextjs:nodejs /app ./
+
+# Switch to non-root user
+USER nextjs
+
+# Expose port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Start the application in development mode
+CMD ["npm", "run", "dev"]

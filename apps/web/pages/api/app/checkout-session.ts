@@ -1,9 +1,11 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
+import { z } from 'zod';
+
 import prisma from '../../../lib/prisma';
 import { stripe } from '../../../lib/stripe';
-import { z } from 'zod';
+import { authOptions } from '../auth/[...nextauth]';
+
 
 const checkoutSessionSchema = z.object({
   quoteId: z.string().min(1, 'Quote ID is required'),

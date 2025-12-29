@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
-import { Command } from 'commander';
-import { memoryBank } from '../memory-bank/memory-bank';
 import { IntegrityLogCategory, IntegrityLogLevel } from '@warehouse-network/db';
-import { format, subDays } from 'date-fns';
 import chalk from 'chalk';
 import Table from 'cli-table3';
+import { Command } from 'commander';
+import { format, subDays } from 'date-fns';
+
+import { memoryBank } from '../memory-bank/memory-bank';
 
 const program = new Command();
 

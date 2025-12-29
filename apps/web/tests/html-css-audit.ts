@@ -379,7 +379,7 @@ export class HTMLCSSAuditor {
   private groupIssuesByType(issues: AuditResult['issues']): Record<string, AuditResult['issues']> {
     return issues.reduce(
       (acc, issue) => {
-        if (!acc[issue.type]) acc[issue.type] = [];
+        if (!acc[issue.type]) {acc[issue.type] = [];}
         acc[issue.type].push(issue);
         return acc;
       },

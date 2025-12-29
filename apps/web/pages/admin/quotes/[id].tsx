@@ -1,16 +1,18 @@
-import type { Warehouse } from '@warehouse/types';
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import type { Quote, RFQ, QuoteItem, ChargeCategory } from '@prisma/client';
-import prisma from '../../../lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../api/auth/[...nextauth]';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, DollarSign, Calendar, Package, CreditCard, FileText } from 'lucide-react';
+import type { NextPage, GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
+import prisma from '../../../lib/prisma';
+import { authOptions } from '../../api/auth/[...nextauth]';
+
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
 
 interface QuoteDetailsProps {
   quote: Quote & {
@@ -25,9 +27,9 @@ const QuoteDetails: NextPage<QuoteDetailsProps> = ({ quote }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'SUPER_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   if (status === 'loading' || !session) {

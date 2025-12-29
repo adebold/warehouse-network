@@ -3,23 +3,24 @@
  * Validates API routes against database schema
  */
 
+import { readFileSync } from 'fs';
+import path from 'path';
+
+import { IntegrityLogCategory, IntegrityLogLevel, IntegrityMetricType } from '@warehouse-network/db';
+import { glob } from 'glob';
+import winston from 'winston';
+
+import { memoryBank } from '../memory-bank/memory-bank';
 import {
   DatabaseSchema,
   ApiRoute,
   RouteValidationConfig,
   IntegrityResult,
-  IntegrityError,
   ValidationResult,
   ValidationError,
   ValidationWarning,
   DatabaseOperation
 } from '../types';
-import { glob } from 'glob';
-import { readFileSync } from 'fs';
-import path from 'path';
-import winston from 'winston';
-import { memoryBank } from '../memory-bank/memory-bank';
-import { IntegrityLogCategory, IntegrityLogLevel, IntegrityMetricType } from '@warehouse-network/db';
 
 export class RouteValidator {
   private schema: DatabaseSchema;

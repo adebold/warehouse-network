@@ -1,5 +1,4 @@
-import { prisma } from '@warehouse-network/db'
-import {
+import { prisma ,
   IntegrityLog,
   IntegritySnapshot,
   IntegrityAlert,
@@ -11,10 +10,12 @@ import {
   IntegrityMetricType,
   SnapshotType
 } from '@warehouse-network/db'
+import { v4 as uuidv4 } from 'uuid'
+
+import { MemoryBankAnalytics } from './analytics'
 import { shouldPersistLog, shouldCreateAlert } from './log-categories'
 import { RetentionPolicyManager } from './retention-policy'
-import { MemoryBankAnalytics } from './analytics'
-import { v4 as uuidv4 } from 'uuid'
+
 
 export interface LogEntry {
   category: IntegrityLogCategory
@@ -238,15 +239,15 @@ export class MemoryBank {
   }) {
     const where: any = {}
 
-    if (params.category) where.category = params.category
-    if (params.level) where.level = params.level
-    if (params.component) where.component = params.component
-    if (params.success !== undefined) where.success = params.success
+    if (params.category) {where.category = params.category}
+    if (params.level) {where.level = params.level}
+    if (params.component) {where.component = params.component}
+    if (params.success !== undefined) {where.success = params.success}
 
     if (params.startDate || params.endDate) {
       where.timestamp = {}
-      if (params.startDate) where.timestamp.gte = params.startDate
-      if (params.endDate) where.timestamp.lte = params.endDate
+      if (params.startDate) {where.timestamp.gte = params.startDate}
+      if (params.endDate) {where.timestamp.lte = params.endDate}
     }
 
     if (params.searchText) {
@@ -295,8 +296,8 @@ export class MemoryBank {
       }
     }
 
-    if (params.severity) where.severity = params.severity
-    if (params.type) where.alertType = params.type
+    if (params.severity) {where.severity = params.severity}
+    if (params.type) {where.alertType = params.type}
 
     return prisma.integrityAlert.findMany({
       where,

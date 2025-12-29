@@ -4,7 +4,6 @@
  * Adapted for Prisma-based warehouse-network architecture
  */
 
-import { Prisma } from '@prisma/client';
 
 // Core configuration types
 export interface DatabaseIntegrityConfig {

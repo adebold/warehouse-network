@@ -12,9 +12,7 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  experimental: {
-    serverActions: true,
-  },
+  // Server actions are enabled by default in Next.js 14+
 }
 
 module.exports = nextConfig

@@ -93,6 +93,12 @@ model User {
   referralsMade Referral[] @relation("UserReferralsMade")
   referralsReceived Referral[] @relation("UserReferralsReceived")
   lockActionsPerformed AccountLockHistory[]
+  convertedLeads Lead[] @relation("ConvertedLeads")
+  aiInteractions AIInteraction[]
+  searchHistory SearchHistory[]
+  notifications Notification[]
+  integrityLogs IntegrityLog[] @relation("IntegrityLogs")
+  resolvedAlerts IntegrityAlert[] @relation("ResolvedAlerts")
 }
 
 model Account {
@@ -200,6 +206,9 @@ model Warehouse {
   disputes                Dispute[] @relation("WarehouseDisputes")
   receivingOrders         ReceivingOrder[]
   quotes                  Quote[]
+  features                WarehouseFeature[]
+  images                  WarehouseImage[]
+  bookings                Booking[]
 }
 
 model Location {
@@ -301,6 +310,7 @@ model Customer {
   totalOutstanding Float              @default(0)
   createdAt       DateTime            @default(now())
   updatedAt       DateTime            @updatedAt
+  bookings        Booking[]
 }
 
 model OperatorLedgerEntry {
@@ -593,4 +603,266 @@ enum LockAction {
   LOCKED
   UNLOCKED
   OVERRIDE
+}
+
+// Lead Management
+model Lead {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  name            String?
+  company         String?
+  phone           String?
+  source          String?
+  status          LeadStatus      @default(NEW)
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  convertedAt     DateTime?
+  convertedBy     User?           @relation("ConvertedLeads", fields: [convertedById], references: [id])
+  convertedById   String?
+  customerId      String?
+  aiInteractions  AIInteraction[]
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+// AI Interaction Tracking
+model AIInteraction {
+  id              String          @id @default(cuid())
+  userId          String?
+  user            User?           @relation(fields: [userId], references: [id])
+  leadId          String?
+  lead            Lead?           @relation(fields: [leadId], references: [id])
+  sessionId       String
+  type            InteractionType
+  query           String
+  response        String
+  context         Json?
+  confidence      Float?
+  createdAt       DateTime        @default(now())
+  feedbackScore   Int?
+  feedbackText    String?
+}
+
+enum InteractionType {
+  CHAT
+  SEARCH
+  RECOMMENDATION
+  SUPPORT
+}
+
+// Search History
+model SearchHistory {
+  id              String          @id @default(cuid())
+  userId          String?
+  user            User?           @relation(fields: [userId], references: [id])
+  sessionId       String
+  query           String
+  filters         Json?
+  resultsCount    Int
+  clickedResults  Json?
+  createdAt       DateTime        @default(now())
+}
+
+// Notifications
+model Notification {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  type            NotificationType
+  title           String
+  message         String
+  data            Json?
+  read            Boolean         @default(false)
+  readAt          DateTime?
+  createdAt       DateTime        @default(now())
+  expiresAt       DateTime?
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  ERROR
+  SUCCESS
+  QUOTE_UPDATE
+  RFQ_RECEIVED
+  PAYMENT_DUE
+  SYSTEM_ALERT
+}
+
+// Warehouse Features
+model WarehouseFeature {
+  id              String          @id @default(cuid())
+  warehouseId     String
+  warehouse       Warehouse       @relation(fields: [warehouseId], references: [id])
+  feature         String
+  value           String?
+  category        String?
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@unique([warehouseId, feature])
+}
+
+// Warehouse Images
+model WarehouseImage {
+  id              String          @id @default(cuid())
+  warehouseId     String
+  warehouse       Warehouse       @relation(fields: [warehouseId], references: [id])
+  url             String
+  alt             String?
+  caption         String?
+  type            ImageType
+  order           Int             @default(0)
+  isActive        Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+enum ImageType {
+  EXTERIOR
+  INTERIOR
+  DOCK
+  EQUIPMENT
+  CERTIFICATION
+  OTHER
+}
+
+// Data Integrity Monitoring
+model IntegrityLog {
+  id              String          @id @default(cuid())
+  entityType      String
+  entityId        String
+  action          String
+  userId          String?
+  user            User?           @relation("IntegrityLogs", fields: [userId], references: [id])
+  changes         Json
+  metadata        Json?
+  createdAt       DateTime        @default(now())
+  
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+model IntegritySnapshot {
+  id              String          @id @default(cuid())
+  snapshotDate    DateTime        @default(now())
+  totalRecords    Int
+  tableStats      Json
+  checkResults    Json
+  issues          Json?
+  createdAt       DateTime        @default(now())
+  
+  @@index([snapshotDate])
+}
+
+model IntegrityAlert {
+  id              String          @id @default(cuid())
+  type            AlertType
+  severity        AlertSeverity
+  title           String
+  description     String
+  entityType      String?
+  entityId        String?
+  resolvedAt      DateTime?
+  resolvedBy      User?           @relation("ResolvedAlerts", fields: [resolvedById], references: [id])
+  resolvedById    String?
+  metadata        Json?
+  createdAt       DateTime        @default(now())
+  
+  @@index([type, severity])
+  @@index([createdAt])
+}
+
+enum AlertType {
+  DATA_INCONSISTENCY
+  MISSING_RELATION
+  VALIDATION_ERROR
+  PERFORMANCE_ISSUE
+  SECURITY_CONCERN
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+model IntegrityMetric {
+  id              String          @id @default(cuid())
+  metric          String
+  value           Float
+  unit            String?
+  timestamp       DateTime        @default(now())
+  metadata        Json?
+  
+  @@index([metric, timestamp])
+}
+
+// Warehouse Booking System
+model Booking {
+  id              String          @id @default(cuid())
+  bookingNumber   String          @unique
+  customerId      String
+  customer        Customer        @relation(fields: [customerId], references: [id])
+  warehouseId     String
+  warehouse       Warehouse       @relation(fields: [warehouseId], references: [id])
+  startDate       DateTime
+  endDate         DateTime
+  palletCount     Int
+  status          BookingStatus   @default(PENDING)
+  totalPrice      Float
+  currency        String          @default("USD")
+  notes           String?
+  specialRequirements String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  confirmedAt     DateTime?
+  cancelledAt     DateTime?
+  cancellationReason String?
+  bookingCharges  BookingCharge[]
+  
+  @@index([customerId])
+  @@index([warehouseId])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+model BookingCharge {
+  id              String          @id @default(cuid())
+  bookingId       String
+  booking         Booking         @relation(fields: [bookingId], references: [id])
+  chargeType      BookingChargeType
+  description     String
+  quantity        Float
+  unitPrice       Float
+  totalAmount     Float
+  currency        String          @default("USD")
+  createdAt       DateTime        @default(now())
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  EXPIRED
+}
+
+enum BookingChargeType {
+  STORAGE
+  HANDLING_IN
+  HANDLING_OUT
+  SPECIAL_SERVICE
+  ADMIN_FEE
+  CANCELLATION_FEE
 }

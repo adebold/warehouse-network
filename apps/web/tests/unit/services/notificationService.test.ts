@@ -1,6 +1,7 @@
-import { notificationService } from '../../../lib/services/notificationService';
-import { prisma } from '../../../lib/prisma';
 import sgMail from '@sendgrid/mail';
+
+import { prisma } from '../../../lib/prisma';
+import { notificationService } from '../../../lib/services/notificationService';
 
 // Mock dependencies
 jest.mock('../../../lib/prisma', () => ({

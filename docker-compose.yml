@@ -1,6 +1,7 @@
-version: '3.9'
+# Docker Compose configuration for Warehouse Network Platform
 
 x-app-environment: &app-environment
+  # Database URL - Docker internal networking (postgres service on port 5432)
   DATABASE_URL: postgresql://${DB_USER:-warehouse}:${DB_PASSWORD:-warehouse123}@postgres:5432/${DB_NAME:-warehouse_network}
   NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
   NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-key-change-in-production}
@@ -12,6 +13,13 @@ x-app-environment: &app-environment
   REDIS_URL: redis://redis:6379
   NODE_ENV: development
   LOG_LEVEL: debug
+  # Security Environment Variables
+  JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-change-in-production}
+  ENABLE_HELMET: ${ENABLE_HELMET:-true}
+  ENABLE_CORS: ${ENABLE_CORS:-true}
+  CSRF_PROTECTION_ENABLED: ${CSRF_PROTECTION_ENABLED:-true}
+  RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+  RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
 
 services:
   postgres:
@@ -77,6 +85,110 @@ services:
       - /app/apps/web/node_modules
       - /app/apps/web/.next
     command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && cd apps/web && pnpm install && pnpm exec prisma generate && pnpm run dev"
+
+  # Claude Agent Tracker (temporarily disabled due to build issues)
+  # claude-agent-tracker:
+  #   build:
+  #     context: ./packages/claude-agent-tracker
+  #     dockerfile: ../../docker/claude-services/Dockerfile
+  #   container_name: claude-agent-tracker
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: production
+  #     DB_HOST: postgres
+  #     DB_PORT: 5432
+  #     DB_NAME: ${DB_NAME:-warehouse_network}
+  #     DB_USER: ${DB_USER:-warehouse}
+  #     DB_PASSWORD: ${DB_PASSWORD:-warehouse123}
+  #     REDIS_HOST: redis
+  #     REDIS_PORT: 6379
+  #     JWT_SECRET: ${JWT_SECRET:-change-in-production}
+  #     PORT: 3001
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3001:3001"
+  #   networks:
+  #     - warehouse-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Claude Dev Standards (temporarily disabled due to build issues)
+  # claude-dev-standards:
+  #   build:
+  #     context: ./packages/claude-dev-standards
+  #     dockerfile: ../../docker/claude-services/Dockerfile
+  #   container_name: claude-dev-standards
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3002
+  #   ports:
+  #     - "3002:3002"
+  #   networks:
+  #     - warehouse-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3002/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Claude DB Integrity (temporarily disabled due to build issues)
+  # claude-db-integrity:
+  #   build:
+  #     context: ./packages/claude-db-integrity
+  #     dockerfile: ../../docker/claude-services/Dockerfile
+  #   container_name: claude-db-integrity
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: production
+  #     DB_HOST: postgres
+  #     DB_PORT: 5432
+  #     DB_NAME: ${DB_NAME:-warehouse_network}
+  #     DB_USER: ${DB_USER:-warehouse}
+  #     DB_PASSWORD: ${DB_PASSWORD:-warehouse123}
+  #     PORT: 3003
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #   ports:
+  #     - "3003:3003"
+  #   networks:
+  #     - warehouse-network
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3003/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # Claude DevOps Platform (temporarily disabled due to build issues)
+  # claude-devops-platform:
+  #   build:
+  #     context: ./packages/claude-devops-platform
+  #     dockerfile: ../../docker/claude-services/Dockerfile
+  #   container_name: claude-devops-platform
+  #   restart: unless-stopped
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3004
+  #   ports:
+  #     - "3004:3004"
+  #   networks:
+  #     - warehouse-network
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - ./k8s:/app/k8s:ro
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3004/health"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
 volumes:
   warehouse-postgres-data:

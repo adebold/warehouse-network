@@ -861,7 +861,7 @@ async function main() {
     const app = createApp(config);
     await startServer(app, config);
   } catch (error) {
-    logger.error('Failed to start server:', error);
+    logger.error('Failed to start server:', error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   }
 }

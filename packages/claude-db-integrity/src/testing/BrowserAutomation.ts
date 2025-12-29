@@ -1,5 +1,5 @@
 import { EventEmitter } from 'events';
-import { logger, loggers } from '../utils/logger';
+
 import type { 
   Persona, 
   TestScenario, 
@@ -7,6 +7,7 @@ import type {
   AutomationResult,
   ScreenshotOptions 
 } from '../types';
+import { logger, loggers } from '../utils/logger';
 
 export class BrowserAutomation extends EventEmitter {
   private browser: any;
@@ -75,7 +76,7 @@ export class BrowserAutomation extends EventEmitter {
       
       const startTime = Date.now();
       const stepResults: any[] = [];
-      let screenshots: string[] = [];
+      const screenshots: string[] = [];
       
       // Execute each step in the scenario
       for (let i = 0; i < scenario.steps.length; i++) {
@@ -85,7 +86,7 @@ export class BrowserAutomation extends EventEmitter {
           const stepResult = await this.executeStep(step, baseUrl);
           stepResults.push({
             stepIndex: i,
-            step: step.action,
+            step: step!.action,
             status: 'passed',
             duration: stepResult.duration,
             screenshot: stepResult.screenshot
@@ -98,25 +99,25 @@ export class BrowserAutomation extends EventEmitter {
           // Emit progress event
           this.emit('step:completed', {
             scenario: scenario.name,
-            step: step.action,
+            step: step!.action,
             progress: ((i + 1) / scenario.steps.length) * 100
           });
           
         } catch (stepError) {
-          logger.error(`Step failed: ${step.action}`, stepError);
+          logger.error(`Step failed: ${step!.action}`, stepError);
           
           // Take screenshot on failure
           const failureScreenshot = await this.takeScreenshot({
             prefix: 'failure',
             scenario: scenario.name,
-            step: step.action
+            step: step!.action
           });
           
           stepResults.push({
             stepIndex: i,
-            step: step.action,
+            step: step!.action,
             status: 'failed',
-            error: stepError.message,
+            error: stepError instanceof Error ? stepError.message : String(stepError),
             screenshot: failureScreenshot
           });
           
@@ -187,7 +188,7 @@ export class BrowserAutomation extends EventEmitter {
         startTime: new Date(),
         endTime: new Date(),
         duration,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         steps: [],
         assertions: [],
         screenshots: [],
@@ -261,7 +262,7 @@ export class BrowserAutomation extends EventEmitter {
     
     // Set up session data and cookies
     if (persona.sessionData) {
-      await page.evaluate((sessionData) => {
+      await page.evaluate((sessionData: any) => {
         for (const [key, value] of Object.entries(sessionData)) {
           localStorage.setItem(key, JSON.stringify(value));
         }
@@ -397,13 +398,16 @@ export class BrowserAutomation extends EventEmitter {
         });
       }
       
-      return {
-        duration: stepTimer.end(),
-        screenshot
+      const result: any = {
+        duration: stepTimer.end()
       };
+      if (screenshot) {
+        result.screenshot = screenshot;
+      }
+      return result;
     } catch (error) {
       stepTimer.end();
-      throw new Error(`Step "${step.action}" failed: ${error.message}`);
+      throw new Error(`Step "${step.action}" failed: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -452,7 +456,7 @@ export class BrowserAutomation extends EventEmitter {
       try {
         await this.currentPage.waitForSelector(selector, { timeout: 5000 });
         
-        const elementType = await this.currentPage.evaluate((sel) => {
+        const elementType = await this.currentPage.evaluate((sel: any) => {
           const element = document.querySelector(sel);
           return element ? element.tagName.toLowerCase() : null;
         }, selector);
@@ -463,7 +467,7 @@ export class BrowserAutomation extends EventEmitter {
           await this.type(selector, String(value));
         }
       } catch (error) {
-        logger.warn(`Could not fill field ${field}: ${error.message}`);
+        logger.warn(`Could not fill field ${field}: ${error instanceof Error ? error.message : String(error)}`);
       }
     }
   }
@@ -506,12 +510,12 @@ export class BrowserAutomation extends EventEmitter {
   private async scroll(selector: string, direction: 'up' | 'down' | 'top' | 'bottom' = 'down'): Promise<void> {
     if (selector) {
       await this.currentPage.waitForSelector(selector);
-      await this.currentPage.evaluate((sel) => {
+      await this.currentPage.evaluate((sel: any) => {
         document.querySelector(sel)?.scrollIntoView();
       }, selector);
     } else {
       const scrollDistance = direction === 'down' || direction === 'bottom' ? 500 : -500;
-      await this.currentPage.evaluate((distance) => {
+      await this.currentPage.evaluate((distance: any) => {
         window.scrollBy(0, distance);
       }, scrollDistance);
     }
@@ -587,7 +591,7 @@ export class BrowserAutomation extends EventEmitter {
 
   private async waitForText(selector: string, text: string, timeout?: number): Promise<void> {
     await this.currentPage.waitForFunction(
-      (sel, txt) => {
+      (sel: any, txt: any) => {
         const element = document.querySelector(sel);
         return element && element.textContent?.includes(txt);
       },
@@ -611,7 +615,7 @@ export class BrowserAutomation extends EventEmitter {
         results.push({
           type: assertion.type,
           passed: false,
-          error: error.message,
+          error: error instanceof Error ? error.message : String(error),
           message: assertion.message
         });
       }
@@ -631,9 +635,9 @@ export class BrowserAutomation extends EventEmitter {
         };
         
       case 'element_visible':
-        const isVisible = await this.currentPage.evaluate((selector) => {
+        const isVisible = await this.currentPage.evaluate((selector: any) => {
           const elem = document.querySelector(selector);
-          if (!elem) return false;
+          if (!elem) {return false;}
           const style = window.getComputedStyle(elem);
           return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
         }, assertion.selector);
@@ -691,10 +695,14 @@ export class BrowserAutomation extends EventEmitter {
   }
 
   private async measureDOMContentLoaded(): Promise<number> {
-    const performanceTiming = JSON.parse(await this.currentPage.evaluate(() => 
-      JSON.stringify(performance.timing)
-    ));
-    return performanceTiming.domContentLoadedEventEnd - performanceTiming.navigationStart;
+    const performanceMetrics = await this.currentPage.evaluate(() => {
+      const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+      if (nav) {
+        return nav.domContentLoadedEventEnd - nav.startTime;
+      }
+      return 0;
+    });
+    return performanceMetrics;
   }
 
   private async measureFirstContentfulPaint(): Promise<number> {
@@ -709,7 +717,7 @@ export class BrowserAutomation extends EventEmitter {
           const entries = list.getEntries();
           const lastEntry = entries[entries.length - 1];
           resolve(lastEntry?.startTime || 0);
-        }).observe({ type: 'largest-contentful-paint', buffered: true });
+        }).observe({ entryTypes: ['largest-contentful-paint'] });
         
         // Fallback timeout
         setTimeout(() => resolve(0), 5000);
@@ -728,7 +736,7 @@ export class BrowserAutomation extends EventEmitter {
             }
           }
           resolve(clsValue);
-        }).observe({ type: 'layout-shift', buffered: true });
+        }).observe({ entryTypes: ['layout-shift'] });
         
         // Fallback timeout
         setTimeout(() => resolve(clsValue), 5000);

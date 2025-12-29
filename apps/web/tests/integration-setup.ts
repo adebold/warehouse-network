@@ -1,5 +1,6 @@
-import { PrismaClient } from '@prisma/client';
 import { execSync } from 'child_process';
+
+import { PrismaClient } from '@prisma/client';
 
 // Create a test database instance
 export const testDb = new PrismaClient({

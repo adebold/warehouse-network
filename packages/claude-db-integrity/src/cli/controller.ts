@@ -1,11 +1,10 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import * as inquirer from 'inquirer';
-import * as chalk from 'chalk';
-import * as ora from 'ora';
-import { logger } from '../utils/logger';
-import { ConfigManager } from '../utils/config';
-import { TemplateManager } from '../utils/templates';
+
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import ora from 'ora';
+
 import { IntegrityEngine } from '../core/IntegrityEngine';
 import { PersonaManager } from '../personas/PersonaManager';
 import { BrowserAutomation } from '../testing/BrowserAutomation';
@@ -14,21 +13,19 @@ import type {
   IntegrityReport, 
   SchemaDrift, 
   ValidationResult,
-  Persona,
-  UserJourney,
   PersonaValidationResult
 } from '../types';
+import { ConfigManager } from '../utils/config';
+import { generateConfigTemplate, generateMigrationTemplate } from '../utils/templates';
 
 export class CLIController {
   private configManager: ConfigManager;
-  private templateManager: TemplateManager;
   private integrityEngine?: IntegrityEngine;
   private personaManager?: PersonaManager;
   private browserAutomation?: BrowserAutomation;
 
   constructor() {
     this.configManager = new ConfigManager();
-    this.templateManager = new TemplateManager();
   }
 
   async init(options: CLIOptions): Promise<void> {
@@ -65,11 +62,23 @@ export class CLIController {
     console.log(chalk.blue(`Initializing with template: ${detectedTemplate}`));
 
     // Generate configuration
-    const config = await this.templateManager.generateConfig(detectedTemplate);
+    const configString = generateConfigTemplate({ name: detectedTemplate });
+    const config = JSON.parse(configString);
     await this.configManager.saveConfig(config);
 
-    // Copy template files
-    await this.templateManager.copyTemplateFiles(detectedTemplate, process.cwd(), force);
+    // Copy template files - for now just create the basic structure
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const baseDir = process.cwd();
+    
+    // Create basic directory structure
+    await fs.mkdir(path.join(baseDir, 'src'), { recursive: true });
+    await fs.mkdir(path.join(baseDir, 'tests'), { recursive: true });
+    await fs.mkdir(path.join(baseDir, 'migrations'), { recursive: true });
+    
+    // Write a sample migration
+    const migrationContent = generateMigrationTemplate('initial_setup');
+    await fs.writeFile(path.join(baseDir, 'migrations', '001_initial_setup.sql'), migrationContent);
 
     // Install dependencies
     if (!skipInstall) {
@@ -86,10 +95,10 @@ export class CLIController {
     await this.ensureInitialized();
     
     const engine = await this.getIntegrityEngine();
-    const report = await engine.runIntegrityChecks({
-      fix: options.fix,
-      verbose: options.verbose
-    });
+    const checkOptions: any = {};
+    if (options.fix === true) {checkOptions.fix = true;}
+    if (options.verbose === true) {checkOptions.verbose = true;}
+    const report = await engine.runIntegrityChecks(checkOptions);
 
     await this.displayReport(report, options.format || 'table');
 
@@ -114,11 +123,11 @@ export class CLIController {
     await this.ensureInitialized();
     
     const engine = await this.getIntegrityEngine();
-    const results = await engine.validateFormsAndRoutes({
-      routes: !options.forms, // If forms is specified, don't do routes
-      forms: !options.routes, // If routes is specified, don't do forms
-      fix: options.fix
-    });
+    const validateOptions: any = {};
+    if (!options.forms) {validateOptions.routes = true;}
+    if (!options.routes) {validateOptions.forms = true;}
+    if (options.fix === true) {validateOptions.fix = true;}
+    const results = await engine.validateFormsAndRoutes(validateOptions);
 
     await this.displayValidationResults(results);
 
@@ -186,8 +195,8 @@ export class CLIController {
       timestamp: new Date().toISOString(),
       version: '1.0.0',
       memory: memoryData,
-      reports: reports.map(r => r.value),
-      events: events.map(e => e.value),
+      reports: reports.map((r: any) => r.value),
+      events: events.map((e: any) => e.value),
       stats: await memoryManager.getStats()
     };
 
@@ -289,9 +298,9 @@ export class CLIController {
       const pkg = JSON.parse(packageJson);
       const deps = { ...pkg.dependencies, ...pkg.devDependencies };
 
-      if (deps.next) return 'nextjs';
-      if (deps.express) return 'express';
-      if (deps['@nestjs/core']) return 'nestjs';
+      if (deps.next) {return 'nextjs';}
+      if (deps.express) {return 'express';}
+      if (deps['@nestjs/core']) {return 'nestjs';}
       
       return 'generic';
     } catch {
@@ -323,7 +332,8 @@ export class CLIController {
     try {
       const { execSync } = require('child_process');
       
-      const dependencies = this.templateManager.getTemplateDependencies(template);
+      // Get template-specific dependencies
+      const dependencies = this.getTemplateDependencies(template);
       
       if (dependencies.length > 0) {
         execSync(`npm install ${dependencies.join(' ')}`, { 
@@ -554,12 +564,12 @@ export class CLIController {
     await this.ensurePersonaManager();
     await this.ensureBrowserAutomation(options);
 
-    const testOptions = {
-      personaId: options.persona,
-      journeyId: options.journey,
-      epic: options.epic,
-      environment: options.environment as 'development' | 'staging' | 'production'
+    const testOptions: any = {
+      environment: (options.environment || 'development') as 'development' | 'staging' | 'production'
     };
+    if (options.persona) {testOptions.personaId = options.persona;}
+    if (options.journey) {testOptions.journeyId = options.journey;}
+    if (options.epic) {testOptions.epic = options.epic;}
 
     const results = await this.personaManager!.runPersonaTests(testOptions);
 
@@ -732,5 +742,27 @@ export class CLIController {
     }]);
 
     // Implementation for each action
+  }
+
+  /**
+   * Get template-specific dependencies
+   */
+  private getTemplateDependencies(template: string): string[] {
+    const baseDeps = [
+      '@warehouse-network/claude-db-integrity',
+      'dotenv',
+      'pg'
+    ];
+
+    switch (template) {
+      case 'nextjs':
+        return [...baseDeps, 'next', 'react', 'react-dom', '@prisma/client', 'prisma'];
+      case 'express':
+        return [...baseDeps, 'express', '@types/express', 'cors', 'helmet'];
+      case 'nestjs':
+        return [...baseDeps, '@nestjs/core', '@nestjs/common', '@nestjs/platform-express', '@nestjs/typeorm', 'typeorm'];
+      default:
+        return baseDeps;
+    }
   }
 }

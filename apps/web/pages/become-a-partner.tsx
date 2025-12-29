@@ -1,29 +1,23 @@
-import type { Warehouse } from '@warehouse/types';
-import type { NextPage } from 'next';
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
-import { useAnalytics } from '@/hooks/useAnalytics';
-import { trackConversion, logEvent } from '@/lib/analytics';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   TrendingUp,
   Shield,
-  Zap,
   Check,
   ArrowRight,
-  DollarSign,
   Users,
   BarChart3,
-  Clock,
   Star,
   ChevronRight,
-  Brain,
-  Bot,
-  Workflow,
-  Cpu,
 } from 'lucide-react';
+import type { NextPage } from 'next';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAnalytics } from '@/hooks/useAnalytics';
+import { trackConversion, logEvent } from '@/lib/analytics';
+
 
 const BecomeAPartner: NextPage = () => {
   const router = useRouter();
@@ -94,9 +88,9 @@ const BecomeAPartner: NextPage = () => {
   const calculateEstimatedRevenue = (count: number): number => {
     const avgRevenuePerWarehouse = 18500;
     const countValue = typeof count === 'string' ? parseInt(count) : count;
-    if (countValue === 1) return avgRevenuePerWarehouse;
-    if (countValue <= 5) return avgRevenuePerWarehouse * 3;
-    if (countValue <= 10) return avgRevenuePerWarehouse * 7;
+    if (countValue === 1) {return avgRevenuePerWarehouse;}
+    if (countValue <= 5) {return avgRevenuePerWarehouse * 3;}
+    if (countValue <= 10) {return avgRevenuePerWarehouse * 7;}
     return avgRevenuePerWarehouse * 15;
   };
 

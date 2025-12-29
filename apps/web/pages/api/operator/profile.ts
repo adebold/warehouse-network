@@ -1,9 +1,9 @@
-import type { User } from '@warehouse/types';
 
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
+
 import prisma from '../../../lib/prisma';
 import { operatorProfileSchema } from '../../../lib/schemas';
+import { authOptions } from '../auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PUT') {

@@ -7,6 +7,7 @@ import { KubernetesCommand } from './commands/kubernetes';
 import { SecurityCommand } from './commands/security';
 import { ObservabilityCommand } from './commands/observability';
 import { DatabaseCommand } from './commands/database';
+import { createQualityCommand } from './commands/quality';
 import { logger } from '../utils/logger';
 
 export async function run() {
@@ -19,7 +20,7 @@ export async function run() {
     .option('-v, --verbose', 'Enable verbose logging')
     .hook('preAction', (thisCommand) => {
       if (thisCommand.opts().verbose) {
-        logger.setLevel('debug');
+        logger.setLevel('DEBUG');
       }
     });
 
@@ -31,6 +32,7 @@ export async function run() {
   program.addCommand(new SecurityCommand());
   program.addCommand(new ObservabilityCommand());
   program.addCommand(new DatabaseCommand());
+  program.addCommand(createQualityCommand());
 
   // Init command
   program
@@ -50,7 +52,7 @@ export async function run() {
         await initializePlatform(process.cwd(), options);
         logger.success('Claude Platform initialized successfully!');
       } catch (error) {
-        logger.error('Failed to initialize platform:', error);
+        logger.error('Failed to initialize platform:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });
@@ -64,7 +66,7 @@ export async function run() {
         const { runDoctor } = await import('./commands/doctor');
         await runDoctor();
       } catch (error) {
-        logger.error('Doctor command failed:', error);
+        logger.error('Doctor command failed:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });
@@ -79,7 +81,7 @@ export async function run() {
         const { runUpgrade } = await import('./commands/upgrade');
         await runUpgrade(options);
       } catch (error) {
-        logger.error('Upgrade failed:', error);
+        logger.error('Upgrade failed:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });
@@ -96,7 +98,7 @@ export async function run() {
         const { runGenerate } = await import('./commands/generate');
         await runGenerate(type, name, options);
       } catch (error) {
-        logger.error('Generation failed:', error);
+        logger.error('Generation failed:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });
@@ -108,12 +110,14 @@ export async function run() {
     .option('-t, --target <target>', 'Deployment target (k8s, serverless, vm)')
     .option('--dry-run', 'Show deployment plan without applying')
     .option('--force', 'Force deployment even with warnings')
+    .option('--skip-quality', 'Skip quality gate checks')
+    .option('--quality-project-path <path>', 'Path to analyze for quality checks')
     .action(async (environment = 'development', options) => {
       try {
         const { runDeploy } = await import('./commands/deploy');
         await runDeploy(environment, options);
       } catch (error) {
-        logger.error('Deployment failed:', error);
+        logger.error('Deployment failed:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });
@@ -128,7 +132,7 @@ export async function run() {
         const { showStatus } = await import('./commands/status');
         await showStatus(options);
       } catch (error) {
-        logger.error('Status command failed:', error);
+        logger.error('Status command failed:', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });
@@ -137,7 +141,7 @@ export async function run() {
   try {
     await program.parseAsync(process.argv);
   } catch (error) {
-    logger.error('Command failed:', error);
+    logger.error('Command failed:', error instanceof Error ? error : new Error(String(error)));
     process.exit(1);
   }
 

@@ -1,4 +1,4 @@
-import { test, expect, Page } from '@playwright/test';
+import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();

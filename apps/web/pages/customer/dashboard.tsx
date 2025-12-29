@@ -1,14 +1,12 @@
-import type { Warehouse, Inventory, Customer } from '@warehouse/types';
-
-import { useSession } from 'next-auth/react';
+import { Package, FileText, TrendingUp } from 'lucide-react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Package, FileText, TrendingUp } from 'lucide-react';
-import { BRAND_ASSETS } from '@/lib/asset-urls';
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BRAND_ASSETS } from '@/lib/asset-urls';
 
 const CustomerDashboard: NextPage = () => {
   const { data: session, status } = useSession();
@@ -21,7 +19,7 @@ const CustomerDashboard: NextPage = () => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
     if (!session) {
       router.push('/login');

@@ -1,4 +1,5 @@
-import { Customer as PrismaCustomer, User as PrismaUser, AccountLockHistory } from '@prisma/client';
+import { Customer as PrismaCustomer, User as PrismaUser } from '@prisma/client';
+
 import { sendEmail } from '../email';
 import prisma from '../prisma';
 

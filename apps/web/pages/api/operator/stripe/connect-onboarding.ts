@@ -1,5 +1,6 @@
 
 import { getServerSession } from 'next-auth/next';
+
 import { authOptions } from '../../auth/[...nextauth]';
 
 // TODO: Stripe integration - package not installed

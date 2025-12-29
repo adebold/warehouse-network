@@ -2,22 +2,22 @@
  * GOAP Dashboard Component - Real-time monitoring of autonomous agents
  */
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Button } from '../ui/button';
-import { Badge } from '../ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { 
   Activity, 
   Bot, 
   Target, 
   PlayCircle, 
-  PauseCircle, 
   AlertTriangle,
   CheckCircle2,
   Clock,
   Brain
 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+
+import { Badge } from '../ui/badge';
+import { Button } from '../ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 interface Agent {
   id: string;

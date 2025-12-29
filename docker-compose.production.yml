@@ -1,0 +1,414 @@
+# Production Docker Compose configuration for Warehouse Network Platform
+# Includes security hardening, monitoring, and high availability setup
+
+version: '3.9'
+
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+    labels: "service,environment,version"
+
+x-security-opts: &security-opts
+  security_opt:
+    - no-new-privileges:true
+    - apparmor:docker-default
+  cap_drop:
+    - ALL
+  cap_add:
+    - NET_BIND_SERVICE
+
+x-healthcheck-defaults: &healthcheck-defaults
+  interval: 30s
+  timeout: 10s
+  retries: 3
+  start_period: 40s
+
+x-app-environment: &app-environment
+  # Database Configuration (using connection pooling)
+  DATABASE_URL: postgresql://${DB_USER}:${DB_PASSWORD}@postgres:5432/${DB_NAME}?schema=public&connection_limit=50&pool_timeout=20
+  
+  # Redis Configuration
+  REDIS_URL: redis://:${REDIS_PASSWORD}@redis:6379/0
+  
+  # Application Configuration
+  NODE_ENV: production
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  
+  # Authentication
+  NEXTAUTH_URL: ${NEXTAUTH_URL}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET}
+  JWT_SECRET: ${JWT_SECRET}
+  
+  # Payment Integration
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+  
+  # Cron Secrets
+  CRON_SECRET_ACCRUAL: ${CRON_SECRET_ACCRUAL}
+  CRON_SECRET_PAYOUTS: ${CRON_SECRET_PAYOUTS}
+  CRON_SECRET_SCORES: ${CRON_SECRET_SCORES}
+  
+  # Security Configuration
+  ENABLE_HELMET: "true"
+  ENABLE_CORS: "true"
+  CSRF_PROTECTION_ENABLED: "true"
+  RATE_LIMIT_WINDOW_MS: "60000"
+  RATE_LIMIT_MAX_REQUESTS: "100"
+  BCRYPT_ROUNDS: "12"
+  
+  # Session Configuration
+  SESSION_COOKIE_SECURE: "true"
+  SESSION_COOKIE_HTTPONLY: "true"
+  SESSION_SAME_SITE: "strict"
+  
+  # Monitoring
+  SENTRY_DSN: ${SENTRY_DSN}
+  ENABLE_OPENTELEMETRY: "true"
+  OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+services:
+  # Nginx Reverse Proxy with SSL termination
+  nginx:
+    image: nginx:alpine
+    container_name: warehouse-nginx
+    restart: always
+    <<: *security-opts
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl/certs:/etc/nginx/ssl:ro
+      - nginx-cache:/var/cache/nginx
+      - nginx-logs:/var/log/nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - warehouse-frontend
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "nginx", "-t"]
+
+  # PostgreSQL Database with replication support
+  postgres:
+    image: postgres:15-alpine
+    container_name: warehouse-postgres
+    restart: always
+    <<: *security-opts
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - FOWNER
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --data-checksums"
+      PGDATA: /var/lib/postgresql/data/pgdata
+      # Performance tuning
+      POSTGRES_MAX_CONNECTIONS: "200"
+      POSTGRES_SHARED_BUFFERS: "256MB"
+      POSTGRES_EFFECTIVE_CACHE_SIZE: "1GB"
+      POSTGRES_MAINTENANCE_WORK_MEM: "64MB"
+      POSTGRES_CHECKPOINT_COMPLETION_TARGET: "0.9"
+      POSTGRES_WAL_BUFFERS: "16MB"
+      POSTGRES_DEFAULT_STATISTICS_TARGET: "100"
+      POSTGRES_RANDOM_PAGE_COST: "1.1"
+      POSTGRES_EFFECTIVE_IO_CONCURRENCY: "200"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - postgres-backup:/backup
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    networks:
+      - warehouse-backend
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 512M
+
+  # Redis with persistence and security
+  redis:
+    image: redis:7-alpine
+    container_name: warehouse-redis
+    restart: always
+    <<: *security-opts
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD}
+      --appendonly yes
+      --appendfsync everysec
+      --maxmemory 512mb
+      --maxmemory-policy allkeys-lru
+      --tcp-backlog 511
+      --timeout 0
+      --tcp-keepalive 300
+      --databases 2
+      --save 900 1
+      --save 300 10
+      --save 60 10000
+      --stop-writes-on-bgsave-error yes
+      --rdbcompression yes
+      --rdbchecksum yes
+    volumes:
+      - redis-data:/data
+      - redis-backup:/backup
+    networks:
+      - warehouse-backend
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD}", "ping"]
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+
+  # Main Application with horizontal scaling support
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+      cache_from:
+        - warehouse-network:latest
+        - warehouse-network:builder
+      args:
+        NODE_VERSION: 22-alpine
+        BUILDKIT_INLINE_CACHE: 1
+    image: warehouse-network:production
+    container_name: warehouse-app
+    restart: always
+    <<: *security-opts
+    environment:
+      <<: *app-environment
+      # Instance-specific configuration
+      INSTANCE_ID: "app-1"
+      CLUSTER_ENABLED: "true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - warehouse-frontend
+      - warehouse-backend
+    volumes:
+      - uploads:/app/uploads
+      - logs:/app/logs
+      - nextjs-cache:/app/.next/cache
+    logging: *default-logging
+    healthcheck:
+      <<: *healthcheck-defaults
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+    deploy:
+      replicas: 2
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  # Background Worker for async jobs
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.production
+    image: warehouse-network:production
+    container_name: warehouse-worker
+    restart: always
+    <<: *security-opts
+    command: ["node", "apps/web/worker.js"]
+    environment:
+      <<: *app-environment
+      WORKER_MODE: "true"
+      INSTANCE_ID: "worker-1"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - warehouse-backend
+    volumes:
+      - uploads:/app/uploads
+      - logs:/app/logs
+    logging: *default-logging
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # OpenTelemetry Collector for observability
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: warehouse-otel
+    restart: always
+    <<: *security-opts
+    cap_add:
+      - NET_RAW
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./otel/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8888:8888"   # Prometheus metrics
+    networks:
+      - warehouse-backend
+      - warehouse-monitoring
+    logging: *default-logging
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: warehouse-prometheus
+    restart: always
+    <<: *security-opts
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - warehouse-monitoring
+    logging: *default-logging
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=7d'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--web.enable-lifecycle'
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: warehouse-grafana
+    restart: always
+    <<: *security-opts
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: grafana-clock-panel,grafana-simple-json-datasource
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+    volumes:
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "3001:3000"
+    networks:
+      - warehouse-monitoring
+    logging: *default-logging
+    depends_on:
+      - prometheus
+
+  # Backup service for automated backups
+  backup:
+    image: offen/docker-volume-backup:latest
+    container_name: warehouse-backup
+    restart: always
+    <<: *security-opts
+    cap_add:
+      - DAC_OVERRIDE
+    environment:
+      BACKUP_SOURCES: /backup/postgres,/backup/redis,/backup/uploads
+      BACKUP_CRON_EXPRESSION: "0 2 * * *"
+      BACKUP_RETENTION_DAYS: "7"
+      BACKUP_ARCHIVE_PREFIX: "warehouse-backup"
+      AWS_S3_BUCKET_NAME: ${BACKUP_S3_BUCKET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - postgres-backup:/backup/postgres:ro
+      - redis-backup:/backup/redis:ro
+      - uploads:/backup/uploads:ro
+      - backup-cache:/tmp/backups
+    networks:
+      - warehouse-backend
+    logging: *default-logging
+
+volumes:
+  # Application data
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  uploads:
+    driver: local
+  logs:
+    driver: local
+  nextjs-cache:
+    driver: local
+  
+  # Backup volumes
+  postgres-backup:
+    driver: local
+  redis-backup:
+    driver: local
+  backup-cache:
+    driver: local
+  
+  # Monitoring data
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+  
+  # Proxy cache
+  nginx-cache:
+    driver: local
+  nginx-logs:
+    driver: local
+
+networks:
+  warehouse-frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+  
+  warehouse-backend:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.21.0.0/24
+  
+  warehouse-monitoring:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24

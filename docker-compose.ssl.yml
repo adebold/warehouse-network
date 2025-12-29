@@ -1,0 +1,210 @@
+# Docker Compose SSL/TLS Configuration for Warehouse Network Platform
+version: '3.8'
+
+x-app-environment: &app-environment
+  DATABASE_URL: postgresql://${DB_USER:-warehouse}:${DB_PASSWORD:-warehouse123}@postgres:5432/${DB_NAME:-warehouse_network}
+  NEXTAUTH_URL: ${NEXTAUTH_URL:-https://localhost}
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-secret-key-change-in-production}
+  STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+  STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+  CRON_SECRET_ACCRUAL: ${CRON_SECRET_ACCRUAL}
+  CRON_SECRET_PAYOUTS: ${CRON_SECRET_PAYOUTS}
+  CRON_SECRET_SCORES: ${CRON_SECRET_SCORES}
+  REDIS_URL: redis://redis:6379
+  NODE_ENV: ${NODE_ENV:-production}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  JWT_SECRET: ${JWT_SECRET:-your-jwt-secret-change-in-production}
+  ENABLE_HELMET: ${ENABLE_HELMET:-true}
+  ENABLE_CORS: ${ENABLE_CORS:-true}
+  CSRF_PROTECTION_ENABLED: ${CSRF_PROTECTION_ENABLED:-true}
+  RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-900000}
+  RATE_LIMIT_MAX_REQUESTS: ${RATE_LIMIT_MAX_REQUESTS:-100}
+  # SSL Configuration
+  FORCE_SSL: ${FORCE_SSL:-true}
+  SECURE_COOKIES: ${SECURE_COOKIES:-true}
+  SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: warehouse-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # Nginx configuration
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./docker/nginx/proxy_params:/etc/nginx/proxy_params:ro
+      # SSL certificates (Let's Encrypt)
+      - ./docker/certbot/conf:/etc/letsencrypt:ro
+      - ./docker/certbot/www:/var/www/certbot:ro
+      # Self-signed certificates for development
+      - ./docker/nginx/ssl/self-signed:/etc/nginx/ssl/self-signed:ro
+      # Static files
+      - ./docker/nginx/static:/var/www/static:ro
+      # Logs
+      - ./logs/nginx:/var/log/nginx
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      TZ: ${TZ:-UTC}
+    depends_on:
+      - app
+    networks:
+      - warehouse-network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    command: >
+      /bin/sh -c "
+        # Substitute environment variables in Nginx configs
+        envsubst '$$DOMAIN_NAME' < /etc/nginx/conf.d/ssl.conf > /etc/nginx/conf.d/ssl.conf.tmp &&
+        mv /etc/nginx/conf.d/ssl.conf.tmp /etc/nginx/conf.d/ssl.conf &&
+        # Use appropriate SSL configuration based on environment
+        if [ \"$$DOMAIN_NAME\" = \"localhost\" ]; then
+          echo 'Using development SSL configuration';
+          rm -f /etc/nginx/conf.d/ssl.conf;
+        else
+          echo 'Using production SSL configuration';
+          rm -f /etc/nginx/conf.d/dev-ssl.conf;
+        fi &&
+        nginx -g 'daemon off;'
+      "
+
+  certbot:
+    build:
+      context: ./docker/certbot
+      dockerfile: Dockerfile
+    container_name: warehouse-certbot
+    restart: unless-stopped
+    volumes:
+      - ./docker/certbot/conf:/etc/letsencrypt
+      - ./docker/certbot/www:/var/www/certbot
+      - ./docker/certbot/lib:/var/lib/letsencrypt
+      - ./logs/letsencrypt:/var/log/letsencrypt
+      # Mount Docker socket for Nginx reload
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:-admin@example.com}
+      LETSENCRYPT_STAGING: ${LETSENCRYPT_STAGING:-0}
+      MONITORING_WEBHOOK_URL: ${MONITORING_WEBHOOK_URL:-}
+    networks:
+      - warehouse-network
+    # Run certificate renewal check twice daily
+    command: >
+      /bin/sh -c "
+        trap exit TERM;
+        while :; do
+          certbot renew --quiet --no-self-upgrade;
+          sleep 12h & wait $${!};
+        done
+      "
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: warehouse-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-warehouse}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-warehouse123}
+      POSTGRES_DB: ${DB_NAME:-warehouse_network}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - warehouse-postgres-data:/var/lib/postgresql/data
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-warehouse} -d ${DB_NAME:-warehouse_network}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - warehouse-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: warehouse-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-redis-password}
+    volumes:
+      - warehouse-redis-data:/data
+    ports:
+      - "${REDIS_PORT:-6380}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--pass", "${REDIS_PASSWORD:-redis-password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - warehouse-network
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: builder
+    container_name: warehouse-app
+    restart: unless-stopped
+    environment:
+      <<: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # Internal port only, exposed through Nginx
+    expose:
+      - "3000"
+    networks:
+      - warehouse-network
+    volumes:
+      - warehouse-uploads:/app/uploads
+      - ./apps/web:/app/apps/web:cached
+      - /app/node_modules
+      - /app/apps/web/node_modules
+      - /app/apps/web/.next
+    command: sh -c "corepack enable && corepack prepare pnpm@latest --activate && cd apps/web && pnpm install && pnpm exec prisma generate && pnpm run build && pnpm run start"
+
+  # Certificate monitoring service
+  ssl-monitor:
+    image: alpine:latest
+    container_name: warehouse-ssl-monitor
+    restart: unless-stopped
+    volumes:
+      - ./scripts/ssl:/scripts:ro
+      - ./docker/certbot/conf:/etc/letsencrypt:ro
+      - ./logs/ssl-monitor:/var/log/ssl-monitor
+      - /var/lib/prometheus/textfile_collector:/var/lib/prometheus/textfile_collector
+    environment:
+      DOMAIN_NAME: ${DOMAIN_NAME:-localhost}
+      WARNING_DAYS: ${SSL_WARNING_DAYS:-30}
+      CRITICAL_DAYS: ${SSL_CRITICAL_DAYS:-7}
+      MONITORING_WEBHOOK_URL: ${MONITORING_WEBHOOK_URL:-}
+    networks:
+      - warehouse-network
+    # Check certificates every 6 hours
+    command: >
+      /bin/sh -c "
+        apk add --no-cache bash openssl curl &&
+        while :; do
+          /scripts/check-certificates.sh >> /var/log/ssl-monitor/check.log 2>&1;
+          sleep 6h;
+        done
+      "
+
+volumes:
+  warehouse-postgres-data:
+    driver: local
+  warehouse-redis-data:
+    driver: local
+  warehouse-uploads:
+    driver: local
+
+networks:
+  warehouse-network:
+    driver: bridge
+    name: warehouse-network

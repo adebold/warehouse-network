@@ -1,11 +1,8 @@
-import { prisma } from '@warehouse-network/db'
-import { 
-  IntegrityLogCategory, 
-  IntegrityLogLevel,
+import { prisma , 
+  IntegrityLogCategory,
   SnapshotType,
   IntegrityAlertStatus
 } from '@warehouse-network/db'
-import { getRetentionDays } from './log-categories'
 import { subDays } from 'date-fns'
 
 export interface RetentionPolicyConfig {

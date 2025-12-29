@@ -1,0 +1,252 @@
+name: Dependency Updates
+
+on:
+  schedule:
+    - cron: '0 9 * * 1' # Weekly on Monday at 9 AM UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install npm-check-updates
+        run: npm install -g npm-check-updates
+
+      - name: Check for dependency updates
+        id: check-updates
+        run: |
+          # Check for updates and save to file
+          ncu --jsonUpgraded > updates.json || true
+          
+          if [ -s updates.json ] && [ "$(cat updates.json)" != "{}" ]; then
+            echo "has-updates=true" >> $GITHUB_OUTPUT
+          else
+            echo "has-updates=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create branch for updates
+        if: steps.check-updates.outputs.has-updates == 'true'
+        run: |
+          BRANCH_NAME="dependency-updates-$(date +%Y%m%d)"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Update dependencies
+        if: steps.check-updates.outputs.has-updates == 'true'
+        run: |
+          # Update package.json
+          ncu -u
+          
+          # Install updated dependencies
+          npm install
+          
+          # Update lockfile
+          npm audit fix --force || true
+
+      - name: Run tests with updated dependencies
+        if: steps.check-updates.outputs.has-updates == 'true'
+        run: |
+          npm run test:unit || echo "Tests failed - will note in PR"
+          npm run typecheck || echo "TypeScript check failed - will note in PR"
+
+      - name: Generate update summary
+        if: steps.check-updates.outputs.has-updates == 'true'
+        run: |
+          echo "# Dependency Updates" > update-summary.md
+          echo "" >> update-summary.md
+          echo "This PR updates the following dependencies:" >> update-summary.md
+          echo "" >> update-summary.md
+          
+          # Parse updates.json and create summary
+          node -e "
+            const updates = require('./updates.json');
+            Object.entries(updates).forEach(([pkg, version]) => {
+              console.log(\`- \${pkg}: \${version}\`);
+            });
+          " >> update-summary.md
+
+      - name: Commit changes
+        if: steps.check-updates.outputs.has-updates == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "chore: update dependencies $(date +%Y-%m-%d)"
+
+      - name: Push changes
+        if: steps.check-updates.outputs.has-updates == 'true'
+        run: git push origin $BRANCH_NAME
+
+      - name: Create Pull Request
+        if: steps.check-updates.outputs.has-updates == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH_NAME }}
+          title: "chore: automated dependency updates $(date +%Y-%m-%d)"
+          body-path: update-summary.md
+          reviewers: devops-team
+          labels: dependencies,automated
+
+  security-updates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Check for security vulnerabilities
+        id: audit
+        run: |
+          npm audit --audit-level=moderate --json > audit-result.json || true
+          
+          if [ -s audit-result.json ]; then
+            VULN_COUNT=$(jq '.metadata.vulnerabilities.total' audit-result.json)
+            if [ "$VULN_COUNT" -gt 0 ]; then
+              echo "vulnerabilities=$VULN_COUNT" >> $GITHUB_OUTPUT
+              echo "has-vulnerabilities=true" >> $GITHUB_OUTPUT
+            else
+              echo "has-vulnerabilities=false" >> $GITHUB_OUTPUT
+            fi
+          fi
+
+      - name: Create security fix branch
+        if: steps.audit.outputs.has-vulnerabilities == 'true'
+        run: |
+          BRANCH_NAME="security-fixes-$(date +%Y%m%d)"
+          git checkout -b $BRANCH_NAME
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Apply security fixes
+        if: steps.audit.outputs.has-vulnerabilities == 'true'
+        run: |
+          npm audit fix --force
+          
+          # Generate security report
+          echo "# Security Vulnerability Fixes" > security-report.md
+          echo "" >> security-report.md
+          echo "This PR addresses ${{ steps.audit.outputs.vulnerabilities }} security vulnerabilities." >> security-report.md
+          echo "" >> security-report.md
+          echo "## Vulnerabilities Fixed:" >> security-report.md
+          echo "" >> security-report.md
+          
+          # Extract vulnerability details
+          jq -r '.advisories | to_entries[] | "- \(.value.title) (\(.value.severity))"' audit-result.json >> security-report.md
+
+      - name: Commit security fixes
+        if: steps.audit.outputs.has-vulnerabilities == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "fix: address security vulnerabilities $(date +%Y-%m-%d)"
+          git push origin $BRANCH_NAME
+
+      - name: Create Security PR
+        if: steps.audit.outputs.has-vulnerabilities == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.BRANCH_NAME }}
+          title: "fix: security vulnerability updates $(date +%Y-%m-%d)"
+          body-path: security-report.md
+          reviewers: security-team,devops-team
+          labels: security,high-priority
+
+      - name: Notify security team
+        if: steps.audit.outputs.has-vulnerabilities == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: warning
+          channel: '#security'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: |
+            🚨 Security vulnerabilities detected!
+            Count: ${{ steps.audit.outputs.vulnerabilities }}
+            A PR has been created with fixes: https://github.com/${{ github.repository }}/pull/
+
+  docker-base-image-updates:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for base image updates
+        id: check-image
+        run: |
+          # Get current base image from Dockerfile
+          CURRENT_IMAGE=$(grep "FROM node:" Dockerfile | head -1 | awk '{print $2}')
+          
+          # Check if there's a newer version
+          docker pull node:20-alpine
+          docker pull $CURRENT_IMAGE
+          
+          CURRENT_SHA=$(docker inspect --format='{{index .RepoDigests 0}}' $CURRENT_IMAGE | cut -d'@' -f2)
+          LATEST_SHA=$(docker inspect --format='{{index .RepoDigests 0}}' node:20-alpine | cut -d'@' -f2)
+          
+          if [ "$CURRENT_SHA" != "$LATEST_SHA" ]; then
+            echo "needs-update=true" >> $GITHUB_OUTPUT
+          else
+            echo "needs-update=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update base image
+        if: steps.check-image.outputs.needs-update == 'true'
+        run: |
+          BRANCH_NAME="update-base-image-$(date +%Y%m%d)"
+          git checkout -b $BRANCH_NAME
+          
+          # Update Dockerfile
+          sed -i 's/FROM node:.*/FROM node:20-alpine/' Dockerfile
+          
+          # Test build
+          docker build -t test-build . || exit 1
+          
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Dockerfile
+          git commit -m "chore: update base Docker image $(date +%Y-%m-%d)"
+          git push origin $BRANCH_NAME
+
+      - name: Create Base Image PR
+        if: steps.check-image.outputs.needs-update == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "chore: update Docker base image $(date +%Y-%m-%d)"
+          body: |
+            # Docker Base Image Update
+            
+            This PR updates the Docker base image to the latest version.
+            
+            ## Changes
+            - Updated Node.js base image to latest
+            - Verified build succeeds with new image
+            
+            ## Testing
+            - Docker build test: ✅
+          reviewers: devops-team
+          labels: docker,maintenance

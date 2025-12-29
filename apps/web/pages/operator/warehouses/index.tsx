@@ -1,12 +1,14 @@
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import type { Warehouse } from '@prisma/client';
-import prisma from '../../../lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../api/auth/[...nextauth]';
+import type { NextPage, GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
+import prisma from '../../../lib/prisma';
+import { authOptions } from '../../api/auth/[...nextauth]';
+
 
 interface WarehousesProps {
   warehouses: Warehouse[];
@@ -17,9 +19,9 @@ const Warehouses: NextPage<WarehousesProps> = ({ warehouses }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'OPERATOR_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   if (status === 'loading' || !session || session.user.role !== 'OPERATOR_ADMIN') {

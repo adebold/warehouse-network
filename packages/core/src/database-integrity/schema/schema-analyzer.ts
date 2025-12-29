@@ -3,6 +3,9 @@
  * Analyzes PostgreSQL database schema and extracts detailed information
  */
 
+import winston from 'winston';
+
+import { DatabaseConnection } from '../core/database-connection';
 import {
   DatabaseSchema,
   Table,
@@ -17,8 +20,6 @@ import {
   Function,
   Trigger
 } from '../types';
-import { DatabaseConnection } from '../core/database-connection';
-import winston from 'winston';
 
 export class SchemaAnalyzer {
   private connection: DatabaseConnection;
@@ -169,18 +170,18 @@ export class SchemaAnalyzer {
   }
 
   private parseDefault(defaultValue: string | null): any {
-    if (!defaultValue) return undefined;
+    if (!defaultValue) {return undefined;}
     
     // Remove type casts
     defaultValue = defaultValue.replace(/::[\w\s]+$/, '');
     
     // Parse common defaults
-    if (defaultValue === 'true' || defaultValue === "'true'") return true;
-    if (defaultValue === 'false' || defaultValue === "'false'") return false;
-    if (defaultValue === 'NULL') return null;
-    if (/^'.*'$/.test(defaultValue)) return defaultValue.slice(1, -1);
-    if (/^\d+$/.test(defaultValue)) return parseInt(defaultValue);
-    if (/^\d+\.\d+$/.test(defaultValue)) return parseFloat(defaultValue);
+    if (defaultValue === 'true' || defaultValue === "'true'") {return true;}
+    if (defaultValue === 'false' || defaultValue === "'false'") {return false;}
+    if (defaultValue === 'NULL') {return null;}
+    if (/^'.*'$/.test(defaultValue)) {return defaultValue.slice(1, -1);}
+    if (/^\d+$/.test(defaultValue)) {return parseInt(defaultValue);}
+    if (/^\d+\.\d+$/.test(defaultValue)) {return parseFloat(defaultValue);}
     
     return defaultValue;
   }
@@ -485,7 +486,7 @@ export class SchemaAnalyzer {
   private parseFunctionArguments(args: string): any[] {
     // Simple parser for function arguments
     // Format: "param1 type1, param2 type2"
-    if (!args) return [];
+    if (!args) {return [];}
     
     return args.split(',').map(arg => {
       const parts = arg.trim().split(' ');

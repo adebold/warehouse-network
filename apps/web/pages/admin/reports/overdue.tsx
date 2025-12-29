@@ -1,12 +1,21 @@
-import type { Customer } from '@warehouse/types';
-import { useState, useEffect } from 'react';
+import {
+  ArrowLeft,
+  Download,
+  DollarSign,
+  Calendar,
+  AlertTriangle,
+  Users,
+  Mail,
+  Lock,
+} from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { DataTable } from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -15,18 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import {
-  ArrowLeft,
-  Download,
-  FileText,
-  DollarSign,
-  Calendar,
-  AlertTriangle,
-  TrendingUp,
-  Users,
-  Mail,
-  Lock,
-} from 'lucide-react';
+import { DataTable } from '@/components/ui/table';
+
 
 interface OverdueCustomer {
   id: string;
@@ -146,20 +145,20 @@ export default function OverdueReportPage() {
   };
 
   const getAgeGroup = (days: number): string => {
-    if (days <= 30) return '0-30';
-    if (days <= 60) return '31-60';
-    if (days <= 90) return '61-90';
+    if (days <= 30) {return '0-30';}
+    if (days <= 60) {return '31-60';}
+    if (days <= 90) {return '61-90';}
     return '90+';
   };
 
   const filteredCustomers = customers
     .filter(c => {
-      if (ageFilter === 'all') return true;
+      if (ageFilter === 'all') {return true;}
       return getAgeGroup(c.daysOverdue) === ageFilter;
     })
     .sort((a, b) => {
-      if (sortBy === 'amount') return b.overdueAmount - a.overdueAmount;
-      if (sortBy === 'days') return b.daysOverdue - a.daysOverdue;
+      if (sortBy === 'amount') {return b.overdueAmount - a.overdueAmount;}
+      if (sortBy === 'days') {return b.daysOverdue - a.daysOverdue;}
       return a.name.localeCompare(b.name);
     });
 

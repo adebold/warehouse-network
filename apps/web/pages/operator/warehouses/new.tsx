@@ -1,7 +1,6 @@
-import type { Warehouse } from '@warehouse/types';
 import type { NextPage } from 'next';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
 
 const NewWarehouse: NextPage = () => {
@@ -17,9 +16,9 @@ const NewWarehouse: NextPage = () => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'OPERATOR_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

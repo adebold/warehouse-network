@@ -1,0 +1,395 @@
+name: Deploy to Production
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - production-hotfix
+      approval_required:
+        description: 'Require manual approval'
+        required: false
+        default: 'true'
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  ENVIRONMENT: ${{ github.event.inputs.environment || 'production' }}
+
+jobs:
+  pre-production-validation:
+    runs-on: ubuntu-latest
+    environment: production-validation
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate tag format
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG=${GITHUB_REF#refs/tags/}
+          if [[ ! $TAG =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Invalid tag format: $TAG"
+            exit 1
+          fi
+
+      - name: Check staging deployment status
+        run: |
+          # Verify staging is healthy
+          STAGING_URL=${{ secrets.STAGING_SERVICE_URL }}
+          curl -f $STAGING_URL/health || exit 1
+
+      - name: Run security final check
+        run: |
+          # Final security validation before production
+          echo "Running final security checks..."
+          # Add security validation logic here
+
+      - name: Check database migration status
+        run: |
+          # Ensure all migrations are applied in staging
+          echo "Verifying migration status..."
+          # Add migration check logic here
+
+  blue-green-setup:
+    needs: pre-production-validation
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      current-slot: ${{ steps.check-slot.outputs.current-slot }}
+      target-slot: ${{ steps.check-slot.outputs.target-slot }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Check current deployment slot
+        id: check-slot
+        run: |
+          # Determine which slot is currently active
+          CURRENT_TRAFFIC=$(gcloud run services describe warehouse-network-production \
+            --platform managed \
+            --region us-central1 \
+            --format 'value(status.traffic[].revisionName)' 2>/dev/null || echo "")
+          
+          if [[ $CURRENT_TRAFFIC == *"blue"* ]]; then
+            echo "current-slot=blue" >> $GITHUB_OUTPUT
+            echo "target-slot=green" >> $GITHUB_OUTPUT
+          else
+            echo "current-slot=green" >> $GITHUB_OUTPUT
+            echo "target-slot=blue" >> $GITHUB_OUTPUT
+          fi
+
+  database-migration-production:
+    needs: [pre-production-validation, blue-green-setup]
+    runs-on: ubuntu-latest
+    environment: production
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create production database backup
+        run: |
+          chmod +x scripts/ci/backup-database.sh
+          ./scripts/ci/backup-database.sh production
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          BACKUP_STORAGE_URL: ${{ secrets.BACKUP_STORAGE_URL }}
+
+      - name: Run database migrations with rollback preparation
+        run: |
+          # Prepare rollback plan first
+          npm run migrate:prepare-rollback
+          
+          # Run migrations
+          npm run migrate
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+      - name: Verify migration success
+        run: npm run migrate:status
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+  deploy-to-target-slot:
+    needs: [blue-green-setup, database-migration-production]
+    runs-on: ubuntu-latest
+    environment: production
+    outputs:
+      service-url: ${{ steps.deploy.outputs.service-url }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+
+      - name: Deploy to target slot
+        id: deploy
+        run: |
+          TARGET_SLOT=${{ needs.blue-green-setup.outputs.target-slot }}
+          SERVICE_NAME="warehouse-network-production-$TARGET_SLOT"
+          
+          gcloud run deploy $SERVICE_NAME \
+            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.ref_name || github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --no-allow-unauthenticated \
+            --set-env-vars NODE_ENV=production \
+            --set-env-vars DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }} \
+            --set-env-vars REDIS_URL=${{ secrets.PRODUCTION_REDIS_URL }} \
+            --memory 2Gi \
+            --cpu 2 \
+            --min-instances 2 \
+            --max-instances 100 \
+            --concurrency 80 \
+            --timeout 300 \
+            --port 3000 \
+            --no-traffic
+          
+          SERVICE_URL=$(gcloud run services describe $SERVICE_NAME \
+            --platform managed \
+            --region us-central1 \
+            --format 'value(status.url)')
+          
+          echo "service-url=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+  production-validation:
+    needs: [deploy-to-target-slot, blue-green-setup]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Wait for deployment stabilization
+        run: sleep 60
+
+      - name: Health check on target slot
+        run: |
+          curl -f ${{ needs.deploy-to-target-slot.outputs.service-url }}/health || exit 1
+
+      - name: Run production smoke tests
+        run: |
+          chmod +x scripts/ci/smoke-tests.sh
+          ./scripts/ci/smoke-tests.sh ${{ needs.deploy-to-target-slot.outputs.service-url }}
+
+      - name: Run critical path tests
+        run: npm run test:critical-path
+        env:
+          TEST_URL: ${{ needs.deploy-to-target-slot.outputs.service-url }}
+          API_KEY: ${{ secrets.PRODUCTION_API_KEY }}
+
+      - name: Performance validation
+        run: |
+          # Run quick performance check
+          npx artillery quick \
+            --count 50 \
+            --num 5 \
+            ${{ needs.deploy-to-target-slot.outputs.service-url }}/api/health
+
+  traffic-switch:
+    needs: [production-validation, blue-green-setup]
+    runs-on: ubuntu-latest
+    environment: production-approval
+    if: github.event.inputs.approval_required != 'false'
+
+    steps:
+      - name: Request deployment approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: devops-team,platform-team
+          minimum-approvals: 2
+          issue-title: "Production Deployment Approval Required"
+          issue-body: |
+            Please review and approve the production deployment.
+            
+            **Deployment Details:**
+            - Environment: ${{ env.ENVIRONMENT }}
+            - Version: ${{ github.ref_name || github.sha }}
+            - Target Slot: ${{ needs.blue-green-setup.outputs.target-slot }}
+            - Service URL: ${{ needs.production-validation.outputs.service-url }}
+            
+            **Validation Results:**
+            - Health Check: ✅
+            - Smoke Tests: ✅
+            - Critical Path Tests: ✅
+            - Performance Tests: ✅
+
+      - name: Switch traffic to new deployment
+        run: |
+          TARGET_SLOT=${{ needs.blue-green-setup.outputs.target-slot }}
+          SERVICE_NAME="warehouse-network-production-$TARGET_SLOT"
+          
+          # Gradual traffic switch: 10% -> 50% -> 100%
+          echo "Switching 10% traffic to $TARGET_SLOT slot..."
+          gcloud run services update-traffic warehouse-network-production \
+            --to-revisions=$SERVICE_NAME=10 \
+            --platform managed \
+            --region us-central1
+          
+          sleep 120
+          
+          echo "Switching 50% traffic to $TARGET_SLOT slot..."
+          gcloud run services update-traffic warehouse-network-production \
+            --to-revisions=$SERVICE_NAME=50 \
+            --platform managed \
+            --region us-central1
+          
+          sleep 180
+          
+          echo "Switching 100% traffic to $TARGET_SLOT slot..."
+          gcloud run services update-traffic warehouse-network-production \
+            --to-revisions=$SERVICE_NAME=100 \
+            --platform managed \
+            --region us-central1
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+
+  post-deployment-monitoring:
+    needs: [traffic-switch, blue-green-setup]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Monitor deployment for 10 minutes
+        run: |
+          echo "Monitoring deployment for 10 minutes..."
+          for i in {1..20}; do
+            echo "Check $i/20 - $(date)"
+            
+            # Check health
+            curl -f ${{ secrets.PRODUCTION_SERVICE_URL }}/health || exit 1
+            
+            # Check error rate
+            # Add error rate monitoring logic here
+            
+            sleep 30
+          done
+
+      - name: Check application metrics
+        run: |
+          # Monitor key metrics for first 10 minutes
+          echo "Checking application metrics..."
+          # Add metrics validation logic here
+
+  cleanup-old-deployment:
+    needs: [post-deployment-monitoring, blue-green-setup]
+    runs-on: ubuntu-latest
+    if: success()
+
+    steps:
+      - name: Clean up old deployment slot
+        run: |
+          OLD_SLOT=${{ needs.blue-green-setup.outputs.current-slot }}
+          OLD_SERVICE="warehouse-network-production-$OLD_SLOT"
+          
+          echo "Cleaning up old deployment: $OLD_SERVICE"
+          gcloud run services delete $OLD_SERVICE \
+            --platform managed \
+            --region us-central1 \
+            --quiet
+        env:
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+
+  rollback-on-failure:
+    needs: [traffic-switch, blue-green-setup]
+    runs-on: ubuntu-latest
+    if: failure()
+
+    steps:
+      - name: Rollback to previous deployment
+        run: |
+          echo "Rolling back deployment due to failure..."
+          OLD_SLOT=${{ needs.blue-green-setup.outputs.current-slot }}
+          OLD_SERVICE="warehouse-network-production-$OLD_SLOT"
+          
+          # Switch traffic back to old deployment
+          gcloud run services update-traffic warehouse-network-production \
+            --to-revisions=$OLD_SERVICE=100 \
+            --platform managed \
+            --region us-central1
+
+      - name: Rollback database if needed
+        run: |
+          # Only rollback if migration was in this deployment
+          if [ "${{ needs.database-migration-production.result }}" = "success" ]; then
+            echo "Rolling back database migrations..."
+            npm run migrate:rollback
+          fi
+        env:
+          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+
+  notification:
+    needs: [post-deployment-monitoring, cleanup-old-deployment]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Notify team on success
+        if: needs.post-deployment-monitoring.result == 'success'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: |
+            🚀 Production deployment successful!
+            Environment: ${{ env.ENVIRONMENT }}
+            Version: ${{ github.ref_name || github.sha }}
+            Slot: ${{ needs.blue-green-setup.outputs.target-slot }}
+
+      - name: Notify team on failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: |
+            ❌ Production deployment failed!
+            Environment: ${{ env.ENVIRONMENT }}
+            Version: ${{ github.ref_name || github.sha }}
+            Rollback initiated. Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

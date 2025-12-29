@@ -1,16 +1,19 @@
 {
-  "name": "skidspace-monorepo",
+  "name": "warehouse-network",
   "private": true,
   "version": "1.0.0",
-  "description": "AI-Powered Warehouse Space Marketplace",
+  "description": "Enterprise warehouse management and logistics network platform",
   "workspaces": [
     "packages/*",
-    "apps/*"
+    "apps/*",
+    "marketing-platform",
+    "marketing-engine"
   ],
   "claudeAiPlatformDependencies": {
-    "@claude-ai/agent-tracker": "^1.0.0",
-    "@claude-ai/devops-platform": "^1.0.0", 
-    "@claude-ai/enterprise": "^1.0.0"
+    "@warehouse-network/claude-agent-tracker": "^1.0.0",
+    "@warehouse-network/claude-dev-standards": "^1.0.0",
+    "@warehouse-network/claude-db-integrity": "^1.0.0",
+    "@warehouse-network/claude-devops-platform": "^1.0.0"
   },
   "scripts": {
     "dev": "npm run --workspace=@warehouse-network/web dev",
@@ -36,7 +39,12 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f app",
     "setup": "npm install && npm run build:packages",
-    "reset": "npm run clean && npm install && npm run setup"
+    "reset": "npm run clean && npm install && npm run setup",
+    "packages:prepare": "node scripts/prepare-packages.js",
+    "packages:build": "npm run packages:prepare",
+    "packages:publish": "npm run packages:build && lerna publish from-package --no-private",
+    "packages:version": "lerna version --no-private",
+    "packages:list": "npm ls -ws --depth=0"
   },
   "keywords": [],
   "author": "",

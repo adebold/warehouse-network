@@ -3,6 +3,12 @@
  * Validates forms against warehouse-network Prisma models
  */
 
+import { readFileSync } from 'fs';
+import path from 'path';
+
+import { glob } from 'glob';
+import winston from 'winston';
+
 import {
   DatabaseSchema,
   IntegrityResult,
@@ -11,10 +17,6 @@ import {
   FieldMismatch,
   PrismaModel
 } from '../types';
-import { glob } from 'glob';
-import { readFileSync } from 'fs';
-import path from 'path';
-import winston from 'winston';
 
 export class WarehouseFormValidator {
   private schema: DatabaseSchema;
@@ -44,7 +46,7 @@ export class WarehouseFormValidator {
         
         // Detect which model this form is for
         const model = this.detectPaymentModel(content, formName);
-        if (!model) continue;
+        if (!model) {continue;}
 
         const validation = this.validateFormAgainstModel(
           formName,
@@ -88,7 +90,7 @@ export class WarehouseFormValidator {
         
         // Detect which model this form is for
         const model = this.detectOperationModel(content, formName);
-        if (!model) continue;
+        if (!model) {continue;}
 
         const validation = this.validateOperationFormAgainstModel(
           formName,

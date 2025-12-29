@@ -1,9 +1,11 @@
-import type { User } from '@warehouse/types';
-import NextAuth from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import prisma from '../../../lib/prisma';
-import type { NextAuthOptions } from 'next-auth';
 import bcrypt from 'bcryptjs';
+import NextAuth from 'next-auth';
+import type { NextAuthOptions } from 'next-auth';
+import CredentialsProvider from 'next-auth/providers/credentials';
+
+import { securityConfig } from '../../../lib/config/security';
+import prisma from '../../../lib/prisma';
+
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -63,12 +65,24 @@ export const authOptions: NextAuthOptions = {
   ],
   session: {
     strategy: 'jwt',
+    maxAge: securityConfig.auth.sessionMaxAge,
   },
   pages: {
     signIn: '/login',
     error: '/login',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'development-secret-change-in-production',
+  secret: securityConfig.auth.sessionSecret,
+  cookies: {
+    sessionToken: {
+      name: securityConfig.session.cookieName,
+      options: {
+        httpOnly: securityConfig.session.httpOnly,
+        sameSite: securityConfig.session.sameSite,
+        path: securityConfig.session.path,
+        secure: securityConfig.session.secure,
+      },
+    },
+  },
   callbacks: {
     async jwt({ token, user }) {
       if (user) {

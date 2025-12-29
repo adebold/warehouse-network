@@ -5,10 +5,12 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import { warehouseAssistant } from '@/lib/ai/warehouse-assistant';
-import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+
+import { authOptions } from '../auth/[...nextauth]';
+
+import { warehouseAssistant } from '@/lib/ai/warehouse-assistant';
+import prisma from '@/lib/prisma';
 
 // Request validation
 const chatRequestSchema = z.object({

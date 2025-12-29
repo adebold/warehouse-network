@@ -1,14 +1,14 @@
-import type { Order, Customer } from '@warehouse/types';
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import type { ReceivingOrder, Skid } from '@prisma/client';
-import prisma from '../../../../lib/prisma';
+import type { NextPage, GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../../../lib/prisma';
 import { authOptions } from '../../../api/auth/[...nextauth]';
+
 // import { PDFDownloadLink } from '@react-pdf/renderer';
-import dynamic from 'next/dynamic';
 
 // const SkidLabel = dynamic(() => import('../../../../components/SkidLabel'), { ssr: false });
 
@@ -27,8 +27,8 @@ const ReceivingOrderDetails: NextPage<ReceivingOrderDetailsProps> = ({ order }) 
   const [skids, setSkids] = useState(order.skids);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
   }, [session, status, router]);
 
   const handleGenerateSkids = async (e: React.FormEvent<HTMLFormElement>) => {

@@ -1,10 +1,11 @@
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import type { Skid, DisputeType } from '@prisma/client';
-import prisma from '../../../lib/prisma';
+import type { NextPage, GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface NewDisputeProps {
@@ -22,9 +23,9 @@ const NewDispute: NextPage<NewDisputeProps> = ({ skids }) => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'CUSTOMER_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'CUSTOMER_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleChange = (

@@ -1,12 +1,9 @@
-import { prisma } from '@warehouse-network/db'
-import {
-  IntegrityLogCategory,
-  IntegrityLogLevel,
+import { prisma ,
   IntegrityAlertType,
   IntegrityAlertSeverity,
   IntegrityMetricType
 } from '@warehouse-network/db'
-import { subDays, startOfDay, endOfDay, format } from 'date-fns'
+import { subDays, format } from 'date-fns'
 
 export interface LogAnalytics {
   totalLogs: number
@@ -163,8 +160,8 @@ export class MemoryBankAnalytics {
         }
       }
       acc[log.component].operations++
-      if (!log.success) acc[log.component].errors++
-      if (log.duration) acc[log.component].durations.push(log.duration)
+      if (!log.success) {acc[log.component].errors++}
+      if (log.duration) {acc[log.component].durations.push(log.duration)}
       return acc
     }, {} as Record<string, { operations: number, errors: number, durations: number[] }>)
 
@@ -448,12 +445,12 @@ export class MemoryBankAnalytics {
    * Helper functions
    */
   private calculateAverage(values: number[]): number {
-    if (values.length === 0) return 0
+    if (values.length === 0) {return 0}
     return values.reduce((a, b) => a + b, 0) / values.length
   }
 
   private calculatePercentile(sortedValues: number[], percentile: number): number {
-    if (sortedValues.length === 0) return 0
+    if (sortedValues.length === 0) {return 0}
     const index = Math.ceil((percentile / 100) * sortedValues.length) - 1
     return sortedValues[index]
   }

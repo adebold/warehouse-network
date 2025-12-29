@@ -260,6 +260,21 @@ export interface CLIOptions {
   journey?: string;
   epic?: string;
   environment?: 'development' | 'staging' | 'production';
+  // Additional properties for various commands
+  forms?: boolean;
+  routes?: boolean;
+  clear?: boolean;
+  export?: boolean;
+  stats?: boolean;
+  show?: boolean;
+  reset?: boolean;
+  list?: boolean;
+  create?: string;
+  delete?: string;
+  generate?: string;
+  form?: string;
+  data?: string;
+  headless?: boolean;
 }
 
 export interface TemplateFiles {

@@ -1,7 +1,9 @@
 import { promises as fs } from 'fs';
 import * as path from 'path';
-import { logger } from './logger';
+
 import type { IntegrityConfig } from '../types';
+
+import { logger } from './logger';
 
 const DEFAULT_CONFIG_FILENAME = 'claude-db-integrity.config.js';
 
@@ -191,9 +193,7 @@ export class ConfigManager {
         enabled: true,
         interval: 30,
         alerts: {
-          email: [],
-          webhook: undefined,
-          slack: undefined
+          email: []
         },
         logging: {
           level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',

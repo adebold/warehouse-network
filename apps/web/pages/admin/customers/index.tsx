@@ -1,21 +1,24 @@
-import { useState, useEffect } from 'react';
+import {
+  Search,
+  MoreVertical,
+  Lock,
+  Unlock,
+  AlertTriangle,
+  DollarSign,
+  CheckCircle,
+  History,
+  FileText,
+} from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { DataTable } from '@/components/ui/table';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -24,24 +27,19 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Search,
-  MoreVertical,
-  Lock,
-  Unlock,
-  AlertTriangle,
-  DollarSign,
-  Calendar,
-  Ban,
-  CheckCircle,
-  XCircle,
-  History,
-  FileText,
-  Users,
-} from 'lucide-react';
+import { DataTable } from '@/components/ui/table';
+
 
 interface Customer {
   id: string;
@@ -232,7 +230,7 @@ export default function CustomersPage() {
       accessorKey: 'paymentDueDate',
       header: 'Due Date',
       cell: ({ row }: any) => {
-        if (!row.original.paymentDueDate) return '-';
+        if (!row.original.paymentDueDate) {return '-';}
         const dueDate = new Date(row.original.paymentDueDate);
         const isOverdue = dueDate < new Date();
         return (

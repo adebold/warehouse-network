@@ -1,9 +1,3 @@
-import type { Warehouse, Inventory } from '@warehouse/types';
-
-import React from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import Link from 'next/link';
 import {
   LayoutDashboard,
   Package,
@@ -19,12 +13,13 @@ import {
   ClipboardList,
   Bell,
   Search,
-  Brain,
 } from 'lucide-react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useSession, signOut } from 'next-auth/react';
+import React from 'react';
+
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +28,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import { ThemeToggle } from '@/components/ui/theme-toggle';
+import { cn } from '@/lib/utils';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;

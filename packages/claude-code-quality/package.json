@@ -1,0 +1,128 @@
+{
+  "name": "@warehouse-network/claude-code-quality",
+  "version": "1.0.0",
+  "description": "AI-powered code quality analysis with real-time ML models, AST parsing, security detection, and comprehensive code metrics",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "claude-code-quality": "./bin/claude-code-quality"
+  },
+  "scripts": {
+    "build": "npm run clean && tsc && npm run copy-assets",
+    "build:watch": "tsc --watch",
+    "clean": "rimraf dist",
+    "copy-assets": "cp -r src/models/data dist/models/ 2>/dev/null || true",
+    "dev": "npm run build:watch",
+    "test": "jest --passWithNoTests",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "typecheck": "tsc --noEmit",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run typecheck && npm run test && npm run build",
+    "train:models": "ts-node scripts/train-models.ts",
+    "analyze": "ts-node src/cli/index.ts analyze",
+    "benchmark": "ts-node scripts/benchmark.ts"
+  },
+  "keywords": [
+    "code-quality",
+    "ai",
+    "ml",
+    "ast",
+    "static-analysis",
+    "security",
+    "performance",
+    "typescript",
+    "babel",
+    "claude-flow"
+  ],
+  "author": "Claude Code Quality Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/warehouse-network/platform.git",
+    "directory": "packages/claude-code-quality"
+  },
+  "files": [
+    "dist/**/*",
+    "bin/**/*",
+    "scripts/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./analyzers": {
+      "import": "./dist/analyzers/index.js",
+      "require": "./dist/analyzers/index.js",
+      "types": "./dist/analyzers/index.d.ts"
+    },
+    "./models": {
+      "import": "./dist/models/index.js",
+      "require": "./dist/models/index.js",
+      "types": "./dist/models/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.23.6",
+    "@babel/traverse": "^7.23.6",
+    "@babel/types": "^7.23.6",
+    "@tensorflow/tfjs-node": "^4.15.0",
+    "@typescript-eslint/parser": "^6.14.0",
+    "@typescript-eslint/typescript-estree": "^6.14.0",
+    "typescript": "^5.3.3",
+    "natural": "^6.10.0",
+    "ml-sentiment": "^2.0.7",
+    "synaptic": "^1.1.4",
+    "brain.js": "^2.0.0-beta.23",
+    "compromise": "^14.10.0",
+    "commander": "^11.1.0",
+    "chalk": "^5.3.0",
+    "ora": "^8.0.1",
+    "glob": "^10.3.10",
+    "lodash": "^4.17.21",
+    "winston": "^3.11.0",
+    "joi": "^17.11.0",
+    "async": "^3.2.5",
+    "p-limit": "^5.0.0",
+    "js-yaml": "^4.1.0",
+    "axios": "^1.6.2",
+    "node-cache": "^5.1.2",
+    "dotenv": "^16.3.1",
+    "vectorious": "^6.1.3",
+    "mathjs": "^12.2.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.5",
+    "@types/babel__parser": "^7.1.1",
+    "@types/babel__traverse": "^7.20.4",
+    "@types/lodash": "^4.14.202",
+    "@types/jest": "^29.5.8",
+    "@types/js-yaml": "^4.0.9",
+    "eslint": "^8.55.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "rimraf": "^5.0.5",
+    "nodemon": "^3.0.2"
+  },
+  "peerDependencies": {
+    "@warehouse-network/types": "^1.0.0",
+    "@warehouse-network/core": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

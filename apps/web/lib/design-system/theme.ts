@@ -279,10 +279,10 @@ export const generateCSSVariables = (theme: Theme) => {
 
 // Theme context helper
 export const getThemeFromLocalStorage = (): 'light' | 'dark' => {
-  if (typeof window === 'undefined') return 'light';
+  if (typeof window === 'undefined') {return 'light';}
 
   const stored = localStorage.getItem('theme');
-  if (stored === 'dark' || stored === 'light') return stored;
+  if (stored === 'dark' || stored === 'light') {return stored;}
 
   // Check system preference
   if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {

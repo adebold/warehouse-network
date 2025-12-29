@@ -1,6 +1,6 @@
 
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
 
 const WelcomeOperator: NextPage = () => {
@@ -8,9 +8,9 @@ const WelcomeOperator: NextPage = () => {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'OPERATOR_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleAccept = async () => {

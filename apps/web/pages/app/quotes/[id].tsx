@@ -1,13 +1,14 @@
-import type { Warehouse } from '@warehouse/types';
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import type { Quote, RFQ, QuoteItem } from '@prisma/client';
-import prisma from '../../../lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../api/auth/[...nextauth]';
 import { loadStripe } from '@stripe/stripe-js';
+import type { NextPage, GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
+import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
+import prisma from '../../../lib/prisma';
+import { authOptions } from '../../api/auth/[...nextauth]';
+
 
 interface CustomerQuoteDetailsProps {
   quote: Quote & { rfq: RFQ; warehouse: { name: string }; items: QuoteItem[] };
@@ -20,8 +21,8 @@ const CustomerQuoteDetails: NextPage<CustomerQuoteDetailsProps> = ({ quote }) =>
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
     if (session?.user?.role !== 'CUSTOMER_ADMIN' && session?.user?.role !== 'CUSTOMER_USER') {
       router.push('/unauthorized');
     }

@@ -1,0 +1,4 @@
+npm warn Unknown project config "workspace-concurrency". This will stop working in the next major version of npm.
+npm error No workspaces found:
+npm error   --workspace=@warehouse-network/claude-devops-platform
+npm error A complete log of this run can be found in: /Users/adebold/.npm/_logs/2025-12-29T16_55_51_847Z-debug-0.log

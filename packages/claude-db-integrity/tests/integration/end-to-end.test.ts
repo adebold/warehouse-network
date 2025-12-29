@@ -1,7 +1,8 @@
-import { IntegrityEngine } from '../../src/core/IntegrityEngine';
-import { CLIController } from '../../src/cli/controller';
 import fs from 'fs/promises';
 import path from 'path';
+
+import { CLIController } from '../../src/cli/controller';
+import { IntegrityEngine } from '../../src/core/IntegrityEngine';
 
 describe('End-to-End Integration', () => {
   const testDir = path.join(__dirname, 'e2e-temp');

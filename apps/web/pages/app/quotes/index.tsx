@@ -1,12 +1,14 @@
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import type { RFQ } from '@prisma/client';
-import prisma from '../../../lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../../api/auth/[...nextauth]';
+import type { NextPage, GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
+import prisma from '../../../lib/prisma';
+import { authOptions } from '../../api/auth/[...nextauth]';
+
 
 interface RFQsProps {
   rfqs: RFQ[];
@@ -17,8 +19,8 @@ const RFQs: NextPage<RFQsProps> = ({ rfqs }) => {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
     if (session?.user?.role !== 'CUSTOMER_ADMIN' && session?.user?.role !== 'CUSTOMER_USER') {
       router.push('/unauthorized');
     }

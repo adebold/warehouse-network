@@ -28,7 +28,7 @@ export class MonorepoCommand extends Command {
           await generator.generate();
           logger.success('Monorepo initialized successfully!');
         } catch (error) {
-          logger.error('Failed to initialize monorepo:', error);
+          logger.error('Failed to initialize monorepo:', error as Error);
           process.exit(1);
         }
       });
@@ -78,7 +78,7 @@ export class MonorepoCommand extends Command {
 
           logger.success(`Package ${name} created successfully!`);
         } catch (error) {
-          logger.error('Failed to add package:', error);
+          logger.error('Failed to add package:', error as Error);
           process.exit(1);
         }
       });
@@ -109,7 +109,7 @@ export class MonorepoCommand extends Command {
 
           logger.success('Command completed successfully!');
         } catch (error) {
-          logger.error('Command failed:', error);
+          logger.error('Command failed:', error as Error);
           process.exit(1);
         }
       });
@@ -128,7 +128,7 @@ export class MonorepoCommand extends Command {
             logger.info('Install nx to visualize dependencies: npm install -D nx');
           }
         } catch (error) {
-          logger.error('Failed to generate graph:', error);
+          logger.error('Failed to generate graph:', error as Error);
         }
       });
   }

@@ -2,7 +2,6 @@
  * Example usage of the Database Integrity Memory Bank system
  */
 
-import { memoryBank } from '../memory-bank/memory-bank';
 import { 
   IntegrityLogCategory, 
   IntegrityLogLevel,
@@ -11,6 +10,8 @@ import {
   IntegrityMetricType,
   SnapshotType
 } from '@warehouse-network/db';
+
+import { memoryBank } from '../memory-bank/memory-bank';
 
 async function demonstrateMemoryBank() {
   console.log('🔍 Database Integrity Memory Bank Demo\n');

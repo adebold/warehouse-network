@@ -1,8 +1,12 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import { hash } from 'bcryptjs';
+import type { NextApiRequest, NextApiResponse } from 'next';
+
+import { securityConfig, validatePassword } from '@/lib/config/security';
+import { withCSRFProtection } from '@/lib/middleware/csrf';
+import { withAuthSecurity } from '@/lib/middleware/security';
 import prisma from '@/lib/prisma';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Method not allowed' });
   }
@@ -13,8 +17,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ message: 'Missing required fields' });
   }
 
-  if (password.length < 8) {
-    return res.status(400).json({ message: 'Password must be at least 8 characters' });
+  // Validate password against security policy
+  const passwordValidation = validatePassword(password);
+  if (!passwordValidation.valid) {
+    return res.status(400).json({ 
+      message: 'Password does not meet security requirements',
+      errors: passwordValidation.errors
+    });
   }
 
   try {
@@ -27,8 +36,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(400).json({ message: 'Email already registered' });
     }
 
-    // Hash password
-    const hashedPassword = await hash(password, 12);
+    // Hash password with configurable rounds
+    const hashedPassword = await hash(password, securityConfig.auth.bcryptRounds);
 
     // Create user
     const user = await prisma.user.create({
@@ -52,3 +61,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ message: 'Failed to create account' });
   }
 }
+
+// Export with security middleware applied
+export default withCSRFProtection(withAuthSecurity(handler));

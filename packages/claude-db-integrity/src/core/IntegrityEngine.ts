@@ -1,9 +1,7 @@
 import { EventEmitter } from 'events';
-import { logger } from '../utils/logger';
-import { ConfigManager } from '../utils/config';
-import { ClaudeMemoryManager } from '../memory/ClaudeMemoryManager';
-import { ValidationManager } from '../validators/ValidationManager';
+
 import { SchemaManager } from '../core/SchemaManager';
+import { ClaudeMemoryManager } from '../memory/ClaudeMemoryManager';
 import type {
   IntegrityConfig,
   IntegrityCheck,
@@ -12,6 +10,9 @@ import type {
   ValidationResult,
   MonitoringEvent
 } from '../types';
+import { ConfigManager } from '../utils/config';
+import { logger } from '../utils/logger';
+import { ValidationManager } from '../validators/ValidationManager';
 
 export class IntegrityEngine extends EventEmitter {
   private config: IntegrityConfig;
@@ -20,7 +21,7 @@ export class IntegrityEngine extends EventEmitter {
   private validationManager: ValidationManager;
   private schemaManager: SchemaManager;
   private monitoring: boolean = false;
-  private monitoringInterval?: NodeJS.Timeout;
+  private monitoringInterval: NodeJS.Timeout | undefined;
 
   constructor(configPath?: string) {
     super();
@@ -28,8 +29,8 @@ export class IntegrityEngine extends EventEmitter {
     this.config = this.configManager.getConfig();
     
     this.memoryManager = new ClaudeMemoryManager(this.config.memory);
-    this.validationManager = new ValidationManager(this.config.validation);
-    this.schemaManager = new SchemaManager(this.config.database);
+    this.validationManager = new ValidationManager();
+    this.schemaManager = new SchemaManager(this.config.database.url || '');
 
     this.setupEventHandlers();
   }
@@ -172,12 +173,12 @@ export class IntegrityEngine extends EventEmitter {
       const results: ValidationResult[] = [];
       
       if (options.forms !== false) {
-        const formResults = await this.validationManager.validateForms();
+        const formResults = await this.validationManager.validateForms(this.config.validation.forms.directory);
         results.push(...formResults);
       }
       
       if (options.routes !== false) {
-        const routeResults = await this.validationManager.validateRoutes();
+        const routeResults = await this.validationManager.validateRoutes(this.config.validation.routes.directory);
         results.push(...routeResults);
       }
       
@@ -274,7 +275,7 @@ export class IntegrityEngine extends EventEmitter {
         type: 'error',
         severity: 'error',
         message: 'Monitoring cycle failed',
-        details: { error: error.message },
+        details: { error: error instanceof Error ? error.message : String(error) },
         timestamp: new Date(),
         source: 'monitoring'
       };

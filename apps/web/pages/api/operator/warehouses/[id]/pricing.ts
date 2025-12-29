@@ -1,9 +1,8 @@
-import type { User, Warehouse } from '@warehouse/types';
-
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../../auth/[...nextauth]';
+
 import prisma from '../../../../../lib/prisma';
 import { pricingRulesSchema } from '../../../../../lib/schemas';
+import { authOptions } from '../../../auth/[...nextauth]';
 // TODO: Implement SEO city page creation when core package is available
 async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
   console.log(`SEO: Creating city page for warehouse ${warehouseId}`);

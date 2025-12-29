@@ -1,8 +1,9 @@
 
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Ban, Lock, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useRouter } from 'next/router';
+
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 
 interface AccountLockWarningProps {
   customer: {
@@ -30,22 +31,22 @@ export function AccountLockWarning({
   }
 
   const getAlertVariant = () => {
-    if (customer.accountStatus === 'LOCKED') return 'destructive';
+    if (customer.accountStatus === 'LOCKED') {return 'destructive';}
     if (customer.accountStatus === 'SUSPENDED' || customer.paymentStatus === 'DELINQUENT')
-      return 'destructive';
+      {return 'destructive';}
     return 'default';
   };
 
   const getIcon = () => {
-    if (customer.accountStatus === 'LOCKED') return <Lock className="h-4 w-4" />;
-    if (customer.accountStatus === 'SUSPENDED') return <Ban className="h-4 w-4" />;
+    if (customer.accountStatus === 'LOCKED') {return <Lock className="h-4 w-4" />;}
+    if (customer.accountStatus === 'SUSPENDED') {return <Ban className="h-4 w-4" />;}
     return <AlertTriangle className="h-4 w-4" />;
   };
 
   const getTitle = () => {
-    if (customer.accountStatus === 'LOCKED') return 'Account Locked';
-    if (customer.accountStatus === 'SUSPENDED') return 'Account Suspended';
-    if (customer.paymentStatus === 'DELINQUENT') return 'Payment Delinquent';
+    if (customer.accountStatus === 'LOCKED') {return 'Account Locked';}
+    if (customer.accountStatus === 'SUSPENDED') {return 'Account Suspended';}
+    if (customer.paymentStatus === 'DELINQUENT') {return 'Payment Delinquent';}
     return 'Account Restriction';
   };
 

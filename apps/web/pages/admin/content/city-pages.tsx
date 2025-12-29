@@ -1,21 +1,23 @@
-import type { Warehouse } from '@warehouse/types';
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import type { CityPage } from '@prisma/client';
-import prisma from '../../../lib/prisma';
+import { ArrowLeft, Globe, Edit, Trash2, Plus } from 'lucide-react';
+import type { NextPage, GetServerSideProps } from 'next';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../../lib/prisma';
 import { authOptions } from '../../../pages/api/auth/[...nextauth]';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, Globe, Edit, Trash2, Plus } from 'lucide-react';
-import Link from 'next/link';
+
 
 interface CityPagesProps {
   cityPages: CityPage[];
@@ -33,9 +35,9 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'SUPER_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {

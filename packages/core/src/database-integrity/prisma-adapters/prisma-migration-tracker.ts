@@ -3,20 +3,24 @@
  * Tracks Prisma migrations and syncs with our migration system
  */
 
+import crypto from 'crypto';
+import { readFileSync, readdirSync, existsSync } from 'fs';
+import path from 'path';
+
+import winston from 'winston';
+
+import { DatabaseConnection } from '../core/database-connection';
+import { MigrationEngine } from '../migration/migration-engine';
 import {
   PrismaConfig,
   Migration,
   MigrationType,
   MigrationStatus,
-  IntegrityResult,
-  IntegrityError
+  IntegrityResult
 } from '../types';
-import { DatabaseConnection } from '../core/database-connection';
-import { MigrationEngine } from '../migration/migration-engine';
-import { readFileSync, readdirSync, existsSync } from 'fs';
-import path from 'path';
-import winston from 'winston';
-import crypto from 'crypto';
+
+
+
 
 interface PrismaMigration {
   id: string;

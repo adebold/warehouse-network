@@ -68,7 +68,16 @@ class Logger {
   }
 
   private formatMessage(level: string, message: string, context?: LogContext): any {
-    const logEntry = {
+    const logEntry: LogContext & {
+      timestamp: string;
+      level: string;
+      message: string;
+      service: string;
+      version: string;
+      environment: string;
+      pid: number;
+      hostname: string;
+    } = {
       timestamp: new Date().toISOString(),
       level,
       message,
@@ -231,12 +240,13 @@ class Logger {
    * Log audit event
    */
   audit(action: string, userId?: string, context?: LogContext): void {
-    this.info(`Audit: ${action}`, {
+    const auditContext: LogContext = {
       ...context,
-      userId,
+      ...(userId && { userId }),
       action,
       eventType: 'audit'
-    });
+    };
+    this.info(`Audit: ${action}`, auditContext);
   }
 
   /**

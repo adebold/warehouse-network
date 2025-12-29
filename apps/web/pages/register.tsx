@@ -1,22 +1,22 @@
+import { Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 import type { NextPage } from 'next';
-import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { signIn } from 'next-auth/react';
-import Link from 'next/link';
+import { useState } from 'react';
+
 import { AuthLayout } from '@/components/layouts/AuthLayout';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
   CardFooter,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 
 const RegisterPage: NextPage = () => {
   const router = useRouter();

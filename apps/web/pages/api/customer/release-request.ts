@@ -1,8 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
+
 import { authOptions } from '../auth/[...nextauth]';
-import prisma from '@/lib/prisma';
+
 import { withAccountLockCheck } from '@/lib/middleware/accountLock';
+import prisma from '@/lib/prisma';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);

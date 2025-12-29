@@ -1,0 +1,13 @@
+{
+  "name": "@warehouse/types",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"No tests\""
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,226 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [ develop ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if tests fail'
+        required: false
+        default: 'false'
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  ENVIRONMENT: staging
+
+jobs:
+  pre-deployment-checks:
+    runs-on: ubuntu-latest
+    outputs:
+      should-deploy: ${{ steps.check.outputs.should-deploy }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check deployment conditions
+        id: check
+        run: |
+          # Check if CI passed
+          CI_STATUS=$(gh api repos/${{ github.repository }}/commits/${{ github.sha }}/status --jq '.state')
+          
+          if [ "$CI_STATUS" = "success" ] || [ "${{ github.event.inputs.force_deploy }}" = "true" ]; then
+            echo "should-deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should-deploy=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  database-migration:
+    needs: pre-deployment-checks
+    if: needs.pre-deployment-checks.outputs.should-deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create database backup
+        run: |
+          chmod +x scripts/ci/backup-database.sh
+          ./scripts/ci/backup-database.sh staging
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+          BACKUP_STORAGE_URL: ${{ secrets.BACKUP_STORAGE_URL }}
+
+      - name: Run database migrations
+        run: npm run migrate
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+      - name: Verify migration success
+        run: npm run migrate:status
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+
+  deploy:
+    needs: [pre-deployment-checks, database-migration]
+    if: needs.pre-deployment-checks.outputs.should-deploy == 'true'
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v1
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Configure Docker for GCR
+        run: gcloud auth configure-docker
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy warehouse-network-staging \
+            --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:develop-${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars NODE_ENV=staging \
+            --set-env-vars DATABASE_URL=${{ secrets.STAGING_DATABASE_URL }} \
+            --set-env-vars REDIS_URL=${{ secrets.STAGING_REDIS_URL }} \
+            --memory 1Gi \
+            --cpu 1 \
+            --min-instances 1 \
+            --max-instances 10 \
+            --concurrency 100 \
+            --timeout 300 \
+            --port 3000
+
+      - name: Get service URL
+        id: get-url
+        run: |
+          SERVICE_URL=$(gcloud run services describe warehouse-network-staging --platform managed --region us-central1 --format 'value(status.url)')
+          echo "service-url=$SERVICE_URL" >> $GITHUB_OUTPUT
+
+      - name: Wait for deployment
+        run: |
+          echo "Waiting for service to be ready..."
+          sleep 30
+
+      - name: Health check
+        run: |
+          curl -f ${{ steps.get-url.outputs.service-url }}/health || exit 1
+
+      - name: Run smoke tests
+        run: |
+          chmod +x scripts/ci/smoke-tests.sh
+          ./scripts/ci/smoke-tests.sh ${{ steps.get-url.outputs.service-url }}
+
+  post-deployment-tests:
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: staging
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run end-to-end tests
+        run: npm run test:e2e
+        env:
+          TEST_URL: ${{ needs.deploy.outputs.service-url }}
+          API_KEY: ${{ secrets.STAGING_API_KEY }}
+
+      - name: Run API tests
+        run: npm run test:api
+        env:
+          API_URL: ${{ needs.deploy.outputs.service-url }}
+          API_KEY: ${{ secrets.STAGING_API_KEY }}
+
+  performance-baseline:
+    needs: deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run performance tests
+        run: |
+          npx artillery run tests/performance/staging.yml \
+            --target ${{ needs.deploy.outputs.service-url }} \
+            --output performance-results.json
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: staging-performance-results
+          path: performance-results.json
+
+  notify-deployment:
+    needs: [deploy, post-deployment-tests]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Notify team on success
+        if: needs.deploy.result == 'success' && needs.post-deployment-tests.result == 'success'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: |
+            🚀 Successfully deployed to staging!
+            Environment: ${{ env.ENVIRONMENT }}
+            Commit: ${{ github.sha }}
+            Service URL: ${{ needs.deploy.outputs.service-url }}
+
+      - name: Notify team on failure
+        if: needs.deploy.result == 'failure' || needs.post-deployment-tests.result == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#deployments'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          text: |
+            ❌ Staging deployment failed!
+            Environment: ${{ env.ENVIRONMENT }}
+            Commit: ${{ github.sha }}
+            Check logs: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}

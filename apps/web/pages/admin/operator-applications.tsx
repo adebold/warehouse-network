@@ -1,15 +1,18 @@
-import type { NextPage, GetServerSideProps } from 'next';
-import prisma from '../../lib/prisma';
 import type { Operator } from '@prisma/client';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { ArrowLeft, CheckCircle, XCircle, Clock } from 'lucide-react';
-import { BRAND_ASSETS } from '@/lib/asset-urls';
+import type { NextPage, GetServerSideProps } from 'next';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { useEffect } from 'react';
+
+import prisma from '../../lib/prisma';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BRAND_ASSETS } from '@/lib/asset-urls';
+
 
 
 interface AdminOperatorApplicationsProps {
@@ -21,9 +24,9 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return; // Do nothing while loading
-    if (!session) router.push('/login'); // If not authenticated, redirect
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized'); // If not a super admin, redirect
+    if (status === 'loading') {return;} // Do nothing while loading
+    if (!session) {router.push('/login');} // If not authenticated, redirect
+    if (session?.user?.role !== 'SUPER_ADMIN') {router.push('/unauthorized');} // If not a super admin, redirect
   }, [session, status, router]);
 
   const handleUpdateStatus = async (id: string, status: 'APPROVED' | 'REJECTED') => {

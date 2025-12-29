@@ -1,17 +1,23 @@
-import type { Order, Warehouse, Customer } from '@warehouse/types';
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import type { RFQ, Warehouse, ChargeCategory } from '@prisma/client';
-import prisma from '../../../lib/prisma';
+import type { Warehouse } from '@warehouse/types';
+import { ArrowLeft, Plus, Trash2, Package, CreditCard, Info } from 'lucide-react';
+import type { NextPage, GetServerSideProps } from 'next';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+
+import QuoteFormSkeleton from '@/components/quotes/QuoteFormSkeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
   SelectContent,
@@ -19,11 +25,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Trash2, Package, CreditCard, FileText, Info } from 'lucide-react';
-import Link from 'next/link';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import QuoteFormSkeleton from '@/components/quotes/QuoteFormSkeleton';
+import { Textarea } from '@/components/ui/textarea';
+
+
 
 interface NewQuoteProps {
   rfq: RFQ;
@@ -56,9 +60,9 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'SUPER_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'SUPER_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleChange = (

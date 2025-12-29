@@ -3,7 +3,6 @@
  * Simple, practical AI for the warehouse marketplace MVP
  */
 
-import { z } from 'zod';
 import prisma from '@/lib/prisma';
 
 // ========================================
@@ -377,10 +376,10 @@ export class WarehouseAssistant {
     
     // Extract features
     const features = [];
-    if (message.toLowerCase().includes('climate')) features.push('climate_control');
-    if (message.toLowerCase().includes('dock')) features.push('loading_dock');
-    if (message.toLowerCase().includes('24/7')) features.push('24_7_access');
-    if (message.toLowerCase().includes('security')) features.push('security');
+    if (message.toLowerCase().includes('climate')) {features.push('climate_control');}
+    if (message.toLowerCase().includes('dock')) {features.push('loading_dock');}
+    if (message.toLowerCase().includes('24/7')) {features.push('24_7_access');}
+    if (message.toLowerCase().includes('security')) {features.push('security');}
     
     if (features.length > 0) {
       params.features = features;
@@ -495,8 +494,8 @@ export class WarehouseAssistant {
     
     if (params.minSqft || params.maxSqft) {
       where.size = {};
-      if (params.minSqft) where.size.gte = params.minSqft;
-      if (params.maxSqft) where.size.lte = params.maxSqft;
+      if (params.minSqft) {where.size.gte = params.minSqft;}
+      if (params.maxSqft) {where.size.lte = params.maxSqft;}
     }
     
     if (params.location) {
@@ -508,8 +507,8 @@ export class WarehouseAssistant {
     
     if (params.priceRange) {
       where.pricePerSqft = {};
-      if (params.priceRange.min) where.pricePerSqft.gte = params.priceRange.min;
-      if (params.priceRange.max) where.pricePerSqft.lte = params.priceRange.max;
+      if (params.priceRange.min) {where.pricePerSqft.gte = params.priceRange.min;}
+      if (params.priceRange.max) {where.pricePerSqft.lte = params.priceRange.max;}
     }
     
     const warehouses = await prisma.warehouse.findMany({
@@ -529,7 +528,7 @@ export class WarehouseAssistant {
   }
   
   private async getMarketPricing(location?: string): Promise<number> {
-    if (!location) return 4.00; // Default
+    if (!location) {return 4.00;} // Default
     
     // Get average pricing for location
     const avg = await prisma.warehouse.aggregate({
@@ -605,8 +604,8 @@ export class WarehouseAssistant {
     
     // Calculate urgency
     let urgency: 'low' | 'medium' | 'high' = 'medium';
-    if (score >= 75) urgency = 'high';
-    else if (score < 60) urgency = 'low';
+    if (score >= 75) {urgency = 'high';}
+    else if (score < 60) {urgency = 'low';}
     
     // Estimate value (placeholder)
     const estimatedValue = 5000 * 4 * 6; // 5k sqft * $4 * 6 months
@@ -626,7 +625,7 @@ export class WarehouseAssistant {
       include: { owner: true }
     });
     
-    if (!warehouse?.owner) return;
+    if (!warehouse?.owner) {return;}
     
     // Create notification
     await prisma.notification.create({

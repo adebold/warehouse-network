@@ -1,4 +1,5 @@
-import { test as setup, expect } from '@playwright/test';
+import { test as setup } from '@playwright/test';
+
 import {
   STORAGE_STATE_ADMIN,
   STORAGE_STATE_CUSTOMER_ADMIN,

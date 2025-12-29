@@ -1,5 +1,6 @@
-import prisma from '../../db/src/client';
 import { ChargeCategory, SkidStatus } from '@prisma/client';
+
+import prisma from '../../db/src/client';
 
 export async function runDailyAccrual() {
   const jobRun = await prisma.jobRun.create({

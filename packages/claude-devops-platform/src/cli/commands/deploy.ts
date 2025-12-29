@@ -52,7 +52,7 @@ export class Deployment {
   private k8sAppsApi: k8s.AppsV1Api;
   private k8sConfig: k8s.KubeConfig;
   private github: Octokit;
-  private config: DeploymentConfig;
+  private config!: DeploymentConfig;
 
   constructor(private environment: string, private options: any) {
     // Initialize Kubernetes client
@@ -107,7 +107,7 @@ export class Deployment {
       await this.k8sApi.listNamespace();
       logger.info('✓ Kubernetes cluster connection verified');
     } catch (error) {
-      throw new Error(`Cannot connect to Kubernetes cluster: ${error.message}`);
+      throw new Error(`Cannot connect to Kubernetes cluster: ${error instanceof Error ? error.message : String(error)}`);
     }
 
     // Check namespace exists
@@ -115,7 +115,7 @@ export class Deployment {
       await this.k8sApi.readNamespace(this.config.namespace);
       logger.info(`✓ Namespace ${this.config.namespace} exists`);
     } catch (error) {
-      if (error.statusCode === 404) {
+      if ((error as any).statusCode === 404) {
         logger.info(`Creating namespace ${this.config.namespace}...`);
         await this.k8sApi.createNamespace({
           metadata: {
@@ -400,14 +400,16 @@ export class Deployment {
     if (process.env.GITHUB_SHA && process.env.GITHUB_REPOSITORY) {
       const [owner, repo] = process.env.GITHUB_REPOSITORY.split('/');
       
-      await this.github.repos.createCommitStatus({
-        owner,
-        repo,
+      if (owner && repo) {
+        await this.github.repos.createCommitStatus({
+          owner,
+          repo,
         sha: process.env.GITHUB_SHA,
         state: status as 'success' | 'failure',
         description,
         context: `deploy/${this.environment}`,
       });
+      }
     }
 
     // Send to monitoring system
@@ -420,17 +422,67 @@ export class Deployment {
 
 export async function runDeploy(environment: string, options: any): Promise<void> {
   const deployment = new Deployment(environment, options);
+  const qualityService = CodeQualityService.getInstance();
+  const spinner = ora(`Preparing deployment to ${environment}`).start();
   
   try {
     // Load configuration
     await deployment.loadConfig();
-    logger.info(`Deploying to ${environment}...`);
+    
+    // Run quality gate if enabled and not skipped
+    if (!options.skipQuality) {
+      spinner.text = 'Running pre-deployment quality checks...';
+      
+      const projectPath = options.qualityProjectPath || process.cwd();
+      const projectId = deployment.config?.name || 'claude-platform';
+      
+      const qualityResult = await qualityService.canDeploy(projectId, projectPath, {
+        force: options.force
+      });
+      
+      if (!qualityResult.allowed) {
+        spinner.fail('Deployment blocked by quality gate');
+        console.error(chalk.red(`\n${qualityResult.reason}`));
+        
+        if (qualityResult.check?.blockers && qualityResult.check.blockers.length > 0) {
+          console.log('\nQuality blockers detected:');
+          qualityResult.check.blockers.forEach((blocker, index) => {
+            const icon = blocker.severity === 'critical' ? '🚨' :
+                        blocker.severity === 'high' ? '⚠️' :
+                        blocker.severity === 'medium' ? '📋' : 'ℹ️';
+            console.log(`${icon}  ${index + 1}. [${blocker.severity.toUpperCase()}] ${blocker.description}`);
+            if (blocker.recommendation) {
+              console.log(`    → ${blocker.recommendation}`);
+            }
+          });
+        }
+        
+        console.log(chalk.yellow('\nTo force deployment despite quality issues, use --force flag'));
+        throw new Error('Quality gate failed');
+      }
+      
+      spinner.succeed(`Quality check passed (Score: ${qualityResult.check?.score.overall.toFixed(1)}/10)`);
+      
+      // Set up post-deployment quality monitoring
+      if (qualityResult.check) {
+        await qualityService.setupRollbackTriggers(projectId, deployment.deploymentId || 'temp', {
+          maxQualityDrop: 2.0,
+          maxNewBlockers: 5,
+          maxSecurityIssues: 0
+        });
+      }
+    } else {
+      spinner.info('Skipping quality checks (--skip-quality flag used)');
+    }
+    
+    spinner.text = `Deploying to ${environment}...`;
     
     if (options.dryRun) {
-      logger.info('🏃 Running in dry-run mode');
+      spinner.info('Running in dry-run mode');
     }
 
     // Validate prerequisites
+    spinner.text = 'Validating prerequisites...';
     await deployment.validatePrerequisites();
 
     // Build and push image
@@ -451,10 +503,34 @@ export async function runDeploy(environment: string, options: any): Promise<void
 
     // Send success notification
     await deployment.notifyDeployment(true);
-
-    logger.info('✅ Deployment completed successfully!');
+    
+    spinner.succeed('Deployment completed successfully!');
+    
+    // Schedule post-deployment quality check
+    if (!options.skipQuality) {
+      console.log(chalk.gray('\nPost-deployment quality monitoring scheduled...'));
+      setTimeout(async () => {
+        try {
+          const projectPath = options.qualityProjectPath || process.cwd();
+          const projectId = deployment.config?.name || 'claude-platform';
+          const rollbackCheck = await qualityService.checkRollbackNeeded(
+            projectId,
+            deployment.deploymentId || 'temp',
+            projectPath
+          );
+          
+          if (rollbackCheck.needed) {
+            console.log(chalk.red(`\n⚠️  Quality degradation detected: ${rollbackCheck.reason}`));
+            console.log(chalk.yellow('Consider rolling back the deployment'));
+          }
+        } catch (err) {
+          logger.debug('Post-deployment quality check failed:', err);
+        }
+      }, 300000); // 5 minutes
+    }
   } catch (error) {
-    logger.error('❌ Deployment failed:', error);
+    spinner.fail('Deployment failed');
+    logger.error('❌ Deployment failed:', error as Error);
     
     // Attempt rollback
     if (options.autoRollback && !options.dryRun) {
@@ -462,12 +538,12 @@ export async function runDeploy(environment: string, options: any): Promise<void
         logger.info('Attempting automatic rollback...');
         await deployment.rollback();
       } catch (rollbackError) {
-        logger.error('Rollback failed:', rollbackError);
+        logger.error('Rollback failed:', rollbackError as Error);
       }
     }
 
     // Send failure notification
-    await deployment.notifyDeployment(false, error);
+    await deployment.notifyDeployment(false, error as Error);
     
     throw error;
   }

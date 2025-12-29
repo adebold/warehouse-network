@@ -4,6 +4,18 @@
  * Integrated with Prisma for seamless schema management
  */
 
+import { execSync } from 'child_process';
+import { EventEmitter } from 'events';
+import path from 'path';
+
+import { CronJob } from 'cron';
+import winston from 'winston';
+
+import { ClaudeFlowIntegration } from './claude-flow-integration';
+import { DatabaseConnectionManager, DatabaseConnection } from './core/database-connection';
+import { MigrationGenerator, MigrationGeneratorOptions } from './generator/migration-generator';
+import { MemoryHelpers } from './memory-helpers';
+import { MigrationEngine } from './migration/migration-engine';
 import {
   DatabaseIntegrityConfig,
   DatabaseSchema,
@@ -17,24 +29,17 @@ import {
   ApiRoute,
   WarehouseValidation
 } from './types';
-import { DatabaseConnectionManager, DatabaseConnection } from './core/database-connection';
-import { MigrationEngine } from './migration/migration-engine';
 import { SchemaAnalyzer } from './schema/schema-analyzer';
-import { RouteValidator } from './validation/route-validator';
-import { FormScanner } from './validation/form-scanner';
 import { DriftDetector } from './validation/drift-detector';
-import { MigrationGenerator, MigrationGeneratorOptions } from './generator/migration-generator';
+import { FormScanner } from './validation/form-scanner';
+import { RouteValidator } from './validation/route-validator';
 import { PrismaSchemaAnalyzer } from './prisma-adapters/prisma-schema-analyzer';
 import { PrismaMigrationTracker } from './prisma-adapters/prisma-migration-tracker';
 import { WarehouseFormValidator } from './warehouse-validators/warehouse-form-validator';
 import { WarehouseRouteValidator } from './warehouse-validators/warehouse-route-validator';
-import { ClaudeFlowIntegration } from './claude-flow-integration';
-import { MemoryHelpers } from './memory-helpers';
-import { EventEmitter } from 'events';
-import { CronJob } from 'cron';
-import winston from 'winston';
-import { execSync } from 'child_process';
-import path from 'path';
+
+
+
 
 export class DatabaseIntegritySystem extends EventEmitter {
   private config: DatabaseIntegrityConfig;

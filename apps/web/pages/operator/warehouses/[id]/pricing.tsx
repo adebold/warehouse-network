@@ -1,11 +1,12 @@
+import type { Warehouse, PricingRule } from '@prisma/client';
 import type { Warehouse } from '@warehouse/types';
 import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
-import type { Warehouse, PricingRule } from '@prisma/client';
-import prisma from '../../../../lib/prisma';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../../../lib/prisma';
 import { authOptions } from '../../../api/auth/[...nextauth]';
 
 interface PricingProps {
@@ -28,11 +29,11 @@ const Pricing: NextPage<PricingProps> = ({ warehouse }) => {
   });
 
   useEffect(() => {
-    if (status === 'loading') return;
+    if (status === 'loading') {return;}
 
-    if (!session) router.push('/login');
+    if (!session) {router.push('/login');}
 
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+    if (session?.user?.role !== 'OPERATOR_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

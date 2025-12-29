@@ -5,9 +5,11 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
+
+import { authOptions } from '../auth/[...nextauth]';
+
+import prisma from '@/lib/prisma';
 
 const scoreLeadSchema = z.object({
   warehouseId: z.string(),
@@ -117,8 +119,8 @@ export default async function handler(
     
     // Determine urgency level
     let urgency: 'low' | 'medium' | 'high' = 'medium';
-    if (score >= 80) urgency = 'high';
-    else if (score < 60) urgency = 'low';
+    if (score >= 80) {urgency = 'high';}
+    else if (score < 60) {urgency = 'low';}
     
     // Calculate estimated value
     const warehouse = await prisma.warehouse.findUnique({

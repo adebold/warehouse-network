@@ -51,7 +51,7 @@ export async function run() {
             type: 'input',
             name: 'name',
             message: 'What is your project name?',
-            validate: (input) => {
+            validate: (input: any) => {
               const validation = validateProjectName(input);
               return validation.valid || validation.errors.join(', ');
             },
@@ -61,14 +61,14 @@ export async function run() {
       }
 
       // Validate project name
-      const validation = validateProjectName(projectName);
+      const validation = validateProjectName(projectName!);
       if (!validation.valid) {
         logger.error(`Invalid project name: ${validation.errors.join(', ')}`);
         process.exit(1);
       }
 
       // Check if directory exists
-      const projectPath = path.resolve(process.cwd(), projectName);
+      const projectPath = path.resolve(process.cwd(), projectName!);
       if (fs.existsSync(projectPath)) {
         const { overwrite } = await inquirer.prompt([
           {
@@ -164,7 +164,7 @@ export async function run() {
 
         // Generate platform base
         const platformGenerator = new PlatformGenerator(projectPath, {
-          name: projectName,
+          name: projectName!,
           ...options,
         });
         await platformGenerator.generate();
@@ -235,7 +235,7 @@ export async function run() {
 
       } catch (error) {
         spinner.fail(chalk.red('Failed to create project'));
-        logger.error(error);
+        logger.error('Project creation failed', error instanceof Error ? error : new Error(String(error)));
         process.exit(1);
       }
     });

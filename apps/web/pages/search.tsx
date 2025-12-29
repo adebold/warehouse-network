@@ -1,13 +1,22 @@
+import type { Warehouse } from '@prisma/client';
 import type { Warehouse } from '@warehouse/types';
+import {
+  MapPin,
+  Package,
+  Filter,
+  ChevronLeft,
+  Star,
+  Loader2,
+} from 'lucide-react';
 import type { NextPage, GetServerSideProps } from 'next';
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import prisma from '../lib/prisma';
-import type { Warehouse } from '@prisma/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 
+import prisma from '../lib/prisma';
+
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
@@ -15,15 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  MapPin,
-  Package,
-  Filter,
-  Search,
-  ChevronLeft,
-  Star,
-  Loader2,
-} from 'lucide-react';
+
 
 
 interface SearchResultsProps {

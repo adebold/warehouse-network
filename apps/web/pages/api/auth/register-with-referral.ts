@@ -1,10 +1,16 @@
 
+import { ReferralType, UserRole } from '@prisma/client';
+import bcrypt from 'bcryptjs';
+import type { NextApiRequest, NextApiResponse } from 'next';
+
 import prisma from '../../../lib/prisma';
 import { registerWithReferralSchema } from '../../../lib/schemas';
-import bcrypt from 'bcryptjs';
-import { ReferralType, UserRole } from '@prisma/client';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+import { securityConfig, validatePassword } from '@/lib/config/security';
+import { withCSRFProtection } from '@/lib/middleware/csrf';
+import { withAuthSecurity } from '@/lib/middleware/security';
+
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
     try {
       const validation = registerWithReferralSchema.safeParse(req.body);
@@ -32,7 +38,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(400).json({ message: 'Self-referral is not allowed.' });
       }
 
-      const hashedPassword = await bcrypt.hash(password, 10);
+      // Validate password against security policy
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.valid) {
+        return res.status(400).json({ 
+          message: 'Password does not meet security requirements',
+          errors: passwordValidation.errors
+        });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, securityConfig.auth.bcryptRounds);
 
       let userRole: UserRole;
       if (referral.referralType === ReferralType.CUSTOMER_TO_CUSTOMER) {
@@ -76,3 +91,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 }
+
+// Export with security middleware applied
+export default withCSRFProtection(withAuthSecurity(handler));

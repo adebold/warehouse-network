@@ -1,10 +1,11 @@
-import type { NextPage, GetServerSideProps } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import type { Dispute, Skid } from '@prisma/client';
-import prisma from '../../../lib/prisma';
+import type { NextPage, GetServerSideProps } from 'next';
+import { useRouter } from 'next/router';
 import { getServerSession } from 'next-auth';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
+
+import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
 
 interface OperatorDisputeDetailsProps {
@@ -18,9 +19,9 @@ const OperatorDisputeDetails: NextPage<OperatorDisputeDetailsProps> = ({ dispute
   const [disputeStatus, setDisputeStatus] = useState(dispute.status);
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
-    if (session?.user?.role !== 'OPERATOR_ADMIN') router.push('/unauthorized');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
+    if (session?.user?.role !== 'OPERATOR_ADMIN') {router.push('/unauthorized');}
   }, [session, status, router]);
 
   const handleSubmitResolution = async (e: React.FormEvent<HTMLFormElement>) => {

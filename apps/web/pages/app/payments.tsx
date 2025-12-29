@@ -1,21 +1,30 @@
-import { useState, useEffect } from 'react';
+import {
+  DollarSign,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  CreditCard,
+  FileText,
+  Download,
+  Lock,
+  XCircle,
+} from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
 import { AppLayout } from '@/components/layouts/AppLayout';
+import { AccountLockWarning } from '@/components/ui/account-lock-warning';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AccountLockWarning } from '@/components/ui/account-lock-warning';
-import { Skeleton } from '@/components/ui/skeleton';
-import { DataTable } from '@/components/ui/table';
 import {
   Dialog,
   DialogContent,
@@ -25,8 +34,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -34,19 +43,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  DollarSign,
-  Calendar,
-  AlertTriangle,
-  CheckCircle,
-  Clock,
-  CreditCard,
-  FileText,
-  Download,
-  TrendingUp,
-  Lock,
-  XCircle,
-} from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { DataTable } from '@/components/ui/table';
+
 
 interface PaymentData {
   customer: {

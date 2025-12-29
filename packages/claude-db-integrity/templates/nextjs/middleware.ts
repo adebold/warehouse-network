@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { ClaudeMemoryManager } from 'claude-db-integrity';
+import { NextRequest, NextResponse } from 'next/server';
 
 // Claude DB Integrity Middleware for Next.js
 export async function middleware(request: NextRequest) {

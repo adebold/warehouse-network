@@ -115,7 +115,7 @@ export class DatabaseIntegritySystem extends EventEmitter {
       this.emit('initialized');
       return { success: true };
     } catch (error) {
-      this.logger.error('Failed to initialize Database Integrity System', error);
+      this.logger.error('Failed to initialize Database Integrity System', error instanceof Error ? error : new Error(String(error)));
       const integrityError: IntegrityError = {
         code: 'INIT_FAILED',
         message: 'Failed to initialize Database Integrity System',
@@ -465,7 +465,7 @@ export class DatabaseIntegritySystem extends EventEmitter {
     });
 
     this.on('error', (error) => {
-      this.logger.error('Error in integrity system', error);
+      this.logger.error('Error in integrity system', error instanceof Error ? error : new Error(String(error)));
     });
   }
 
@@ -479,7 +479,7 @@ export class DatabaseIntegritySystem extends EventEmitter {
         try {
           await this.detectDrifts();
         } catch (error) {
-          this.logger.error('Scheduled drift detection failed', error);
+          this.logger.error('Scheduled drift detection failed', error instanceof Error ? error : new Error(String(error)));
         }
       },
       null,

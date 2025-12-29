@@ -1,6 +1,7 @@
-import winston from 'winston';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import winston from 'winston';
 
 // Ensure logs directory exists
 const logsDir = path.join(process.cwd(), 'logs');
@@ -93,14 +94,17 @@ logger.add(new winston.transports.File({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.label({ label: 'claude-flow' }),
-    winston.format.json()
-  ),
-  // Only log messages related to Claude Flow
-  filter: (info) => {
-    return info.message?.includes('claude-flow') || 
-           info.message?.includes('memory') || 
-           info.message?.includes('sync');
-  }
+    winston.format.json(),
+    // Filter messages related to Claude Flow
+    winston.format.printf((info: any) => {
+      if (info.message?.includes('claude-flow') || 
+          info.message?.includes('memory') || 
+          info.message?.includes('sync')) {
+        return JSON.stringify(info);
+      }
+      return '';
+    })
+  )
 }));
 
 // Performance timing logger

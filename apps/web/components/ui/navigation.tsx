@@ -1,9 +1,13 @@
-import * as React from 'react';
+import type { BreadcrumbItem as BreadcrumbItemType } from '@warehouse/types';
+import { Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Menu, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import * as React from 'react';
+
 import { Button } from './button';
+
+import { cn } from '@/lib/utils';
+
 
 export interface NavItem {
   title: string;
@@ -139,7 +143,7 @@ export function MobileNavigation({ items, logo, className, ...props }: MobileNav
 }
 
 interface BreadcrumbProps extends React.HTMLAttributes<HTMLElement> {
-  items: BreadcrumbItem[];
+  items: BreadcrumbItemType[];
   separator?: React.ReactNode;
 }
 

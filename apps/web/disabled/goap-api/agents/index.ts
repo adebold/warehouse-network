@@ -6,9 +6,10 @@
 
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../../auth/[...nextauth]';
+
 import { goapService } from '../../../../lib/goap/goap-service';
 import { AgentType } from '../../../../src/goap/types';
+import { authOptions } from '../../auth/[...nextauth]';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {

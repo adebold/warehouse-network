@@ -144,7 +144,7 @@ export class DevOpsEngine {
       
       logger.info('DevOps initialization completed successfully');
     } catch (error) {
-      logger.error('DevOps initialization failed', error);
+      logger.error('DevOps initialization failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -235,7 +235,7 @@ export class DevOpsEngine {
       return stackResult;
 
     } catch (error) {
-      logger.error(`Failed to generate DevOps stack: ${stackId}`, error);
+      logger.error(`Failed to generate DevOps stack: ${stackId}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -263,16 +263,32 @@ export class DevOpsEngine {
         options
       );
 
-      // Post-deployment verification
-      await this.postDeploymentVerification(result);
+      // Convert deployment-manager result to devops-engine result
+      const engineResult: DeploymentResult = {
+        deploymentId: result.deploymentId,
+        status: this.mapDeploymentStatus(result.status),
+        environment: result.environment,
+        version: result.version,
+        services: result.services.map(s => ({
+          name: s.name,
+          status: this.mapServiceStatus(s.status),
+          version: s.version,
+          replicas: s.replicas,
+          endpoints: s.endpoints,
+        })),
+        rollbackId: result.rollbackId,
+      };
 
-      this.deployments.set(deploymentId, result);
+      // Post-deployment verification
+      await this.postDeploymentVerification(engineResult);
+
+      this.deployments.set(deploymentId, engineResult);
       
-      logger.info(`Deployment completed: ${deploymentId}`, result);
-      return result;
+      logger.info(`Deployment completed: ${deploymentId}`, engineResult);
+      return engineResult;
 
     } catch (error) {
-      logger.error(`Deployment failed: ${deploymentId}`, error);
+      logger.error(`Deployment failed: ${deploymentId}`, error instanceof Error ? error : new Error(String(error)));
       
       const failedResult: DeploymentResult = {
         deploymentId,
@@ -297,7 +313,7 @@ export class DevOpsEngine {
       await this.monitoringManager.setupStack(config);
       logger.info('Monitoring stack setup completed');
     } catch (error) {
-      logger.error('Monitoring setup failed', error);
+      logger.error('Monitoring setup failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -345,7 +361,7 @@ export class DevOpsEngine {
       return result;
 
     } catch (error) {
-      logger.error('Health check failed', error);
+      logger.error('Health check failed', error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -359,17 +375,25 @@ export class DevOpsEngine {
     logger.info(`Starting rollback to version ${version}`, {
       rollbackId,
       targetVersion: version,
-      environment
+      ...(environment && { environment })
     });
 
     try {
       const startTime = Date.now();
       
+      // Find the deployment to rollback
+      const deploymentToRollback = Array.from(this.deployments.values()).find(d => 
+        d.version === version && (!environment || d.environment === environment)
+      );
+      
+      if (!deploymentToRollback) {
+        throw new Error(`No deployment found for version ${version}`);
+      }
+      
       // Execute rollback
-      const result = await this.deploymentManager.rollbackToVersion(
-        version,
-        environment,
-        rollbackId
+      const result = await this.deploymentManager.rollbackDeployment(
+        deploymentToRollback.deploymentId,
+        { targetVersion: version }
       );
 
       const duration = Date.now() - startTime;
@@ -386,7 +410,7 @@ export class DevOpsEngine {
       return rollbackResult;
 
     } catch (error) {
-      logger.error(`Rollback failed: ${rollbackId}`, error);
+      logger.error(`Rollback failed: ${rollbackId}`, error instanceof Error ? error : new Error(String(error)));
       throw error;
     }
   }
@@ -403,6 +427,36 @@ export class DevOpsEngine {
     };
 
     return structure;
+  }
+
+  private mapDeploymentStatus(status: 'success' | 'failed' | 'partial' | 'in-progress' | 'rolling-back'): 'success' | 'failed' | 'partial' {
+    switch (status) {
+      case 'success':
+        return 'success';
+      case 'failed':
+      case 'rolling-back':
+        return 'failed';
+      case 'partial':
+      case 'in-progress':
+        return 'partial';
+      default:
+        return 'failed';
+    }
+  }
+
+  private mapServiceStatus(status: 'deployed' | 'failed' | 'pending' | 'rolling-back' | 'healthy'): 'deployed' | 'failed' | 'pending' {
+    switch (status) {
+      case 'deployed':
+      case 'healthy':
+        return 'deployed';
+      case 'failed':
+      case 'rolling-back':
+        return 'failed';
+      case 'pending':
+        return 'pending';
+      default:
+        return 'failed';
+    }
   }
 
   private async generateBaseConfiguration(projectType: string, cloudProvider?: string): Promise<void> {

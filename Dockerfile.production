@@ -1,0 +1,223 @@
+# Production-optimized multi-stage Dockerfile for Warehouse Network Platform
+# Enhanced security, caching, and performance optimizations
+
+# Build arguments for cache busting and version control
+ARG NODE_VERSION=22-alpine
+ARG PNPM_VERSION=9.1.0
+
+# Stage 1: Dependencies with enhanced caching
+FROM node:${NODE_VERSION} AS deps
+WORKDIR /app
+
+# Install system dependencies and security tools
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat \
+    python3 \
+    make \
+    g++ \
+    git \
+    && rm -rf /var/cache/apk/*
+
+# Enable pnpm with specific version for consistency
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+# Copy dependency files first for better caching
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml* ./
+COPY apps/web/package.json ./apps/web/
+COPY packages/*/package.json ./packages/*/
+
+# Install dependencies with frozen lockfile and strict peer dependencies
+RUN pnpm install --frozen-lockfile --strict-peer-dependencies
+
+# Stage 2: Builder with optimizations
+FROM node:${NODE_VERSION} AS builder
+WORKDIR /app
+
+# Build arguments for production configuration
+ARG NEXT_TELEMETRY_DISABLED=1
+ARG NODE_ENV=production
+ARG SKIP_ENV_VALIDATION=1
+
+# Install build dependencies
+RUN apk add --no-cache \
+    openssl \
+    libc6-compat \
+    && rm -rf /var/cache/apk/*
+
+# Enable pnpm
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
+
+# Copy dependencies from previous stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
+COPY --from=deps /app/packages/*/node_modules ./packages/*/node_modules
+
+# Copy source code
+COPY . .
+
+# Generate Prisma Client with production optimizations
+RUN cd apps/web && \
+    pnpm exec prisma format && \
+    pnpm exec prisma generate --no-engine && \
+    pnpm exec prisma generate
+
+# Build the application with production optimizations
+ENV NEXT_TELEMETRY_DISABLED=${NEXT_TELEMETRY_DISABLED}
+ENV NODE_ENV=${NODE_ENV}
+ENV SKIP_ENV_VALIDATION=${SKIP_ENV_VALIDATION}
+
+# Build with SWC minification and optimizations
+RUN cd apps/web && \
+    pnpm run build && \
+    # Remove dev dependencies after build
+    pnpm prune --production && \
+    # Clean up unnecessary files
+    find . -name "*.ts" -type f -delete && \
+    find . -name "*.tsx" -type f -delete && \
+    find . -name "*.map" -type f -delete && \
+    find . -name ".gitkeep" -type f -delete && \
+    rm -rf .git .github .vscode && \
+    # Optimize node_modules
+    find node_modules -name "*.md" -type f -delete && \
+    find node_modules -name "LICENSE*" -type f -delete && \
+    find node_modules -name "*.d.ts" -type f -delete
+
+# Stage 3: Security scanner
+FROM aquasec/trivy:latest AS scanner
+WORKDIR /scan
+
+# Copy dependency files for vulnerability scanning
+COPY --from=builder /app/package.json /app/pnpm-lock.yaml* ./
+COPY --from=builder /app/apps/web/package.json ./apps/web/
+
+# Scan for vulnerabilities and generate report
+RUN trivy fs --no-progress --format json --output /scan/trivy-results.json . || true
+
+# Stage 4: Production runner with hardened security
+FROM node:${NODE_VERSION} AS runner
+WORKDIR /app
+
+# Runtime environment variables
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+# Install minimal runtime dependencies and security tools
+RUN apk add --no-cache \
+    curl \
+    dumb-init \
+    openssl \
+    libcap \
+    ca-certificates \
+    tini \
+    && update-ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Create non-root user with specific UID/GID for consistency
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs && \
+    # Add to tty group for proper signal handling
+    adduser nextjs tty
+
+# Set security limits
+COPY <<EOF /etc/security/limits.d/nextjs.conf
+nextjs soft nofile 65536
+nextjs hard nofile 65536
+nextjs soft nproc 4096
+nextjs hard nproc 4096
+EOF
+
+# Create necessary directories with proper permissions
+RUN mkdir -p \
+    /app/.next \
+    /app/uploads \
+    /app/logs \
+    /app/tmp \
+    /app/.next/cache \
+    && chown -R nextjs:nodejs /app \
+    && chmod 755 /app \
+    && chmod 750 /app/uploads /app/logs /app/tmp
+
+# Copy built application with proper ownership
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/.next/static ./apps/web/.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/public ./apps/web/public
+
+# Copy Prisma files for production
+COPY --from=builder --chown=nextjs:nodejs /app/apps/web/prisma ./apps/web/prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+
+# Copy security scan results for runtime reference
+COPY --from=scanner --chown=nextjs:nodejs /scan/trivy-results.json /app/security-scan.json
+
+# Apply security hardening
+RUN \
+    # Set secure file permissions
+    chmod -R 550 /app && \
+    chmod -R 750 /app/uploads /app/logs /app/tmp && \
+    find /app -type f \( -name "*.js" -o -name "*.json" \) -exec chmod 440 {} \; && \
+    # Remove unnecessary binaries
+    find /app -name "*.node" -type f | grep -v prisma | xargs rm -f && \
+    # Set capabilities for Node.js
+    setcap 'cap_net_bind_service=+ep' /usr/local/bin/node
+
+# Production health check script
+COPY --chown=nextjs:nodejs <<'HEALTHCHECK' /app/healthcheck.sh
+#!/bin/sh
+set -e
+
+# Check if the application is responding
+if ! curl -f http://localhost:3000/api/health; then
+    echo "Health check failed: Application not responding"
+    exit 1
+fi
+
+# Check memory usage
+MEM_USAGE=$(ps aux | grep node | grep -v grep | awk '{print $4}')
+if [ $(echo "$MEM_USAGE > 90" | bc) -eq 1 ]; then
+    echo "Health check warning: High memory usage"
+    exit 1
+fi
+
+echo "Health check passed"
+exit 0
+HEALTHCHECK
+
+RUN chmod +x /app/healthcheck.sh
+
+# Switch to non-root user
+USER nextjs
+
+# Production-optimized Node.js options
+ENV NODE_OPTIONS="--max-old-space-size=2048 \
+    --enable-source-maps \
+    --trace-warnings \
+    --unhandled-rejections=strict \
+    --max-http-header-size=16384"
+
+# Security headers and metadata
+LABEL \
+    org.opencontainers.image.title="Warehouse Network Platform" \
+    org.opencontainers.image.description="Production-optimized warehouse marketplace platform" \
+    org.opencontainers.image.vendor="Warehouse Network" \
+    org.opencontainers.image.version="1.0.0" \
+    security.scan="trivy" \
+    security.non-root="true" \
+    security.capabilities="cap_net_bind_service" \
+    maintainer="Warehouse Network DevOps Team"
+
+# Expose application port
+EXPOSE 3000
+
+# Enhanced health check with custom script
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD /app/healthcheck.sh
+
+# Use tini for proper signal handling and zombie process reaping
+ENTRYPOINT ["/sbin/tini", "--"]
+
+# Production startup command
+CMD ["node", "--trace-warnings", "apps/web/server.js"]

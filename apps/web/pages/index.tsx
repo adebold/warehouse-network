@@ -1,21 +1,10 @@
-import type { Warehouse, Customer } from '@warehouse/types';
-import type { NextPage } from 'next';
-import { useState } from 'react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
-  MapPin,
   Package,
   Shield,
   Search,
-  TrendingUp,
-  Users,
   Zap,
-  Star,
   Brain,
   Bot,
-  Cpu,
   Workflow,
   Check,
   ChevronRight,
@@ -24,8 +13,14 @@ import {
   BarChart3,
   Lock,
 } from 'lucide-react';
-import { useAnalytics } from '@/hooks/useAnalytics';
+import type { NextPage } from 'next';
+import Link from 'next/link';
+import { useState } from 'react';
+
 import { AIChat } from '@/components/ai/AIChat';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const Home: NextPage = () => {
   const [searchQuery, setSearchQuery] = useState('');

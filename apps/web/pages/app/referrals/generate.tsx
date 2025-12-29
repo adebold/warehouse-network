@@ -1,9 +1,8 @@
-import type { Customer } from '@warehouse/types';
-import type { NextPage } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import { ReferralType } from '@prisma/client';
+import type { NextPage } from 'next';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 const GenerateReferral: NextPage = () => {
   const { data: session, status } = useSession();
@@ -13,8 +12,8 @@ const GenerateReferral: NextPage = () => {
   const [referralLink, setReferralLink] = useState('');
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
   }, [session, status, router]);
 
   const handleGenerate = async (e: React.FormEvent<HTMLFormElement>) => {

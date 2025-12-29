@@ -1,9 +1,9 @@
-import type { User } from '@warehouse/types';
 
 import { getServerSession } from 'next-auth/next';
-import { authOptions } from '../auth/[...nextauth]';
-import prisma from '../../../lib/prisma';
 import { z } from 'zod';
+
+import prisma from '../../../lib/prisma';
+import { authOptions } from '../auth/[...nextauth]';
 
 const moveSkidSchema = z.object({
   skidCode: z.string(),

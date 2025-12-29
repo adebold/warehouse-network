@@ -1,5 +1,6 @@
-import prisma from '../../db/src/client';
 import { OperatorLedgerEntryType, PayoutStatus } from '@prisma/client';
+
+import prisma from '../../db/src/client';
 import { stripe } from '../../integrations/src/stripe';
 
 const PLATFORM_TAKE_RATE = 0.1; // 10%
@@ -43,7 +44,7 @@ export async function processPayouts() {
 
       for (const currency in balanceByCurrency) {
         let payableAmount = balanceByCurrency[currency];
-        if (payableAmount <= 0) continue;
+        if (payableAmount <= 0) {continue;}
 
         // Apply platform take rate (if needed, this depends on how charge lines are created)
         // For simplicity, assuming charge lines are gross and platform takes a cut from operator's share
@@ -51,7 +52,7 @@ export async function processPayouts() {
         const platformCut = payableAmount * PLATFORM_TAKE_RATE;
         payableAmount -= platformCut;
 
-        if (payableAmount <= 0) continue;
+        if (payableAmount <= 0) {continue;}
 
         // Create a new payout record
         const payout = await prisma.payout.create({

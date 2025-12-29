@@ -3,9 +3,10 @@
  * Handles PostgreSQL connections with retry logic and connection pooling
  */
 
-import { DatabaseConfig, IntegrityResult, IntegrityError } from '../types';
 import { Pool, PoolClient, QueryResult } from 'pg';
 import winston from 'winston';
+
+import { DatabaseConfig, IntegrityResult, IntegrityError } from '../types';
 
 export interface DatabaseConnection {
   query<T = any>(sql: string, params?: any[]): Promise<QueryResult<T>>;

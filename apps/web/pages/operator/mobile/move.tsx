@@ -1,8 +1,8 @@
-import type { NextPage } from 'next';
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import { Scanner } from '@yudiel/react-qr-scanner';
+import type { NextPage } from 'next';
+import { useRouter } from 'next/router';
+import { useSession } from 'next-auth/react';
+import { useEffect, useState } from 'react';
 
 type MoveState = 'SCAN_SKID' | 'SCAN_LOCATION' | 'CONFIRM';
 
@@ -14,8 +14,8 @@ const Move: NextPage = () => {
   const [scannedLocation, setScannedLocation] = useState('');
 
   useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/login');
+    if (status === 'loading') {return;}
+    if (!session) {router.push('/login');}
   }, [session, status, router]);
 
   const handleScan = (result: string) => {

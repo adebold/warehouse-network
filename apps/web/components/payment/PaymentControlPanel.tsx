@@ -1,7 +1,12 @@
-import type { Customer } from '@warehouse/types';
+import { CustomerAccountStatus, CustomerPaymentStatus } from '@prisma/client';
+import { useSession } from 'next-auth/react';
 import React, { useState } from 'react';
-import { Card } from '@/components/ui/card';
+
+import { PaymentStatusBadge, AccountStatusIndicator } from './PaymentStatusBadge';
+
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -11,10 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PaymentStatusBadge, AccountStatusIndicator } from './PaymentStatusBadge';
-import { CustomerAccountStatus, CustomerPaymentStatus } from '@prisma/client';
-import { useSession } from 'next-auth/react';
+
+
 
 interface PaymentControlPanelProps {
   customer: {

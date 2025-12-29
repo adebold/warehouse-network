@@ -1,7 +1,8 @@
-import { createMocks } from 'node-mocks-http';
-import handler from '../../../pages/api/admin/payments/dashboard';
-import { prisma } from '../../../lib/prisma';
 import { getServerSession } from 'next-auth/next';
+import { createMocks } from 'node-mocks-http';
+
+import { prisma } from '../../../lib/prisma';
+import handler from '../../../pages/api/admin/payments/dashboard';
 
 // Mock dependencies
 jest.mock('next-auth/next');

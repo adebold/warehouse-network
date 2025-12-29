@@ -1,5 +1,6 @@
-import { beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { execSync } from 'child_process';
+
+import { beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
 
 // Global test setup for integration tests

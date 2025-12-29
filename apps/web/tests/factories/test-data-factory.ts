@@ -1,6 +1,6 @@
-import type { User, Warehouse, Customer } from '@warehouse/types';
-
 import { faker } from '@faker-js/faker';
+import type { User, Customer } from '@warehouse/types';
+
 
 export class TestDataFactory {
   // User factory

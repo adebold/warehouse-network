@@ -1,9 +1,10 @@
 import type { AppProps } from 'next/app';
 import { SessionProvider } from 'next-auth/react';
-import { useEffect } from 'react';
-import { initGA } from '@/lib/analytics';
-import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import { ThemeProvider } from 'next-themes';
+import { useEffect } from 'react';
+
+import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
+import { initGA } from '@/lib/analytics';
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {

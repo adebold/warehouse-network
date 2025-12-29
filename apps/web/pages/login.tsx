@@ -1,25 +1,26 @@
-import type { User, Warehouse } from '@warehouse/types';
+import type { User } from '@warehouse/types';
+import { Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
 import type { NextPage } from 'next';
-import { signIn } from 'next-auth/react';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
-import { useAnalytics } from '@/hooks/useAnalytics';
-
 import Link from 'next/link';
+import { useRouter } from 'next/router';
+import { signIn } from 'next-auth/react';
+import { useState } from 'react';
+
+
+
 import { AuthLayout } from '@/components/layouts/AuthLayout';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle,
   CardFooter,
 } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import { useAnalytics } from '@/hooks/useAnalytics';
 
 const LoginPage: NextPage = () => {
   const router = useRouter();

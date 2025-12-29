@@ -1,23 +1,18 @@
-import { useState, useEffect } from 'react';
+import { Package, Truck, AlertTriangle } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
+import { useState, useEffect } from 'react';
+
 import { AppLayout } from '@/components/layouts/AppLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AccountLockWarning } from '@/components/ui/account-lock-warning';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Package, Truck, AlertTriangle, Lock } from 'lucide-react';
+
 
 interface SkidData {
   id: string;
@@ -186,7 +181,7 @@ export default function ReleaseRequestPage() {
                       selectedSkids.includes(skid.id) ? 'bg-accent' : ''
                     } ${!canCreateRelease ? 'opacity-50' : 'hover:bg-accent/50 cursor-pointer'}`}
                     onClick={() => {
-                      if (!canCreateRelease) return;
+                      if (!canCreateRelease) {return;}
                       setSelectedSkids(prev =>
                         prev.includes(skid.id)
                           ? prev.filter(id => id !== skid.id)

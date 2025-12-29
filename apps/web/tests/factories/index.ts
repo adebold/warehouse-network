@@ -1,4 +1,3 @@
-import type { User, Warehouse, Customer } from '@warehouse/types';
 
 import { faker } from '@faker-js/faker';
 import {
@@ -10,6 +9,7 @@ import {
   CustomerPaymentStatus,
   UserRole,
 } from '@prisma/client';
+import type { User, Warehouse, Customer } from '@warehouse/types';
 import bcrypt from 'bcryptjs';
 
 // Factory for creating test customers

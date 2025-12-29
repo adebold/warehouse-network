@@ -3,10 +3,11 @@
  * Simple, effective chat interface for warehouse search and listing
  */
 
-import { useState, useRef, useEffect } from 'react';
-import { useSession } from 'next-auth/react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Bot, User, Loader2, ChevronDown, X } from 'lucide-react';
+import { Send, Bot, User, Loader2, X } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { useState, useRef, useEffect } from 'react';
+
 import { cn } from '@/lib/utils';
 
 interface Message {
@@ -72,7 +73,7 @@ export function AIChat({
 
   const handleSend = async (messageText?: string) => {
     const text = messageText || input.trim();
-    if (!text || isLoading) return;
+    if (!text || isLoading) {return;}
 
     // Add user message
     const userMessage: Message = {
