@@ -1,7 +1,8 @@
 const { execSync } = require('child_process');
+const { logger } = require('./utils/logger');
 
 module.exports = async () => {
-  console.log('🧹 Cleaning up integration test environment...');
+  logger.info('🧹 Cleaning up integration test environment...');
 
   try {
     // Clean up test database containers
@@ -10,9 +11,9 @@ module.exports = async () => {
       cwd: process.cwd(),
     });
 
-    console.log('✅ Integration test environment cleaned');
+    logger.info('✅ Integration test environment cleaned');
   } catch (error) {
-    console.error('⚠️  Failed to clean up test environment:', error);
+    logger.error('⚠️  Failed to clean up test environment:', error);
     // Don't throw error - teardown should be best effort
   }
 };

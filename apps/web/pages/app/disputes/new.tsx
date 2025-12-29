@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface NewDisputeProps {
   skids: Skid[];
@@ -69,11 +70,11 @@ const NewDispute: NextPage<NewDisputeProps> = ({ skids }) => {
         router.push('/app/disputes');
       } else {
         const errorData = await response.json();
-        console.error('Failed to submit dispute', errorData);
+        logger.error('Failed to submit dispute', errorData);
         alert('Failed to submit dispute');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while submitting the dispute.');
     }
   };

@@ -1,4 +1,5 @@
 import { 
+import { logger } from './utils/logger';
   Search, 
   MapPin, 
   Package,
@@ -110,7 +111,7 @@ export const FirstSearchStep: React.FC<FirstSearchStepProps> = ({
 
   const handleViewDetails = (warehouseId: string) => {
     // In a real app, this would navigate to warehouse details
-    console.log('View details for warehouse:', warehouseId);
+    logger.info('View details for warehouse:', warehouseId);
   };
 
   const handleCompleteSearch = () => {

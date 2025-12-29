@@ -5,10 +5,14 @@
  */
 
 const https = require('https');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const { URL } = require('url');
+const { logger } = require('./utils/logger');
 
-const BASE_URL = 'https://warehouse-frontend-467296114824.us-central1.run.app';
+// Use environment variable or default to localhost
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
 
 class PersonaValidator {
   constructor() {
@@ -46,7 +50,10 @@ class PersonaValidator {
   async makeRequest(url, timeout = 10000) {
     return new Promise((resolve, reject) => {
       const startTime = Date.now();
-      const req = https.get(url, { timeout }, (res) => {
+      const parsedUrl = new URL(url);
+      const client = parsedUrl.protocol === 'https:' ? https : http;
+      
+      const req = client.get(url, { timeout }, (res) => {
         const responseTime = Date.now() - startTime;
         let data = '';
         
@@ -76,12 +83,12 @@ class PersonaValidator {
   }
 
   async validatePersonaJourney(personaKey, persona) {
-    console.log(`\n👤 Validating ${persona.name} journey...`);
+    logger.info(`\n👤 Validating ${persona.name} journey...`);
     const journeyResults = [];
 
     for (const journey of persona.journeys) {
       const url = BASE_URL + journey.path;
-      console.log(`  🔗 Testing: ${journey.description} (${journey.path})`);
+      logger.info(`  🔗 Testing: ${journey.description} (${journey.path})`);
 
       try {
         const response = await this.makeRequest(url);
@@ -97,7 +104,7 @@ class PersonaValidator {
         });
 
         const status = isWorking ? '✅' : '❌';
-        console.log(`    ${status} Status: ${response.statusCode}, Time: ${response.responseTime}ms`);
+        logger.info(`    ${status} Status: ${response.statusCode}, Time: ${response.responseTime}ms`);
 
       } catch (error) {
         journeyResults.push({
@@ -108,7 +115,7 @@ class PersonaValidator {
           working: false,
           timestamp: new Date().toISOString()
         });
-        console.log(`    ❌ Error: ${error.message}`);
+        logger.info(`    ❌ Error: ${error.message}`);
       }
     }
 
@@ -116,8 +123,8 @@ class PersonaValidator {
   }
 
   async validateAllPersonas() {
-    console.log('🚀 PERSONA VALIDATION INITIATED');
-    console.log(`📡 Target: ${BASE_URL}`);
+    logger.info('🚀 PERSONA VALIDATION INITIATED');
+    logger.info(`📡 Target: ${BASE_URL}`);
 
     for (const [personaKey, persona] of Object.entries(this.personas)) {
       this.results[personaKey] = await this.validatePersonaJourney(personaKey, persona);
@@ -150,10 +157,10 @@ class PersonaValidator {
     const reportFile = path.join(__dirname, '../reports/persona-validation.json');
     fs.writeFileSync(reportFile, JSON.stringify(report, null, 2));
 
-    console.log('\n📊 PERSONA VALIDATION REPORT');
-    console.log(`✅ Working journeys: ${report.summary.workingJourneys}/${report.summary.totalJourneys}`);
-    console.log(`❌ Failed journeys: ${report.summary.failedJourneys}/${report.summary.totalJourneys}`);
-    console.log(`📄 Report saved: ${reportFile}`);
+    logger.info('\n📊 PERSONA VALIDATION REPORT');
+    logger.info(`✅ Working journeys: ${report.summary.workingJourneys}/${report.summary.totalJourneys}`);
+    logger.info(`❌ Failed journeys: ${report.summary.failedJourneys}/${report.summary.totalJourneys}`);
+    logger.info(`📄 Report saved: ${reportFile}`);
 
     return report;
   }

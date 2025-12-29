@@ -14,6 +14,7 @@ import { execSync } from 'child_process';
 import { readFileSync, writeFileSync } from 'fs';
 import { globSync } from 'glob';
 import path from 'path';
+import { logger } from './utils/logger';
 
 const COLORS = {
   reset: '\x1b[0m',
@@ -24,7 +25,7 @@ const COLORS = {
 };
 
 function log(message: string, color = COLORS.reset) {
-  console.log(`${color}${message}${COLORS.reset}`);
+  logger.info(`${color}${message}${COLORS.reset}`);
 }
 
 function exec(command: string, silent = false): string {

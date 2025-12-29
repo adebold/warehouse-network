@@ -1,0 +1,30 @@
+{
+  "name": "@marketing-engine/email-channel",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@marketing-engine/core": "1.0.0",
+    "@marketing-engine/shared": "1.0.0",
+    "@sendgrid/mail": "^8.1.0",
+    "@sendgrid/client": "^8.1.0",
+    "aws-sdk": "^2.1500.0",
+    "mjml": "^4.14.1",
+    "handlebars": "^4.7.8",
+    "html-to-text": "^9.0.5",
+    "juice": "^10.0.0",
+    "validator": "^13.11.0",
+    "dkim-signer": "^0.2.2",
+    "joi": "^17.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/html-to-text": "^9.0.4",
+    "@types/mjml": "^4.7.4"
+  }
+}

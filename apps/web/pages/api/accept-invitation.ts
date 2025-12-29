@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 
 import prisma from '../../lib/prisma';
 import { acceptInvitationSchema } from '../../lib/schemas';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -39,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(201).json({ message: 'Account created successfully.' });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

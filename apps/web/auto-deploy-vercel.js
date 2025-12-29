@@ -3,16 +3,17 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { logger } = require('./utils/logger');
 
-console.log('🚀 Automated Vercel Deployment Helper\n');
+logger.info('🚀 Automated Vercel Deployment Helper\n');
 
 // Check if we can build the project
-console.log('📦 Testing build...');
+logger.info('📦 Testing build...');
 try {
   execSync('npm run build', { stdio: 'inherit' });
-  console.log('✅ Build successful!\n');
+  logger.info('✅ Build successful!\n');
 } catch (error) {
-  console.error('❌ Build failed. Please fix errors before deploying.\n');
+  logger.error('❌ Build failed. Please fix errors before deploying.\n');
   process.exit(1);
 }
 
@@ -47,11 +48,11 @@ VERCEL_TOKEN=your-token npx vercel --yes --token=your-token
 `;
 
 fs.writeFileSync('VERCEL_DEPLOY_NOW.md', deploymentSteps);
-console.log('📝 Created VERCEL_DEPLOY_NOW.md with instructions\n');
+logger.info('📝 Created VERCEL_DEPLOY_NOW.md with instructions\n');
 
 // Show immediate action
-console.log('🎯 Immediate Action:');
-console.log('-------------------');
-console.log('Run this command to start deployment:');
-console.log('\n  npx vercel login && npx vercel --yes\n');
-console.log('Or visit: https://vercel.com/new to deploy via browser\n');
+logger.info('🎯 Immediate Action:');
+logger.info('-------------------');
+logger.info('Run this command to start deployment:');
+logger.info('\n  npx vercel login && npx vercel --yes\n');
+logger.info('Or visit: https://vercel.com/new to deploy via browser\n');

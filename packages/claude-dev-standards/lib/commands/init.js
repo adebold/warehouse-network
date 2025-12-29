@@ -6,6 +6,7 @@ const path = require('path');
 const projectDetector = require('../utils/projectDetector');
 const templateManager = require('../utils/templateManager');
 const gitHooks = require('../utils/gitHooks');
+const { logger } = require('../../../../../../utils/logger');
 
 async function init(options) {
   const spinner = ora('Initializing Claude Dev Standards...').start();
@@ -70,13 +71,13 @@ async function init(options) {
     spinner.succeed('Configuration created successfully!');
     
     // Show next steps
-    console.log('\n' + chalk.bold('Next steps:'));
-    console.log('1. Run ' + chalk.cyan('npx cds validate') + ' to check your project');
-    console.log('2. Run ' + chalk.cyan('npx cds fix') + ' to auto-fix issues');
-    console.log('3. Commit the configuration files to your repository');
+    logger.info('\n' + chalk.bold('Next steps:'));
+    logger.info('1. Run ' + chalk.cyan('npx cds validate') + ' to check your project');
+    logger.info('2. Run ' + chalk.cyan('npx cds fix') + ' to auto-fix issues');
+    logger.info('3. Commit the configuration files to your repository');
     
     if (answers.setupCI) {
-      console.log('\n' + chalk.yellow('GitHub Actions workflow added. Push to GitHub to activate.'));
+      logger.info('\n' + chalk.yellow('GitHub Actions workflow added. Push to GitHub to activate.'));
     }
     
   } catch (error) {

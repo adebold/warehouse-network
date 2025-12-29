@@ -1,4 +1,5 @@
 import { 
+import { logger } from './utils/logger';
   CreditCard, 
   Building,
   Shield,
@@ -181,7 +182,7 @@ export const PaymentSetupStep: React.FC<PaymentSetupStepProps> = ({
         }
       });
     } catch (error) {
-      console.error('Failed to add payment method:', error);
+      logger.error('Failed to add payment method:', error);
     } finally {
       setIsLoading(false);
     }
@@ -224,7 +225,7 @@ export const PaymentSetupStep: React.FC<PaymentSetupStepProps> = ({
         onComplete();
       }
     } catch (error) {
-      console.error('Failed to save payment setup:', error);
+      logger.error('Failed to save payment setup:', error);
     } finally {
       setIsLoading(false);
     }

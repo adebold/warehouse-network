@@ -1,6 +1,7 @@
 import { execSync } from 'child_process';
 
 import { PrismaClient } from '@prisma/client';
+import { logger } from './utils/logger';
 
 // Create a test database instance
 export const testDb = new PrismaClient({
@@ -24,7 +25,7 @@ beforeAll(async () => {
       stdio: 'inherit',
     });
   } catch (error) {
-    console.warn('Database setup warning:', error.message);
+    logger.warn('Database setup warning:', error.message);
   }
 });
 
@@ -45,6 +46,6 @@ beforeEach(async () => {
       }
     }
   } catch (error) {
-    console.warn('Database cleanup warning:', error.message);
+    logger.warn('Database cleanup warning:', error.message);
   }
 });

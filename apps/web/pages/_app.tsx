@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import GoogleAnalytics from '@/components/analytics/GoogleAnalytics';
 import { initGA } from '@/lib/analytics';
 import '../styles/globals.css';
+import { logger } from './utils/logger';
 
 function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
   useEffect(() => {
@@ -15,7 +16,7 @@ function MyApp({ Component, pageProps: { session, ...pageProps } }: AppProps) {
       try {
         initGA(measurementId);
       } catch (error) {
-        console.warn('Google Analytics initialization failed:', error);
+        logger.warn('Google Analytics initialization failed:', error);
       }
     }
   }, []);

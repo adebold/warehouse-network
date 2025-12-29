@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   TrendingUp,
   Shield,
   Check,
@@ -78,7 +79,7 @@ const BecomeAPartner: NextPage = () => {
         alert('Application submission failed. Please try again.');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       formTracking.error('partner_application', 'network_error');
       alert('An error occurred while submitting the application.');
     }

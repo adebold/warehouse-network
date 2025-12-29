@@ -7,6 +7,7 @@ import { Octokit } from '@octokit/rest';
 import { UserStory, Epic, StoryStatus, StoryType } from '../core/types';
 import { EventEmitter } from 'events';
 import { execSync } from 'child_process';
+import { logger } from '../../../../../../utils/logger';
 
 export class GitHubIntegration extends EventEmitter {
   private octokit: Octokit;
@@ -378,7 +379,7 @@ Closes #${story.id}
 
   private async createWorkflow(workflow: any): Promise<void> {
     // Implementation would create GitHub Actions workflow files
-    console.log(`Creating workflow: ${workflow.name}`);
+    logger.info(`Creating workflow: ${workflow.name}`);
   }
 
   private async runClaudeFlowAnalysis(): Promise<any> {

@@ -2,6 +2,7 @@
 const joi = require('joi');
 const validator = require('validator');
 const DOMPurify = require('isomorphic-dompurify');
+const { logger } = require('../../../../../../utils/logger');
 
 /**
  * Common validation schemas
@@ -284,7 +285,7 @@ const detectSQLInjection = (req, res, next) => {
       const result = checkObject(location.data);
       if (result.detected) {
         // Log potential SQL injection attempt
-        console.warn('SQL Injection attempt detected:', {
+        logger.warn('SQL Injection attempt detected:', {
           ip: req.ip,
           userAgent: req.get('User-Agent'),
           location: location.name,

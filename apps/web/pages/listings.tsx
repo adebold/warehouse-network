@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   MapPin,
   Package,
   Clock,
@@ -370,7 +371,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    console.error('Error fetching warehouses:', error);
+    logger.error('Error fetching warehouses:', error);
     return {
       props: {
         warehouses: [],

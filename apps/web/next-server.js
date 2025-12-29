@@ -2,6 +2,7 @@
 const { createServer } = require('http');
 const { parse } = require('url');
 const next = require('next');
+const { logger } = require('./utils/logger');
 
 const dev = process.env.NODE_ENV !== 'production';
 const app = next({ dev });
@@ -14,6 +15,6 @@ app.prepare().then(() => {
     handle(req, res, parsedUrl);
   }).listen(port, err => {
     if (err) throw err;
-    console.log(`> Ready on http://localhost:${port}`);
+    logger.info(`> Ready on http://localhost:${port}`);
   });
 });

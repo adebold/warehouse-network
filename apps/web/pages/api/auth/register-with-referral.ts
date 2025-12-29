@@ -9,6 +9,7 @@ import { registerWithReferralSchema } from '../../../lib/schemas';
 import { securityConfig, validatePassword } from '@/lib/config/security';
 import { withCSRFProtection } from '@/lib/middleware/csrf';
 import { withAuthSecurity } from '@/lib/middleware/security';
+import { logger } from './utils/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -83,7 +84,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       res.status(201).json({ message: 'Account created successfully with referral.' });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

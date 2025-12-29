@@ -2,6 +2,7 @@
 import { getServerSession } from 'next-auth/next';
 
 import { authOptions } from '../../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 // TODO: Stripe integration - package not installed
 // This endpoint would handle Stripe Connect onboarding for operators
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         todo: 'Install stripe package and implement Connect flow',
       });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

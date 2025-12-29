@@ -10,6 +10,7 @@ import {
   Home,
   BarChart3,
 } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useSession, signOut } from 'next-auth/react';
@@ -74,9 +75,11 @@ export function AppLayout({ children }: AppLayoutProps) {
       >
         <div className="flex h-16 items-center justify-between border-b px-6">
           <Link href="/app/dashboard" className="flex items-center space-x-2">
-            <img 
+            <Image 
               src="/brand/logo-icon.svg" 
               alt="SkidSpace" 
+              width={24}
+              height={24}
               className="h-6 w-6" 
             />
             <span className="text-lg font-semibold">Warehouse</span>

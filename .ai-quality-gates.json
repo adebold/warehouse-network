@@ -1,0 +1,108 @@
+{
+  "version": "1.0.0",
+  "gates": {
+    "pre-commit": {
+      "enabled": true,
+      "checks": [
+        {
+          "name": "TypeScript",
+          "command": "npm run type-check",
+          "failureThreshold": 0,
+          "required": true
+        },
+        {
+          "name": "ESLint",
+          "command": "npm run lint",
+          "failureThreshold": 0,
+          "required": true
+        },
+        {
+          "name": "Prettier",
+          "command": "npm run format:check",
+          "failureThreshold": 0,
+          "required": true
+        },
+        {
+          "name": "Security",
+          "command": "npm audit --audit-level=moderate",
+          "failureThreshold": 0,
+          "required": false
+        }
+      ]
+    },
+    "pre-push": {
+      "enabled": true,
+      "checks": [
+        {
+          "name": "Tests",
+          "command": "npm test",
+          "failureThreshold": 0,
+          "required": true
+        },
+        {
+          "name": "Build",
+          "command": "npm run build",
+          "failureThreshold": 0,
+          "required": true
+        }
+      ]
+    },
+    "ci-pipeline": {
+      "enabled": true,
+      "checks": [
+        {
+          "name": "Full Quality Analysis",
+          "command": "tsx scripts/ai-quality-integration.ts . json",
+          "failureThreshold": 70,
+          "required": true
+        },
+        {
+          "name": "Test Coverage",
+          "command": "npm test -- --coverage",
+          "coverageThreshold": 80,
+          "required": true
+        },
+        {
+          "name": "Bundle Size",
+          "command": "npm run build && npx bundlesize",
+          "required": false
+        }
+      ]
+    }
+  },
+  "ai-features": {
+    "code-review": {
+      "enabled": true,
+      "model": "claude-3-sonnet",
+      "checks": [
+        "security-vulnerabilities",
+        "performance-issues",
+        "code-smells",
+        "best-practices"
+      ]
+    },
+    "auto-fix": {
+      "enabled": true,
+      "fixers": [
+        "eslint",
+        "prettier",
+        "import-sorting",
+        "unused-imports"
+      ]
+    },
+    "complexity-analysis": {
+      "enabled": true,
+      "thresholds": {
+        "file": 20,
+        "function": 10,
+        "class": 15
+      }
+    }
+  },
+  "reporting": {
+    "format": "markdown",
+    "output": "ai-quality-report.md",
+    "includeMetrics": true,
+    "includeSuggestions": true
+  }
+}

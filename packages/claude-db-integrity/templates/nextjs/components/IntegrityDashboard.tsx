@@ -1,9 +1,22 @@
+/**
+ * This is a template file for Next.js projects.
+ * 
+ * Prerequisites:
+ * 1. Install required dependencies: npm install lucide-react
+ * 2. Ensure you have shadcn/ui components installed:
+ *    - Badge component: npx shadcn-ui@latest add badge
+ *    - Button component: npx shadcn-ui@latest add button
+ *    - Card component: npx shadcn-ui@latest add card
+ * 3. Configure your tsconfig.json with proper path mappings for @/ imports
+ */
+
 import { AlertCircle, CheckCircle, Clock, Database, RefreshCw } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { logger } from '../../../../../../../utils/logger';
 
 interface IntegrityReport {
   id: string;
@@ -48,10 +61,10 @@ export function IntegrityDashboard() {
       if (data.success) {
         setReport(data.report);
       } else {
-        console.error('Failed to fetch integrity report:', data.error);
+        logger.error('Failed to fetch integrity report:', data.error);
       }
     } catch (error) {
-      console.error('Error fetching integrity report:', error);
+      logger.error('Error fetching integrity report:', error);
     } finally {
       setLoading(false);
     }

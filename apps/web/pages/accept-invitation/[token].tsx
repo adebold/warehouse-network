@@ -4,6 +4,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import prisma from '../../lib/prisma';
+import { logger } from './utils/logger';
 
 interface AcceptInvitationProps {
   invitation: Invitation | null;
@@ -31,11 +32,11 @@ const AcceptInvitation: NextPage<AcceptInvitationProps> = ({ invitation, error }
         router.push('/login');
       } else {
         const errorData = await response.json();
-        console.error('Failed to accept invitation', errorData);
+        logger.error('Failed to accept invitation', errorData);
         alert('Failed to accept invitation');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while accepting the invitation.');
     }
   };

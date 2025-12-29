@@ -3,6 +3,7 @@ import path from 'path';
 
 import { CLIController } from '../../src/cli/controller';
 import { IntegrityEngine } from '../../src/core/IntegrityEngine';
+import { logger } from '../../../../../../utils/logger';
 
 describe('End-to-End Integration', () => {
   const testDir = path.join(__dirname, 'e2e-temp');
@@ -51,7 +52,7 @@ describe('End-to-End Integration', () => {
     try {
       await fs.rm(testDir, { recursive: true, force: true });
     } catch (error) {
-      console.warn('Failed to clean up test directory:', error);
+      logger.warn('Failed to clean up test directory:', error);
     }
   });
 
@@ -467,7 +468,7 @@ describe('End-to-End Integration', () => {
       expect(storeTime).toBeLessThan(5000); // 5 seconds
       expect(retrieveTime).toBeLessThan(2000); // 2 seconds
 
-      console.log(`Performance: Store ${storeTime}ms, Retrieve ${retrieveTime}ms`);
+      logger.info(`Performance: Store ${storeTime}ms, Retrieve ${retrieveTime}ms`);
     });
   });
 });

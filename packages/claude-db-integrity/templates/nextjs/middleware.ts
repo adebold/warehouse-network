@@ -1,5 +1,6 @@
 import { ClaudeMemoryManager } from 'claude-db-integrity';
 import { NextRequest, NextResponse } from 'next/server';
+import { logger } from '../../../../../../utils/logger';
 
 // Claude DB Integrity Middleware for Next.js
 export async function middleware(request: NextRequest) {
@@ -67,7 +68,7 @@ export async function middleware(request: NextRequest) {
 
     return NextResponse.next();
   } catch (error) {
-    console.error('Claude DB Integrity middleware error:', error);
+    logger.error('Claude DB Integrity middleware error:', error);
     
     // Don't block requests on middleware errors
     return NextResponse.next();

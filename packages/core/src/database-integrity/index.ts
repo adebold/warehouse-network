@@ -17,6 +17,7 @@ import { MigrationGenerator, MigrationGeneratorOptions } from './generator/migra
 import { MemoryHelpers } from './memory-helpers';
 import { MigrationEngine } from './migration/migration-engine';
 import {
+import { logger } from '../../../../../../../utils/logger';
   DatabaseIntegrityConfig,
   DatabaseSchema,
   Migration,
@@ -754,7 +755,7 @@ export class DatabaseIntegritySystem extends EventEmitter {
       try {
         switch (channel.type) {
           case 'console':
-            console.warn('Drift detected:', driftReport.summary);
+            logger.warn('Drift detected:', driftReport.summary);
             break;
           case 'webhook':
             // Implement webhook notification

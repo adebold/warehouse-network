@@ -6,6 +6,7 @@ import { getServerSession } from 'next-auth/next';
 import prisma from '../../../lib/prisma';
 import { generateReferralCodeSchema } from '../../../lib/schemas';
 import { authOptions } from '../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {
@@ -41,7 +42,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(201).json({ referralCode, referralLink });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

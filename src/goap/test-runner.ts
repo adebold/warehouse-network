@@ -4,7 +4,9 @@
  */
 
 import { runWarehouseSimulation } from './examples/warehouse-simulation';
+
 import { 
+import { logger } from '../utils/logger';
   GOAPSystem, 
   StateManager, 
   GOAPPlanner, 
@@ -24,7 +26,7 @@ export class GOAPTestRunner {
    * Run all tests
    */
   async runAllTests(): Promise<void> {
-    console.log('🧪 Starting GOAP System Tests...\n');
+    logger.info('🧪 Starting GOAP System Tests...\n');
 
     const tests = [
       { name: 'State Manager Tests', fn: this.testStateManager },
@@ -40,22 +42,22 @@ export class GOAPTestRunner {
 
     for (const test of tests) {
       try {
-        console.log(`\n📋 Running ${test.name}...`);
+        logger.info(`\n📋 Running ${test.name}...`);
         await test.fn.call(this);
-        console.log(`✅ ${test.name} PASSED`);
+        logger.info(`✅ ${test.name} PASSED`);
         passed++;
       } catch (error) {
-        console.error(`❌ ${test.name} FAILED:`, error);
+        logger.error(`❌ ${test.name} FAILED:`, error);
         failed++;
       }
     }
 
-    console.log(`\n📊 Test Results: ${passed} passed, ${failed} failed`);
+    logger.info(`\n📊 Test Results: ${passed} passed, ${failed} failed`);
     
     if (failed === 0) {
-      console.log('🎉 All tests passed! GOAP system is ready.');
+      logger.info('🎉 All tests passed! GOAP system is ready.');
     } else {
-      console.log('⚠️ Some tests failed. Review implementation.');
+      logger.info('⚠️ Some tests failed. Review implementation.');
     }
   }
 
@@ -84,9 +86,9 @@ export class GOAPTestRunner {
       throw new Error('Invalid distance calculation');
     }
 
-    console.log('   • World state creation: ✓');
-    console.log('   • State validation: ✓');
-    console.log('   • Distance calculation: ✓');
+    logger.info('   • World state creation: ✓');
+    logger.info('   • State validation: ✓');
+    logger.info('   • Distance calculation: ✓');
   }
 
   /**
@@ -119,9 +121,9 @@ export class GOAPTestRunner {
       throw new Error('Invalid planner result format');
     }
 
-    console.log('   • Plan generation: ✓');
-    console.log(`   • Planning time: ${result.planningTime}ms`);
-    console.log(`   • Nodes explored: ${result.exploredNodes}`);
+    logger.info('   • Plan generation: ✓');
+    logger.info(`   • Planning time: ${result.planningTime}ms`);
+    logger.info(`   • Nodes explored: ${result.exploredNodes}`);
   }
 
   /**
@@ -154,11 +156,11 @@ export class GOAPTestRunner {
       }
     } catch (error) {
       // Action execution may fail due to missing parameters, this is expected
-      console.log('   • Action execution test (expected failure): ✓');
+      logger.info('   • Action execution test (expected failure): ✓');
     }
 
-    console.log(`   • Actions loaded: ${allActions.length}`);
-    console.log('   • Action structure validation: ✓');
+    logger.info(`   • Actions loaded: ${allActions.length}`);
+    logger.info('   • Action structure validation: ✓');
   }
 
   /**
@@ -185,9 +187,9 @@ export class GOAPTestRunner {
       throw new Error('Agent has no capabilities');
     }
 
-    console.log(`   • Team created: ${team.length} agents`);
-    console.log('   • Agent capabilities: ✓');
-    console.log('   • Agent structure validation: ✓');
+    logger.info(`   • Team created: ${team.length} agents`);
+    logger.info('   • Agent capabilities: ✓');
+    logger.info('   • Agent structure validation: ✓');
   }
 
   /**
@@ -235,22 +237,22 @@ export class GOAPTestRunner {
     // Stop system
     await system.stop();
 
-    console.log('   • System start/stop: ✓');
-    console.log('   • Agent management: ✓');
-    console.log('   • Goal assignment: ✓');
-    console.log('   • Status reporting: ✓');
+    logger.info('   • System start/stop: ✓');
+    logger.info('   • Agent management: ✓');
+    logger.info('   • Goal assignment: ✓');
+    logger.info('   • Status reporting: ✓');
   }
 
   /**
    * Test warehouse simulation
    */
   private async testSimulation(): Promise<void> {
-    console.log('   🏭 Running warehouse simulation...');
+    logger.info('   🏭 Running warehouse simulation...');
     
     // Run a shorter version of the simulation for testing
     try {
       await runWarehouseSimulation();
-      console.log('   • Simulation completed: ✓');
+      logger.info('   • Simulation completed: ✓');
     } catch (error) {
       throw new Error(`Simulation failed: ${error}`);
     }

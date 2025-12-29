@@ -5,6 +5,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { logger } = require('../../../../../utils/logger');
 
 module.exports = (results) => {
   const {
@@ -129,30 +130,30 @@ function generateJUnitXML(report, outputPath) {
 }
 
 function generateConsoleSummary(report) {
-  console.log('\n📊 Test Results Summary');
-  console.log('========================');
-  console.log(`Total Tests: ${report.summary.total}`);
-  console.log(`✅ Passed: ${report.summary.passed}`);
-  console.log(`❌ Failed: ${report.summary.failed}`);
-  console.log(`⏸️  Pending: ${report.summary.pending}`);
-  console.log(`⏱️  Duration: ${(report.summary.duration / 1000).toFixed(2)}s`);
+  logger.info('\n📊 Test Results Summary');
+  logger.info('========================');
+  logger.info(`Total Tests: ${report.summary.total}`);
+  logger.info(`✅ Passed: ${report.summary.passed}`);
+  logger.info(`❌ Failed: ${report.summary.failed}`);
+  logger.info(`⏸️  Pending: ${report.summary.pending}`);
+  logger.info(`⏱️  Duration: ${(report.summary.duration / 1000).toFixed(2)}s`);
 
   if (report.performance.slowTests.length > 0) {
-    console.log('\n⚠️  Slow Tests (>5s):');
+    logger.info('\n⚠️  Slow Tests (>5s):');
     report.performance.slowTests.slice(0, 5).forEach(test => {
-      console.log(`   ${path.basename(test.file)}: ${(test.duration / 1000).toFixed(2)}s`);
+      logger.info(`   ${path.basename(test.file)}: ${(test.duration / 1000).toFixed(2)}s`);
     });
   }
 
   if (report.summary.failed > 0) {
-    console.log('\n❌ Failed Tests:');
+    logger.info('\n❌ Failed Tests:');
     report.details.forEach(testFile => {
       if (testFile.numFailingTests > 0) {
-        console.log(`   ${path.basename(testFile.testFilePath)}: ${testFile.numFailingTests} failed`);
+        logger.info(`   ${path.basename(testFile.testFilePath)}: ${testFile.numFailingTests} failed`);
       }
     });
   }
 
-  console.log(`\n📄 Detailed report saved to: test-results/test-report.json`);
-  console.log('========================\n');
+  logger.info(`\n📄 Detailed report saved to: test-results/test-report.json`);
+  logger.info('========================\n');
 }

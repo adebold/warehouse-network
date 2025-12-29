@@ -1,6 +1,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
+const { logger } = require('../../../../../../utils/logger');
 
 async function copyTemplate(templateName, targetPath, projectType) {
   const templateBasePath = path.join(__dirname, '../../templates', templateName);
@@ -43,7 +44,7 @@ async function copyTemplates(templates, targetPath, context) {
     try {
       await copyTemplate(template, targetPath, context.projectType);
     } catch (error) {
-      console.warn(`Warning: ${error.message}`);
+      logger.warn(`Warning: ${error.message}`);
     }
   }
 }

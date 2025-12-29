@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { authOptions } from '../auth/[...nextauth]';
 
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 const OnboardingStateSchema = z.object({
   flows: z.record(z.object({
@@ -116,7 +117,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Track onboarding progress for analytics
         if (validatedData.currentFlow?.isComplete) {
           // Log completion event
-          console.log(`User ${session.user.id} completed onboarding flow: ${validatedData.currentFlow.id}`);
+          logger.info(`User ${session.user.id} completed onboarding flow: ${validatedData.currentFlow.id}`);
           
           // You could also send to analytics service here
           // await analytics.track({
@@ -138,7 +139,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('Onboarding state API error:', error);
+    logger.error('Onboarding state API error:', error);
     
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 

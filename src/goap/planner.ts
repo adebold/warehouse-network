@@ -3,8 +3,8 @@
  * Creates optimal action sequences to achieve warehouse goals
  */
 
-import { Action, Goal, WorldState, Plan, PlanNode, PlannerConfig, PlannerResult } from './types';
 import { StateManager } from './state-manager';
+import { Action, Goal, WorldState, Plan, PlanNode, PlannerConfig, PlannerResult } from './types';
 
 export class GOAPPlanner {
   private stateManager: StateManager;
@@ -80,7 +80,7 @@ export class GOAPPlanner {
         const currentNode = openList.shift()!;
         
         const stateKey = this.getStateKey(currentNode.worldState);
-        if (closedList.has(stateKey)) continue;
+        if (closedList.has(stateKey)) {continue;}
         closedList.add(stateKey);
         
         exploredNodes++;
@@ -98,7 +98,7 @@ export class GOAPPlanner {
         }
 
         // Don't expand beyond max depth
-        if (this.getDepth(currentNode) >= this.config.maxDepth) continue;
+        if (this.getDepth(currentNode) >= this.config.maxDepth) {continue;}
 
         // Expand node with available actions
         for (const action of availableActions) {

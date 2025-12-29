@@ -1,4 +1,6 @@
 /**
+import { logger } from '../../../../../../utils/logger';
+
  * Reporter - Reporting utility
  */
 
@@ -9,6 +11,6 @@ export class Reporter {
 
   report(message: string): void {
     // Report message
-    console.log(message);
+    logger.info(message);
   }
 }

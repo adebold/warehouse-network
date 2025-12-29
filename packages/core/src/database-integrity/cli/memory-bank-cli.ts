@@ -7,6 +7,7 @@ import { Command } from 'commander';
 import { format, subDays } from 'date-fns';
 
 import { memoryBank } from '../memory-bank/memory-bank';
+import { logger } from '../../../../../../../../utils/logger';
 
 const program = new Command();
 
@@ -37,7 +38,7 @@ program
       });
 
       if (result.logs.length === 0) {
-        console.log(chalk.yellow('No logs found matching the criteria'));
+        logger.info(chalk.yellow('No logs found matching the criteria'));
         return;
       }
 
@@ -59,10 +60,10 @@ program
         ]);
       });
 
-      console.log(table.toString());
-      console.log(chalk.gray(`\nShowing ${result.logs.length} of ${result.total} total logs`));
+      logger.info(table.toString());
+      logger.info(chalk.gray(`\nShowing ${result.logs.length} of ${result.total} total logs`));
     } catch (error) {
-      console.error(chalk.red('Error fetching logs:'), error);
+      logger.error(chalk.red('Error fetching logs:'), error);
       process.exit(1);
     }
   });
@@ -83,15 +84,15 @@ program
       });
 
       if (result.logs.length === 0) {
-        console.log(chalk.yellow('No logs found matching the search query'));
+        logger.info(chalk.yellow('No logs found matching the search query'));
         return;
       }
 
-      console.log(chalk.green(`Found ${result.total} logs matching "${query}":\n`));
+      logger.info(chalk.green(`Found ${result.total} logs matching "${query}":\n`));
 
       result.logs.forEach(log => {
         const levelColor = getLevelColor(log.level);
-        console.log(
+        logger.info(
           chalk.gray(format(new Date(log.timestamp), 'yyyy-MM-dd HH:mm:ss')) +
           ' ' +
           levelColor(`[${log.level}]`) +
@@ -102,11 +103,11 @@ program
         );
         
         if (log.errorCode) {
-          console.log(chalk.red(`  Error: ${log.errorCode}`));
+          logger.info(chalk.red(`  Error: ${log.errorCode}`));
         }
       });
     } catch (error) {
-      console.error(chalk.red('Error searching logs:'), error);
+      logger.error(chalk.red('Error searching logs:'), error);
       process.exit(1);
     }
   });
@@ -124,7 +125,7 @@ program
       const startDate = subDays(new Date(), parseInt(options.days));
       const outputFile = options.output || `integrity-logs-${format(new Date(), 'yyyy-MM-dd')}.${options.format}`;
       
-      console.log(chalk.blue('Exporting logs...'));
+      logger.info(chalk.blue('Exporting logs...'));
       
       const data = await memoryBank.exportLogs({
         format: options.format,
@@ -135,9 +136,9 @@ program
       const fs = await import('fs/promises');
       await fs.writeFile(outputFile, data);
       
-      console.log(chalk.green(`✓ Logs exported to ${outputFile}`));
+      logger.info(chalk.green(`✓ Logs exported to ${outputFile}`));
     } catch (error) {
-      console.error(chalk.red('Error exporting logs:'), error);
+      logger.error(chalk.red('Error exporting logs:'), error);
       process.exit(1);
     }
   });
@@ -151,53 +152,53 @@ program
     try {
       const analytics = await memoryBank.getAnalytics(parseInt(options.days));
       
-      console.log(chalk.bold('\n📊 Database Integrity Analytics\n'));
+      logger.info(chalk.bold('\n📊 Database Integrity Analytics\n'));
       
       // Health Score
       const healthColor = analytics.summary.healthScore >= 80 ? chalk.green : 
                         analytics.summary.healthScore >= 60 ? chalk.yellow : 
                         chalk.red;
-      console.log(chalk.bold('Health Score: ') + healthColor(`${analytics.summary.healthScore}%`));
+      logger.info(chalk.bold('Health Score: ') + healthColor(`${analytics.summary.healthScore}%`));
       
       // Log Statistics
-      console.log(chalk.bold('\n📋 Log Statistics:'));
-      console.log(`  Total Logs: ${analytics.logs.totalLogs}`);
-      console.log(`  Error Rate: ${chalk.red((analytics.logs.errorRate * 100).toFixed(2) + '%')}`);
-      console.log(`  Success Rate: ${chalk.green((analytics.logs.successRate * 100).toFixed(2) + '%')}`);
-      console.log(`  Avg Duration: ${analytics.logs.avgDuration.toFixed(0)}ms`);
+      logger.info(chalk.bold('\n📋 Log Statistics:'));
+      logger.info(`  Total Logs: ${analytics.logs.totalLogs}`);
+      logger.info(`  Error Rate: ${chalk.red((analytics.logs.errorRate * 100).toFixed(2) + '%')}`);
+      logger.info(`  Success Rate: ${chalk.green((analytics.logs.successRate * 100).toFixed(2) + '%')}`);
+      logger.info(`  Avg Duration: ${analytics.logs.avgDuration.toFixed(0)}ms`);
       
       // Logs by Category
-      console.log(chalk.bold('\n📁 Logs by Category:'));
+      logger.info(chalk.bold('\n📁 Logs by Category:'));
       Object.entries(analytics.logs.logsByCategory).forEach(([category, count]) => {
-        console.log(`  ${category}: ${count}`);
+        logger.info(`  ${category}: ${count}`);
       });
       
       // Alert Summary
-      console.log(chalk.bold('\n🚨 Alert Summary:'));
-      console.log(`  Total Alerts: ${analytics.alerts.totalAlerts}`);
-      console.log(`  Active Alerts: ${chalk.yellow(analytics.alerts.activeAlerts)}`);
+      logger.info(chalk.bold('\n🚨 Alert Summary:'));
+      logger.info(`  Total Alerts: ${analytics.alerts.totalAlerts}`);
+      logger.info(`  Active Alerts: ${chalk.yellow(analytics.alerts.activeAlerts)}`);
       if (analytics.alerts.unacknowledgedCritical > 0) {
-        console.log(chalk.red(`  Unacknowledged Critical: ${analytics.alerts.unacknowledgedCritical}`));
+        logger.info(chalk.red(`  Unacknowledged Critical: ${analytics.alerts.unacknowledgedCritical}`));
       }
       
       // Top Errors
       if (analytics.logs.topErrors.length > 0) {
-        console.log(chalk.bold('\n❌ Top Errors:'));
+        logger.info(chalk.bold('\n❌ Top Errors:'));
         analytics.logs.topErrors.slice(0, 5).forEach((error, idx) => {
-          console.log(`  ${idx + 1}. ${error.errorCode} (${error.count} occurrences)`);
-          console.log(chalk.gray(`     ${error.message}`));
+          logger.info(`  ${idx + 1}. ${error.errorCode} (${error.count} occurrences)`);
+          logger.info(chalk.gray(`     ${error.message}`));
         });
       }
       
       // Recommendations
       if (analytics.summary.recommendations.length > 0) {
-        console.log(chalk.bold('\n💡 Recommendations:'));
+        logger.info(chalk.bold('\n💡 Recommendations:'));
         analytics.summary.recommendations.forEach((rec, idx) => {
-          console.log(`  ${idx + 1}. ${rec}`);
+          logger.info(`  ${idx + 1}. ${rec}`);
         });
       }
     } catch (error) {
-      console.error(chalk.red('Error generating analytics:'), error);
+      logger.error(chalk.red('Error generating analytics:'), error);
       process.exit(1);
     }
   });
@@ -210,24 +211,24 @@ program
   .action(async (options) => {
     try {
       if (options.dryRun) {
-        console.log(chalk.yellow('🔍 Dry run mode - no data will be deleted'));
+        logger.info(chalk.yellow('🔍 Dry run mode - no data will be deleted'));
         
         const stats = await memoryBank.retentionManager.getRetentionStats();
-        console.log(chalk.bold('\nCurrent retention statistics:'));
-        console.log(JSON.stringify(stats, null, 2));
+        logger.info(chalk.bold('\nCurrent retention statistics:'));
+        logger.info(JSON.stringify(stats, null, 2));
       } else {
-        console.log(chalk.blue('🧹 Running retention cleanup...'));
+        logger.info(chalk.blue('🧹 Running retention cleanup...'));
         
         const results = await memoryBank.runRetentionCleanup();
         
-        console.log(chalk.green('\n✓ Cleanup completed:'));
-        console.log(`  Logs deleted: ${results.logsDeleted}`);
-        console.log(`  Snapshots deleted: ${results.snapshotsDeleted}`);
-        console.log(`  Alerts deleted: ${results.alertsDeleted}`);
-        console.log(`  Metrics deleted: ${results.metricsDeleted}`);
+        logger.info(chalk.green('\n✓ Cleanup completed:'));
+        logger.info(`  Logs deleted: ${results.logsDeleted}`);
+        logger.info(`  Snapshots deleted: ${results.snapshotsDeleted}`);
+        logger.info(`  Alerts deleted: ${results.alertsDeleted}`);
+        logger.info(`  Metrics deleted: ${results.metricsDeleted}`);
       }
     } catch (error) {
-      console.error(chalk.red('Error running cleanup:'), error);
+      logger.error(chalk.red('Error running cleanup:'), error);
       process.exit(1);
     }
   });
@@ -247,7 +248,7 @@ program
       });
 
       if (alerts.length === 0) {
-        console.log(chalk.yellow('No alerts found matching the criteria'));
+        logger.info(chalk.yellow('No alerts found matching the criteria'));
         return;
       }
 
@@ -268,9 +269,9 @@ program
         ]);
       });
 
-      console.log(table.toString());
+      logger.info(table.toString());
     } catch (error) {
-      console.error(chalk.red('Error fetching alerts:'), error);
+      logger.error(chalk.red('Error fetching alerts:'), error);
       process.exit(1);
     }
   });

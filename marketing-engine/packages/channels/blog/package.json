@@ -1,0 +1,28 @@
+{
+  "name": "@marketing-engine/blog-channel",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "@marketing-engine/core": "1.0.0",
+    "@marketing-engine/shared": "1.0.0",
+    "axios": "^1.6.2",
+    "@tryghost/admin-api": "^1.13.10",
+    "wpapi": "^1.2.2",
+    "medium-sdk": "^0.0.4",
+    "cheerio": "^1.0.0-rc.12",
+    "rss": "^1.2.2",
+    "joi": "^17.11.0",
+    "marked": "^11.0.0",
+    "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/wpapi": "^1.1.2"
+  }
+}

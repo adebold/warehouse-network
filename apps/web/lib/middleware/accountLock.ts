@@ -2,6 +2,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 export interface AccountLockCheck {
   allowed: boolean;
@@ -82,7 +83,7 @@ export async function checkAccountLock(
       customer,
     };
   } catch (error) {
-    console.error('Error checking account lock:', error);
+    logger.error('Error checking account lock:', error);
     return {
       allowed: false,
       reason: 'Error checking account status',

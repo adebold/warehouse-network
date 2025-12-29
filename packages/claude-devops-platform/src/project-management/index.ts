@@ -30,6 +30,7 @@ export { StoryDrivenDevelopment } from './core/story-driven-development';
 import { StoryManager } from './core/story-manager';
 import { QualityGateManager } from './quality/quality-gates';
 import { StoryDrivenDevelopment } from './core/story-driven-development';
+import { logger } from '../../../../../utils/logger';
 
 /**
  * Create a pre-configured project management system
@@ -66,9 +67,9 @@ export async function initializeWithClaudeFlow() {
       execSync(`npx claude-flow@alpha agent spawn ${agent}`, { stdio: 'inherit' });
     }
     
-    console.log('✓ Claude Flow project management agents initialized');
+    logger.info('✓ Claude Flow project management agents initialized');
   } catch (error) {
-    console.error('Failed to initialize Claude Flow:', error);
+    logger.error('Failed to initialize Claude Flow:', error);
   }
 }
 
@@ -88,7 +89,7 @@ export async function createStoryWithAI(description: string) {
     // Create the story
     return await storyManager.createStory(storyData);
   } catch (error) {
-    console.error('Failed to create story with AI:', error);
+    logger.error('Failed to create story with AI:', error);
     throw error;
   }
 }

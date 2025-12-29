@@ -7,6 +7,7 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { logger } = require('./utils/logger');
 
 class HivemindCoordinator {
   constructor() {
@@ -34,7 +35,7 @@ class HivemindCoordinator {
   log(message, level = 'INFO') {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] [HIVEMIND] [${level}] ${message}\n`;
-    console.log(`🧠 ${message}`);
+    logger.info(`🧠 ${message}`);
     fs.appendFileSync(this.logFile, logEntry);
   }
 
@@ -49,7 +50,7 @@ class HivemindCoordinator {
     this.agents.monitor.stdout.on('data', (data) => {
       const output = data.toString().trim();
       if (output) {
-        console.log(`📡 MONITOR: ${output}`);
+        logger.info(`📡 MONITOR: ${output}`);
         
         // Check for deployment completion signal
         if (output.includes('DEPLOYMENT COMPLETE')) {
@@ -92,7 +93,7 @@ class HivemindCoordinator {
     this.agents.validator.stdout.on('data', (data) => {
       const output = data.toString().trim();
       if (output) {
-        console.log(`👥 VALIDATOR: ${output}`);
+        logger.info(`👥 VALIDATOR: ${output}`);
       }
     });
 
@@ -169,17 +170,17 @@ class HivemindCoordinator {
     const finalReportPath = path.join(reportsDir, 'hivemind-intelligence.json');
     fs.writeFileSync(finalReportPath, JSON.stringify(finalReport, null, 2));
 
-    console.log('\n🧠 ===== HIVEMIND INTELLIGENCE REPORT ===== 🧠');
-    console.log(`📊 Mission Status: ${finalReport.hivemind.status}`);
-    console.log(`🎯 Deployment Live: ${this.status.deploymentLive ? 'YES ✅' : 'NO ❌'}`);
-    console.log(`❌ Total Errors: ${this.status.errors.length}`);
-    console.log(`📄 Full Report: ${finalReportPath}`);
-    console.log('🧠 ======================================= 🧠\n');
+    logger.info('\n🧠 ===== HIVEMIND INTELLIGENCE REPORT ===== 🧠');
+    logger.info(`📊 Mission Status: ${finalReport.hivemind.status}`);
+    logger.info(`🎯 Deployment Live: ${this.status.deploymentLive ? 'YES ✅' : 'NO ❌'}`);
+    logger.info(`❌ Total Errors: ${this.status.errors.length}`);
+    logger.info(`📄 Full Report: ${finalReportPath}`);
+    logger.info('🧠 ======================================= 🧠\n');
 
     if (this.status.deploymentLive) {
-      console.log('🎉 MISSION ACCOMPLISHED! Warehouse platform is operational! 🎉');
+      logger.info('🎉 MISSION ACCOMPLISHED! Warehouse platform is operational! 🎉');
     } else {
-      console.log('⏳ Mission continues... Monitoring deployment progress...');
+      logger.info('⏳ Mission continues... Monitoring deployment progress...');
     }
   }
 

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
 import { Command } from 'commander';
+import { logger } from '../../../../utils/logger';
 
 // Display banner
-console.log('\n🚀 Claude DevOps Platform');
-console.log('Production-Ready Platform Tools with Project Management\n');
+logger.info('\n🚀 Claude DevOps Platform');
+logger.info('Production-Ready Platform Tools with Project Management\n');
 
 // Main program
 const program = new Command();
@@ -25,8 +26,8 @@ program
   .command('analyze')
   .description('Run all quality checks')
   .action(async () => {
-    console.log('🔍 Running comprehensive analysis...');
-    console.log('✅ Analysis complete');
+    logger.info('🔍 Running comprehensive analysis...');
+    logger.info('✅ Analysis complete');
   });
 
 program
@@ -36,7 +37,7 @@ program
   .option('--provider <cloud>', 'Cloud provider')
   .option('--monitoring', 'Setup monitoring stack')
   .action(async (options: any) => {
-    console.log('🚀 Initializing Claude DevOps Platform...');
+    logger.info('🚀 Initializing Claude DevOps Platform...');
     
     try {
       const { DevOpsEngine } = await import('./core/devops-engine');
@@ -52,10 +53,10 @@ program
         database: ['postgresql']
       });
       
-      console.log('✅ Claude DevOps Platform initialized successfully!');
-      console.log(`📁 Stack created with ID: ${config.stackId}`);
+      logger.info('✅ Claude DevOps Platform initialized successfully!');
+      logger.info(`📁 Stack created with ID: ${config.stackId}`);
     } catch (error: any) {
-      console.error('❌ Initialization failed:', error.message);
+      logger.error('❌ Initialization failed:', error.message);
       process.exit(1);
     }
   });
@@ -68,7 +69,7 @@ program
   .option('--image <name>', 'Image name')
   .option('--tag <tag>', 'Image tag')
   .action(async (action: string, options: any) => {
-    console.log(`🐳 Docker ${action} operation`);
+    logger.info(`🐳 Docker ${action} operation`);
     
     try {
       const { ContainerManager } = await import('./core/container-manager');
@@ -76,24 +77,24 @@ program
       
       switch (action) {
         case 'build':
-          console.log('🔨 Building Docker image...');
+          logger.info('🔨 Building Docker image...');
           const buildResult = await containerManager.buildAndPush({
             imageName: options.image || 'app',
             tag: options.tag || 'latest'
           });
-          console.log(`✅ Image built: ${buildResult.imageName}:${buildResult.tag}`);
+          logger.info(`✅ Image built: ${buildResult.imageName}:${buildResult.tag}`);
           break;
         case 'push':
-          console.log('📤 Pushing to registry...');
-          console.log('✅ Push completed');
+          logger.info('📤 Pushing to registry...');
+          logger.info('✅ Push completed');
           break;
         case 'scan':
-          console.log('🔍 Scanning for vulnerabilities...');
-          console.log('✅ Security scan completed');
+          logger.info('🔍 Scanning for vulnerabilities...');
+          logger.info('✅ Security scan completed');
           break;
       }
     } catch (error: any) {
-      console.error(`❌ Docker ${action} failed:`, error.message);
+      logger.error(`❌ Docker ${action} failed:`, error.message);
     }
   });
 
@@ -104,7 +105,7 @@ program
   .argument('<environment>', 'staging, production')
   .option('--strategy <type>', 'Deployment strategy')
   .action(async (environment: string, options: any) => {
-    console.log(`🚀 Deploying to ${environment}...`);
+    logger.info(`🚀 Deploying to ${environment}...`);
     
     try {
       const { DeploymentManager } = await import('./core/deployment-manager');
@@ -123,9 +124,9 @@ program
         }
       );
       
-      console.log(`✅ Deployment ${result.deploymentId} completed successfully`);
+      logger.info(`✅ Deployment ${result.deploymentId} completed successfully`);
     } catch (error: any) {
-      console.error('❌ Deployment failed:', error.message);
+      logger.error('❌ Deployment failed:', error.message);
     }
   });
 

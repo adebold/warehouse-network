@@ -2,6 +2,7 @@ const mockValidator = require('../../lib/validators/mocks');
 const fs = require('fs-extra');
 const path = require('path');
 const os = require('os');
+const { logger } = require('../../../../../../utils/logger');
 
 describe('Mock Validator', () => {
   let tempDir;
@@ -18,7 +19,7 @@ describe('Mock Validator', () => {
     // Create clean files
     await fs.writeFile(
       path.join(tempDir, 'index.js'),
-      `const db = require('./database');\nconsole.log('Hello');`
+      `const db = require('./database');\nlogger.info('Hello');`
     );
 
     const result = await mockValidator.check(tempDir, {});

@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
+import { logger } from './utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -42,7 +43,7 @@ const testData = {
 test.describe('Complete User Journey Tests', () => {
   test.beforeAll(async () => {
     // Seed test data
-    console.log('Setting up test data...');
+    logger.info('Setting up test data...');
     // Add seed logic here
   });
 
@@ -531,7 +532,7 @@ test.describe('Performance Metrics Collection', () => {
     expect(lastCLS).toBeLessThan(0.1); // Good CLS
 
     // Log metrics for monitoring
-    console.log('Performance Metrics:', {
+    logger.info('Performance Metrics:', {
       LCP: lastLCP,
       CLS: lastCLS,
       vitals: metrics,

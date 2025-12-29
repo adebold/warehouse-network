@@ -1,7 +1,8 @@
 const { execSync } = require('child_process');
+const { logger } = require('./utils/logger');
 
 module.exports = async () => {
-  console.log('🔧 Setting up integration test environment...');
+  logger.info('🔧 Setting up integration test environment...');
 
   try {
     // Load test environment variables
@@ -10,15 +11,15 @@ module.exports = async () => {
     process.env.NODE_ENV = 'test';
 
     // Set up test database
-    console.log('📦 Setting up test database...');
+    logger.info('📦 Setting up test database...');
     execSync('bash scripts/test-db.sh setup', {
       stdio: 'inherit',
       cwd: process.cwd(),
     });
 
-    console.log('✅ Integration test environment ready');
+    logger.info('✅ Integration test environment ready');
   } catch (error) {
-    console.error('❌ Failed to setup integration test environment:', error);
+    logger.error('❌ Failed to setup integration test environment:', error);
     throw error;
   }
 };

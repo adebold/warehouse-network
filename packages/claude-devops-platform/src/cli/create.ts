@@ -42,7 +42,7 @@ export async function run() {
     .option('--skip-install', 'Skip dependency installation', false)
     .option('--template <template>', 'Use a specific template')
     .action(async (projectName: string | undefined, options: CreateOptions) => {
-      console.log(chalk.cyan('\n🚀 Welcome to Claude DevOps Platform!\n'));
+      logger.info(chalk.cyan('\n🚀 Welcome to Claude DevOps Platform!\n'));
 
       // Get project name if not provided
       if (!projectName) {
@@ -194,44 +194,44 @@ export async function run() {
         spinner.succeed(chalk.green('✅ Project created successfully!'));
 
         // Display next steps
-        console.log('\n' + chalk.bold('Next steps:'));
-        console.log(chalk.cyan(`  cd ${projectName}`));
+        logger.info('\n' + chalk.bold('Next steps:'));
+        logger.info(chalk.cyan(`  cd ${projectName}`));
         
         if (!options.skipInstall) {
-          console.log(chalk.cyan('  npm install'));
+          logger.info(chalk.cyan('  npm install'));
         }
 
         if (options.gitops) {
-          console.log(chalk.cyan('  git init'));
-          console.log(chalk.cyan('  git add .'));
-          console.log(chalk.cyan('  git commit -m "Initial commit"'));
-          console.log(chalk.cyan('  # Create a GitHub repository and push'));
+          logger.info(chalk.cyan('  git init'));
+          logger.info(chalk.cyan('  git add .'));
+          logger.info(chalk.cyan('  git commit -m "Initial commit"'));
+          logger.info(chalk.cyan('  # Create a GitHub repository and push'));
         }
 
         if (options.infrastructure) {
-          console.log(chalk.cyan('  # Configure your cloud credentials'));
-          console.log(chalk.cyan('  npm run infra:init'));
+          logger.info(chalk.cyan('  # Configure your cloud credentials'));
+          logger.info(chalk.cyan('  npm run infra:init'));
         }
 
-        console.log('\n' + chalk.bold('Available commands:'));
-        console.log(chalk.gray('  npm run dev') + ' - Start development server');
-        console.log(chalk.gray('  npm run build') + ' - Build for production');
-        console.log(chalk.gray('  npm run test') + ' - Run tests');
+        logger.info('\n' + chalk.bold('Available commands:'));
+        logger.info(chalk.gray('  npm run dev') + ' - Start development server');
+        logger.info(chalk.gray('  npm run build') + ' - Build for production');
+        logger.info(chalk.gray('  npm run test') + ' - Run tests');
         
         if (options.gitops) {
-          console.log(chalk.gray('  npm run ci:setup') + ' - Set up CI/CD');
+          logger.info(chalk.gray('  npm run ci:setup') + ' - Set up CI/CD');
         }
         
         if (options.infrastructure) {
-          console.log(chalk.gray('  npm run infra:plan') + ' - Plan infrastructure changes');
-          console.log(chalk.gray('  npm run infra:apply') + ' - Apply infrastructure changes');
+          logger.info(chalk.gray('  npm run infra:plan') + ' - Plan infrastructure changes');
+          logger.info(chalk.gray('  npm run infra:apply') + ' - Apply infrastructure changes');
         }
 
         if (options.kubernetes) {
-          console.log(chalk.gray('  npm run k8s:deploy') + ' - Deploy to Kubernetes');
+          logger.info(chalk.gray('  npm run k8s:deploy') + ' - Deploy to Kubernetes');
         }
 
-        console.log('\n' + chalk.green('Happy coding! 🎉\n'));
+        logger.info('\n' + chalk.green('Happy coding! 🎉\n'));
 
       } catch (error) {
         spinner.fail(chalk.red('Failed to create project'));

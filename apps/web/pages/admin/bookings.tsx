@@ -1,5 +1,6 @@
 import { format, parseISO } from 'date-fns';
 import {
+import { logger } from './utils/logger';
   CalendarDays,
   MoreVertical,
   Search,
@@ -165,13 +166,13 @@ const AdminBookingsPage: NextPage<AdminBookingsPageProps> = ({ bookings, stats }
         router.reload();
       }
     } catch (error) {
-      console.error('Error updating booking status:', error);
+      logger.error('Error updating booking status:', error);
     }
   };
 
   const exportBookings = () => {
     // Implementation for CSV export
-    console.log('Exporting bookings...');
+    logger.info('Exporting bookings...');
   };
 
   return (
@@ -538,7 +539,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    console.error('Error fetching bookings:', error);
+    logger.error('Error fetching bookings:', error);
     return {
       props: {
         bookings: [],

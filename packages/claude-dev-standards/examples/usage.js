@@ -3,36 +3,37 @@
  */
 
 const { detectProjectType, validate, loadConfig } = require('claude-dev-standards');
+const { logger } = require('../../../../../utils/logger');
 
 async function example() {
   try {
     // Detect project type
     const projectType = await detectProjectType(process.cwd());
-    console.log(`Project type: ${projectType}`);
+    logger.info(`Project type: ${projectType}`);
     
     // Load configuration
     const config = await loadConfig(process.cwd());
-    console.log('Configuration loaded:', config);
+    logger.info('Configuration loaded:', config);
     
     // Run validation
     const results = await validate(process.cwd(), config);
     
     // Check results
     if (results.passed) {
-      console.log('✅ All checks passed!');
+      logger.info('✅ All checks passed!');
     } else {
-      console.log('❌ Validation failed:');
-      results.errors.forEach(error => console.log(`  - ${error}`));
+      logger.info('❌ Validation failed:');
+      results.errors.forEach(error => logger.info(`  - ${error}`));
     }
     
     // Access specific information
-    console.log(`\nSummary:`);
-    console.log(`  Errors: ${results.errors.length}`);
-    console.log(`  Warnings: ${results.warnings.length}`);
-    console.log(`  Auto-fixable: ${results.fixable?.length || 0}`);
+    logger.info(`\nSummary:`);
+    logger.info(`  Errors: ${results.errors.length}`);
+    logger.info(`  Warnings: ${results.warnings.length}`);
+    logger.info(`  Auto-fixable: ${results.fixable?.length || 0}`);
     
   } catch (error) {
-    console.error('Error:', error.message);
+    logger.error('Error:', error.message);
   }
 }
 
@@ -64,7 +65,7 @@ async function customValidatorExample() {
   };
   
   const results = await validate(process.cwd(), config);
-  console.log('Custom validation results:', results);
+  logger.info('Custom validation results:', results);
 }
 
 // Run examples

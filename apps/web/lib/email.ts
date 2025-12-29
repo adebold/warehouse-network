@@ -1,3 +1,5 @@
+import { logger } from './utils/logger';
+
 interface EmailOptions {
   to: string;
   subject: string;
@@ -12,7 +14,7 @@ export async function sendEmail(options: EmailOptions) {
   // In production, integrate with email service like SendGrid, AWS SES, etc.
   if (process.env.NODE_ENV === 'production') {
     // TODO: Implement actual email sending
-    console.log('Email would be sent:', { to, subject, from });
+    logger.info('Email would be sent:', { to, subject, from });
 
     // Example SendGrid integration:
     // const sgMail = require('@sendgrid/mail')
@@ -26,11 +28,11 @@ export async function sendEmail(options: EmailOptions) {
     // })
   } else {
     // In development, log emails to console
-    console.log('=== EMAIL NOTIFICATION ===');
-    console.log('To:', to);
-    console.log('From:', from);
-    console.log('Subject:', subject);
-    console.log('Text:', text || 'No text version');
-    console.log('========================');
+    logger.info('=== EMAIL NOTIFICATION ===');
+    logger.info('To:', to);
+    logger.info('From:', from);
+    logger.info('Subject:', subject);
+    logger.info('Text:', text || 'No text version');
+    logger.info('========================');
   }
 }

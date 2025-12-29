@@ -16,6 +16,7 @@ const path = require('path');
 const fs = require('fs');
 const { format } = require('date-fns');
 const { execSync } = require('child_process');
+import { logger } from './utils/logger';
 
 // Load configuration
 const config = {
@@ -88,9 +89,9 @@ let verbose = false;
 
 // Helper functions
 function handleError(error) {
-  console.error(chalk.red('Error:'), error.message);
+  logger.error(chalk.red('Error:'), error.message);
   if (error.details) {
-    console.error(chalk.gray('Details:'), error.details);
+    logger.error(chalk.gray('Details:'), error.details);
   }
   process.exit(1);
 }
@@ -105,7 +106,7 @@ function displayTable(data, columns) {
     table.push(columns.map(col => row[col] || ''));
   });
 
-  console.log(table.toString());
+  logger.info(table.toString());
 }
 
 // Commands
@@ -117,7 +118,7 @@ program
   .hook('preAction', (thisCommand) => {
     verbose = thisCommand.opts().verbose || false;
     if (verbose) {
-      console.log(chalk.gray('Verbose mode enabled'));
+      logger.info(chalk.gray('Verbose mode enabled'));
     }
   });
 
@@ -140,7 +141,7 @@ program
       spinner.succeed('Migration status retrieved');
       
       if (result.data.length === 0) {
-        console.log(chalk.yellow('No migrations found'));
+        logger.info(chalk.yellow('No migrations found'));
       } else {
         displayTable(result.data, ['id', 'name', 'status', 'executedAt']);
       }
@@ -232,22 +233,22 @@ program
       spinner.succeed('Drift detection completed');
       
       if (result.data.drifts.length === 0) {
-        console.log(chalk.green('No drifts detected'));
+        logger.info(chalk.green('No drifts detected'));
         return;
       }
       
-      console.log(chalk.yellow(`Found ${result.data.drifts.length} drifts`));
+      logger.info(chalk.yellow(`Found ${result.data.drifts.length} drifts`));
       
       // Display drift summary
-      console.log('\n' + chalk.bold('Drift Summary:'));
-      console.log(`Total: ${result.data.summary.totalDrifts}`);
-      console.log(`Critical: ${result.data.summary.bySeverity.CRITICAL || 0}`);
-      console.log(`High: ${result.data.summary.bySeverity.HIGH || 0}`);
-      console.log(`Medium: ${result.data.summary.bySeverity.MEDIUM || 0}`);
-      console.log(`Low: ${result.data.summary.bySeverity.LOW || 0}`);
+      logger.info('\n' + chalk.bold('Drift Summary:'));
+      logger.info(`Total: ${result.data.summary.totalDrifts}`);
+      logger.info(`Critical: ${result.data.summary.bySeverity.CRITICAL || 0}`);
+      logger.info(`High: ${result.data.summary.bySeverity.HIGH || 0}`);
+      logger.info(`Medium: ${result.data.summary.bySeverity.MEDIUM || 0}`);
+      logger.info(`Low: ${result.data.summary.bySeverity.LOW || 0}`);
       
       // Display drifts
-      console.log('\n' + chalk.bold('Drifts:'));
+      logger.info('\n' + chalk.bold('Drifts:'));
       result.data.drifts.forEach(drift => {
         const severityColor = {
           CRITICAL: 'red',
@@ -256,11 +257,11 @@ program
           LOW: 'gray'
         }[drift.severity];
         
-        console.log(`\n${chalk[severityColor](`[${drift.severity}]`)} ${drift.type}`);
-        console.log(`Object: ${drift.object}`);
-        console.log(`Description: ${drift.description}`);
+        logger.info(`\n${chalk[severityColor](`[${drift.severity}]`)} ${drift.type}`);
+        logger.info(`Object: ${drift.object}`);
+        logger.info(`Description: ${drift.description}`);
         if (drift.fixable) {
-          console.log(chalk.green('✓ Auto-fixable'));
+          logger.info(chalk.green('✓ Auto-fixable'));
         }
       });
       
@@ -273,7 +274,7 @@ program
         
         if (fixResult.success) {
           fixSpinner.succeed('Fix migrations generated');
-          console.log(chalk.green('Run "npm run migrate:prisma" to apply fixes'));
+          logger.info(chalk.green('Run "npm run migrate:prisma" to apply fixes'));
         } else {
           fixSpinner.fail('Failed to generate fix migrations');
         }
@@ -302,17 +303,17 @@ program
       spinner.succeed('Prisma drift detection completed');
       
       if (result.data.drifts.length === 0) {
-        console.log(chalk.green('Prisma schema is in sync with database'));
+        logger.info(chalk.green('Prisma schema is in sync with database'));
         return;
       }
       
-      console.log(chalk.yellow(`Found ${result.data.drifts.length} Prisma drifts`));
+      logger.info(chalk.yellow(`Found ${result.data.drifts.length} Prisma drifts`));
       
       result.data.drifts.forEach(drift => {
-        console.log(`\n${chalk.yellow('●')} ${drift.description}`);
+        logger.info(`\n${chalk.yellow('●')} ${drift.description}`);
         if (drift.prismaFix) {
-          console.log(chalk.gray('Suggested Prisma schema change:'));
-          console.log(chalk.cyan(drift.prismaFix));
+          logger.info(chalk.gray('Suggested Prisma schema change:'));
+          logger.info(chalk.cyan(drift.prismaFix));
         }
       });
     } catch (error) {
@@ -341,28 +342,28 @@ program
       
       const errors = result.data.filter(f => !f.validation.valid);
       if (errors.length === 0) {
-        console.log(chalk.green('All forms are valid'));
+        logger.info(chalk.green('All forms are valid'));
         return;
       }
       
-      console.log(chalk.yellow(`Found ${errors.length} forms with issues`));
+      logger.info(chalk.yellow(`Found ${errors.length} forms with issues`));
       
       errors.forEach(form => {
-        console.log(`\n${chalk.bold(form.formName)}`);
-        console.log(`Framework: ${form.framework}`);
-        console.log(`Path: ${form.formPath}`);
+        logger.info(`\n${chalk.bold(form.formName)}`);
+        logger.info(`Framework: ${form.framework}`);
+        logger.info(`Path: ${form.formPath}`);
         
         if (form.validation.errors.length > 0) {
-          console.log(chalk.red('Errors:'));
+          logger.info(chalk.red('Errors:'));
           form.validation.errors.forEach(err => {
-            console.log(`  - ${err.message}`);
+            logger.info(`  - ${err.message}`);
           });
         }
         
         if (form.suggestions.length > 0) {
-          console.log(chalk.yellow('Suggestions:'));
+          logger.info(chalk.yellow('Suggestions:'));
           form.suggestions.forEach(sug => {
-            console.log(`  - ${sug.message}`);
+            logger.info(`  - ${sug.message}`);
           });
         }
       });
@@ -391,21 +392,21 @@ program
       
       const invalidRoutes = result.data.filter(r => !r.validation.valid);
       if (invalidRoutes.length === 0) {
-        console.log(chalk.green('All routes are valid'));
+        logger.info(chalk.green('All routes are valid'));
         return;
       }
       
-      console.log(chalk.yellow(`Found ${invalidRoutes.length} routes with issues`));
+      logger.info(chalk.yellow(`Found ${invalidRoutes.length} routes with issues`));
       
       invalidRoutes.forEach(route => {
-        console.log(`\n${chalk.bold(`${route.method} ${route.path}`)}`);
+        logger.info(`\n${chalk.bold(`${route.method} ${route.path}`)}`);
         
         route.validation.errors.forEach(err => {
-          console.log(chalk.red(`  ✗ ${err.message}`));
+          logger.info(chalk.red(`  ✗ ${err.message}`));
         });
         
         route.validation.warnings.forEach(warn => {
-          console.log(chalk.yellow(`  ⚠ ${warn.message}`));
+          logger.info(chalk.yellow(`  ⚠ ${warn.message}`));
         });
       });
     } catch (error) {
@@ -432,56 +433,56 @@ program
       spinner.succeed('Warehouse validation completed');
       
       // Payment forms
-      console.log('\n' + chalk.bold('Payment Forms:'));
+      logger.info('\n' + chalk.bold('Payment Forms:'));
       const invalidPaymentForms = result.data.paymentForms.filter(f => !f.valid);
       if (invalidPaymentForms.length === 0) {
-        console.log(chalk.green('✓ All payment forms valid'));
+        logger.info(chalk.green('✓ All payment forms valid'));
       } else {
         invalidPaymentForms.forEach(form => {
-          console.log(`\n${chalk.yellow(form.formName)} (${form.model})`);
+          logger.info(`\n${chalk.yellow(form.formName)} (${form.model})`);
           if (form.missingFields.length > 0) {
-            console.log(chalk.red(`  Missing: ${form.missingFields.join(', ')}`));
+            logger.info(chalk.red(`  Missing: ${form.missingFields.join(', ')}`));
           }
           if (form.typeMismatches.length > 0) {
             form.typeMismatches.forEach(tm => {
-              console.log(chalk.yellow(`  Type mismatch: ${tm.field} (expected ${tm.expectedType}, got ${tm.actualType})`));
+              logger.info(chalk.yellow(`  Type mismatch: ${tm.field} (expected ${tm.expectedType}, got ${tm.actualType})`));
             });
           }
         });
       }
       
       // Operation forms
-      console.log('\n' + chalk.bold('Operation Forms:'));
+      logger.info('\n' + chalk.bold('Operation Forms:'));
       const invalidOperationForms = result.data.operationForms.filter(f => !f.valid);
       if (invalidOperationForms.length === 0) {
-        console.log(chalk.green('✓ All operation forms valid'));
+        logger.info(chalk.green('✓ All operation forms valid'));
       } else {
         invalidOperationForms.forEach(form => {
-          console.log(`\n${chalk.yellow(form.formName)} (${form.model})`);
+          logger.info(`\n${chalk.yellow(form.formName)} (${form.model})`);
           if (form.missingFields.length > 0) {
-            console.log(chalk.red(`  Missing: ${form.missingFields.join(', ')}`));
+            logger.info(chalk.red(`  Missing: ${form.missingFields.join(', ')}`));
           }
           if (form.typeMismatches.length > 0) {
             form.typeMismatches.forEach(tm => {
-              console.log(chalk.yellow(`  Type mismatch: ${tm.field} (expected ${tm.expectedType}, got ${tm.actualType})`));
+              logger.info(chalk.yellow(`  Type mismatch: ${tm.field} (expected ${tm.expectedType}, got ${tm.actualType})`));
             });
           }
         });
       }
       
       // API routes
-      console.log('\n' + chalk.bold('API Routes:'));
+      logger.info('\n' + chalk.bold('API Routes:'));
       const invalidRoutes = result.data.apiRoutes.filter(r => !r.valid);
       if (invalidRoutes.length === 0) {
-        console.log(chalk.green('✓ All API routes valid'));
+        logger.info(chalk.green('✓ All API routes valid'));
       } else {
         invalidRoutes.forEach(route => {
-          console.log(`\n${chalk.yellow(`${route.method} ${route.route}`)}`);
+          logger.info(`\n${chalk.yellow(`${route.method} ${route.route}`)}`);
           const invalidParams = [...route.queryParams, ...route.bodyParams].filter(p => !p.validInModel);
           invalidParams.forEach(param => {
-            console.log(chalk.red(`  Invalid param: ${param.param}`));
+            logger.info(chalk.red(`  Invalid param: ${param.param}`));
             if (param.suggestion) {
-              console.log(chalk.gray(`    → ${param.suggestion}`));
+              logger.info(chalk.gray(`    → ${param.suggestion}`));
             }
           });
         });
@@ -510,18 +511,18 @@ program
       
       spinner.succeed('Schema analysis completed');
       
-      console.log(`\n${chalk.bold('Schema Summary:')}`);
-      console.log(`Version: ${result.data.version}`);
-      console.log(`Tables: ${result.data.tables.length}`);
-      console.log(`Indexes: ${result.data.indexes?.length || 0}`);
-      console.log(`Constraints: ${result.data.constraints?.length || 0}`);
-      console.log(`Enums: ${result.data.enums?.length || 0}`);
-      console.log(`Prisma Models: ${result.data.prismaModels?.length || 0}`);
+      logger.info(`\n${chalk.bold('Schema Summary:')}`);
+      logger.info(`Version: ${result.data.version}`);
+      logger.info(`Tables: ${result.data.tables.length}`);
+      logger.info(`Indexes: ${result.data.indexes?.length || 0}`);
+      logger.info(`Constraints: ${result.data.constraints?.length || 0}`);
+      logger.info(`Enums: ${result.data.enums?.length || 0}`);
+      logger.info(`Prisma Models: ${result.data.prismaModels?.length || 0}`);
       
       if (result.data.tables.length > 0) {
-        console.log(`\n${chalk.bold('Tables:')}`);
+        logger.info(`\n${chalk.bold('Tables:')}`);
         result.data.tables.forEach(table => {
-          console.log(`  - ${table.name} (${table.columns.length} columns)`);
+          logger.info(`  - ${table.name} (${table.columns.length} columns)`);
         });
       }
     } catch (error) {
@@ -550,23 +551,23 @@ program
       
       const summary = result.metadata;
       
-      console.log(`\n${chalk.bold('Integrity Check Results:')}`);
-      console.log(`Overall: ${summary.overallSuccess ? chalk.green('PASSED') : chalk.red('FAILED')}`);
+      logger.info(`\n${chalk.bold('Integrity Check Results:')}`);
+      logger.info(`Overall: ${summary.overallSuccess ? chalk.green('PASSED') : chalk.red('FAILED')}`);
       
       if (summary.issues.length > 0) {
-        console.log(`\n${chalk.yellow('Issues:')}`);
+        logger.info(`\n${chalk.yellow('Issues:')}`);
         summary.issues.forEach(issue => {
-          console.log(`  - ${issue}`);
+          logger.info(`  - ${issue}`);
         });
       }
       
       // Detailed results
-      console.log(`\n${chalk.bold('Component Status:')}`);
-      console.log(`Schema Analysis: ${result.data.schema.success ? chalk.green('✓') : chalk.red('✗')}`);
-      console.log(`Route Validation: ${result.data.routes.success ? chalk.green('✓') : chalk.red('✗')}`);
-      console.log(`Form Validation: ${result.data.forms.success ? chalk.green('✓') : chalk.red('✗')}`);
-      console.log(`Drift Detection: ${result.data.drifts.success ? chalk.green('✓') : chalk.red('✗')}`);
-      console.log(`Warehouse Validation: ${result.data.warehouse.success ? chalk.green('✓') : chalk.red('✗')}`);
+      logger.info(`\n${chalk.bold('Component Status:')}`);
+      logger.info(`Schema Analysis: ${result.data.schema.success ? chalk.green('✓') : chalk.red('✗')}`);
+      logger.info(`Route Validation: ${result.data.routes.success ? chalk.green('✓') : chalk.red('✗')}`);
+      logger.info(`Form Validation: ${result.data.forms.success ? chalk.green('✓') : chalk.red('✗')}`);
+      logger.info(`Drift Detection: ${result.data.drifts.success ? chalk.green('✓') : chalk.red('✗')}`);
+      logger.info(`Warehouse Validation: ${result.data.warehouse.success ? chalk.green('✓') : chalk.red('✗')}`);
     } catch (error) {
       spinner.fail('Failed to run integrity check');
       handleError(error);
@@ -595,7 +596,7 @@ program
       spinner.succeed(`Retrieved ${logs.length} logs from Claude Flow memory`);
       
       if (options.format === 'json') {
-        console.log(JSON.stringify(logs, null, 2));
+        logger.info(JSON.stringify(logs, null, 2));
       } else {
         displayLogs(logs);
       }
@@ -633,7 +634,7 @@ program
         spinner.succeed(`Logs exported to ${options.output}`);
       } else {
         spinner.succeed('Logs exported');
-        console.log(logs);
+        logger.info(logs);
       }
     } catch (error) {
       spinner.fail('Failed to export logs from Claude Flow memory');
@@ -655,17 +656,17 @@ program
       
       spinner.succeed('Log analysis completed');
       
-      console.log('\n' + chalk.bold('Claude Flow Memory Analytics'));
-      console.log(`Period: Last ${options.days} days`);
-      console.log(`Total logs: ${analytics.overview.totalLogs}`);
-      console.log(`Error rate: ${chalk.red(analytics.overview.errorRate.toFixed(1))}%`);
+      logger.info('\n' + chalk.bold('Claude Flow Memory Analytics'));
+      logger.info(`Period: Last ${options.days} days`);
+      logger.info(`Total logs: ${analytics.overview.totalLogs}`);
+      logger.info(`Error rate: ${chalk.red(analytics.overview.errorRate.toFixed(1))}%`);
       
-      console.log('\n' + chalk.bold('By Category:'));
+      logger.info('\n' + chalk.bold('By Category:'));
       Object.entries(analytics.overview.categoryBreakdown).forEach(([cat, count]) => {
-        console.log(`  ${cat}: ${count}`);
+        logger.info(`  ${cat}: ${count}`);
       });
       
-      console.log('\n' + chalk.bold('By Level:'));
+      logger.info('\n' + chalk.bold('By Level:'));
       Object.entries(analytics.overview.levelBreakdown).forEach(([level, count]) => {
         const color = {
           DEBUG: 'gray',
@@ -674,24 +675,24 @@ program
           ERROR: 'red',
           CRITICAL: 'magenta'
         }[level] || 'white';
-        console.log(`  ${chalk[color](level)}: ${count}`);
+        logger.info(`  ${chalk[color](level)}: ${count}`);
       });
 
       if (analytics.driftAnalysis.totalDrifts > 0) {
-        console.log('\n' + chalk.bold('Drift Analysis:'));
-        console.log(`Total drifts: ${analytics.driftAnalysis.totalDrifts}`);
-        console.log(`Fixable drifts: ${analytics.driftAnalysis.fixableCount}`);
+        logger.info('\n' + chalk.bold('Drift Analysis:'));
+        logger.info(`Total drifts: ${analytics.driftAnalysis.totalDrifts}`);
+        logger.info(`Fixable drifts: ${analytics.driftAnalysis.fixableCount}`);
       }
 
       if (analytics.migrationAnalysis.totalMigrations > 0) {
-        console.log('\n' + chalk.bold('Migration Analysis:'));
-        console.log(`Total migrations: ${analytics.migrationAnalysis.totalMigrations}`);
-        console.log(`Success rate: ${chalk.green(analytics.migrationAnalysis.successRate.toFixed(1))}%`);
-        console.log(`Avg execution time: ${analytics.migrationAnalysis.avgExecutionTime.toFixed(0)}ms`);
+        logger.info('\n' + chalk.bold('Migration Analysis:'));
+        logger.info(`Total migrations: ${analytics.migrationAnalysis.totalMigrations}`);
+        logger.info(`Success rate: ${chalk.green(analytics.migrationAnalysis.successRate.toFixed(1))}%`);
+        logger.info(`Avg execution time: ${analytics.migrationAnalysis.avgExecutionTime.toFixed(0)}ms`);
       }
 
       if (analytics.alerts && analytics.alerts.length > 0) {
-        console.log('\n' + chalk.bold('Active Alerts:'));
+        logger.info('\n' + chalk.bold('Active Alerts:'));
         analytics.alerts.forEach(alert => {
           const color = {
             CRITICAL: 'red',
@@ -699,7 +700,7 @@ program
             MEDIUM: 'blue',
             LOW: 'gray'
           }[alert.severity] || 'white';
-          console.log(`  ${chalk[color](`[${alert.severity}]`)} ${alert.title}`);
+          logger.info(`  ${chalk[color](`[${alert.severity}]`)} ${alert.title}`);
         });
       }
     } catch (error) {
@@ -725,21 +726,21 @@ program
       spinner.succeed(`Found ${results.totalMatches} matches across all namespaces`);
       
       if (results.totalMatches === 0) {
-        console.log(chalk.yellow('No matches found'));
+        logger.info(chalk.yellow('No matches found'));
         return;
       }
       
-      console.log('\n' + chalk.bold('Search Results:'));
+      logger.info('\n' + chalk.bold('Search Results:'));
       
       Object.entries(results.results).forEach(([namespace, matches]) => {
         if (matches.length > 0) {
-          console.log(`\n${chalk.cyan(namespace.toUpperCase())} (${matches.length} matches):`);
+          logger.info(`\n${chalk.cyan(namespace.toUpperCase())} (${matches.length} matches):`);
           matches.slice(0, 5).forEach((match, index) => {
-            console.log(`  ${index + 1}. ${match.data.message || match.data.title || 'No message'}`);
-            console.log(`     ${chalk.gray(new Date(match.data.timestamp).toLocaleString())}`);
+            logger.info(`  ${index + 1}. ${match.data.message || match.data.title || 'No message'}`);
+            logger.info(`     ${chalk.gray(new Date(match.data.timestamp).toLocaleString())}`);
           });
           if (matches.length > 5) {
-            console.log(`     ${chalk.gray(`... and ${matches.length - 5} more`)}`);
+            logger.info(`     ${chalk.gray(`... and ${matches.length - 5} more`)}`);
           }
         }
       });
@@ -755,8 +756,8 @@ program
   .option('--force', 'Force cleanup without confirmation')
   .action(async (options) => {
     if (!options.force) {
-      console.log(chalk.yellow('This will cleanup old data from Claude Flow memory namespaces.'));
-      console.log('Add --force to confirm this action.');
+      logger.info(chalk.yellow('This will cleanup old data from Claude Flow memory namespaces.'));
+      logger.info('Add --force to confirm this action.');
       return;
     }
     
@@ -769,14 +770,14 @@ program
       
       spinner.succeed('Memory cleanup completed');
       
-      console.log('\n' + chalk.bold('Cleanup Results:'));
-      console.log(`Namespaces processed: ${results.namespacesCleared}`);
-      console.log(`Entries removed: ${results.entriesRemoved}`);
+      logger.info('\n' + chalk.bold('Cleanup Results:'));
+      logger.info(`Namespaces processed: ${results.namespacesCleared}`);
+      logger.info(`Entries removed: ${results.entriesRemoved}`);
       
       if (results.errors.length > 0) {
-        console.log('\n' + chalk.yellow('Errors:'));
+        logger.info('\n' + chalk.yellow('Errors:'));
         results.errors.forEach(error => {
-          console.log(`  - ${error}`);
+          logger.info(`  - ${error}`);
         });
       }
     } catch (error) {
@@ -804,11 +805,11 @@ program
       if (options.output) {
         const content = typeof report === 'string' ? report : JSON.stringify(report, null, 2);
         await fs.promises.writeFile(options.output, content);
-        console.log(chalk.green(`Report saved to ${options.output}`));
+        logger.info(chalk.green(`Report saved to ${options.output}`));
       } else if (options.format === 'summary') {
         displayReportSummary(report);
       } else {
-        console.log(JSON.stringify(report, null, 2));
+        logger.info(JSON.stringify(report, null, 2));
       }
     } catch (error) {
       spinner.fail('Failed to generate memory report');
@@ -835,11 +836,11 @@ program
       spinner.succeed(`Found ${alerts.length} active alerts`);
       
       if (alerts.length === 0) {
-        console.log(chalk.green('No active alerts'));
+        logger.info(chalk.green('No active alerts'));
         return;
       }
       
-      console.log('\n' + chalk.bold('Active Alerts:'));
+      logger.info('\n' + chalk.bold('Active Alerts:'));
       alerts.forEach((alert, index) => {
         const color = {
           CRITICAL: 'red',
@@ -848,11 +849,11 @@ program
           LOW: 'gray'
         }[alert.severity] || 'white';
         
-        console.log(`\n${index + 1}. ${chalk[color](`[${alert.severity}]`)} ${alert.title}`);
-        console.log(`   ${alert.description}`);
-        console.log(`   ${chalk.gray(new Date(alert.timestamp).toLocaleString())}`);
+        logger.info(`\n${index + 1}. ${chalk[color](`[${alert.severity}]`)} ${alert.title}`);
+        logger.info(`   ${alert.description}`);
+        logger.info(`   ${chalk.gray(new Date(alert.timestamp).toLocaleString())}`);
         if (alert.details && alert.details.component) {
-          console.log(`   Component: ${alert.details.component}`);
+          logger.info(`   Component: ${alert.details.component}`);
         }
       });
     } catch (error) {
@@ -863,9 +864,9 @@ program
 
 // Helper function to display report summary
 function displayReportSummary(report) {
-  console.log('\n' + chalk.bold('System Health Report'));
-  console.log(`Period: ${report.metadata.period}`);
-  console.log(`Generated: ${new Date(report.metadata.generatedAt).toLocaleString()}`);
+  logger.info('\n' + chalk.bold('System Health Report'));
+  logger.info(`Period: ${report.metadata.period}`);
+  logger.info(`Generated: ${new Date(report.metadata.generatedAt).toLocaleString()}`);
   
   const status = report.summary.status;
   const statusColor = {
@@ -874,34 +875,34 @@ function displayReportSummary(report) {
     CRITICAL: 'red'
   }[status] || 'white';
   
-  console.log(`\nOverall Status: ${chalk[statusColor](status)}`);
+  logger.info(`\nOverall Status: ${chalk[statusColor](status)}`);
   
   if (report.summary.issues.length > 0) {
-    console.log('\n' + chalk.bold('Issues:'));
+    logger.info('\n' + chalk.bold('Issues:'));
     report.summary.issues.forEach(issue => {
-      console.log(`  - ${issue}`);
+      logger.info(`  - ${issue}`);
     });
   }
   
   if (report.summary.recommendations.length > 0) {
-    console.log('\n' + chalk.bold('Recommendations:'));
+    logger.info('\n' + chalk.bold('Recommendations:'));
     report.summary.recommendations.forEach(rec => {
-      console.log(`  - ${rec}`);
+      logger.info(`  - ${rec}`);
     });
   }
   
-  console.log('\n' + chalk.bold('Analytics Summary:'));
-  console.log(`Total logs: ${report.analytics.overview.totalLogs}`);
-  console.log(`Error rate: ${report.analytics.overview.errorRate.toFixed(1)}%`);
-  console.log(`Total drifts: ${report.analytics.driftAnalysis.totalDrifts}`);
-  console.log(`Migration success rate: ${report.analytics.migrationAnalysis.successRate.toFixed(1)}%`);
-  console.log(`Active alerts: ${report.activeAlerts.length}`);
+  logger.info('\n' + chalk.bold('Analytics Summary:'));
+  logger.info(`Total logs: ${report.analytics.overview.totalLogs}`);
+  logger.info(`Error rate: ${report.analytics.overview.errorRate.toFixed(1)}%`);
+  logger.info(`Total drifts: ${report.analytics.driftAnalysis.totalDrifts}`);
+  logger.info(`Migration success rate: ${report.analytics.migrationAnalysis.successRate.toFixed(1)}%`);
+  logger.info(`Active alerts: ${report.activeAlerts.length}`);
 }
 
 // Helper function to display logs
 function displayLogs(logs) {
   if (logs.length === 0) {
-    console.log(chalk.yellow('No logs found'));
+    logger.info(chalk.yellow('No logs found'));
     return;
   }
   
@@ -930,7 +931,7 @@ function displayLogs(logs) {
     ]);
   });
   
-  console.log(table.toString());
+  logger.info(table.toString());
 }
 
 // Helper function to show recent logs after operations (using Claude Flow)
@@ -939,7 +940,7 @@ async function showRecentLogs(system, category, limit = 5) {
   
   try {
     await claudeFlow.initialize();
-    console.log('\n' + chalk.gray('Recent logs from Claude Flow memory:'));
+    logger.info('\n' + chalk.gray('Recent logs from Claude Flow memory:'));
     const logs = await claudeFlow.getRecentLogs(limit, category);
     
     logs.forEach(log => {
@@ -951,14 +952,14 @@ async function showRecentLogs(system, category, limit = 5) {
         CRITICAL: 'magenta'
       }[log.level] || 'white';
       
-      console.log(
+      logger.info(
         chalk.gray(format(new Date(log.timestamp), 'HH:mm:ss')) + ' ' +
         chalk[levelColor](`[${log.level}]`) + ' ' +
         log.message
       );
     });
   } catch (error) {
-    console.log(chalk.gray('Unable to load recent logs from Claude Flow memory'));
+    logger.info(chalk.gray('Unable to load recent logs from Claude Flow memory'));
   }
 }
 

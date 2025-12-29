@@ -19,6 +19,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
+import { logger } from './utils/logger';
   Select,
   SelectContent,
   SelectItem,
@@ -140,11 +141,11 @@ const NewQuote: NextPage<NewQuoteProps> = ({ rfq, warehouses, chargeCategories }
         router.push(`/admin/quotes/${newQuote.id}`);
       } else {
         const errorData = await response.json();
-        console.error('Failed to create quote', errorData);
+        logger.error('Failed to create quote', errorData);
         alert('Failed to create quote');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the quote.');
     } finally {
       setIsSubmitting(false);

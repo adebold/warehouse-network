@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../lib/prisma';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface OperatorSettingsProps {
   operator: Operator;
@@ -47,11 +48,11 @@ const OperatorSettings: NextPage<OperatorSettingsProps> = ({ operator }) => {
         alert('Profile updated successfully');
       } else {
         const errorData = await response.json();
-        console.error('Failed to update profile', errorData);
+        logger.error('Failed to update profile', errorData);
         alert('Failed to update profile');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while updating the profile.');
     }
   };

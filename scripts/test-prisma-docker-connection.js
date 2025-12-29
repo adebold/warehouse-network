@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { PrismaClient } = require('@prisma/client');
+const { logger } = require('./utils/logger');
 
 // Create Prisma client with Docker PostgreSQL connection
 const prisma = new PrismaClient({
@@ -13,16 +14,16 @@ const prisma = new PrismaClient({
 });
 
 async function testConnection() {
-  console.log('🧪 Testing Prisma connection to Docker PostgreSQL...\n');
+  logger.info('🧪 Testing Prisma connection to Docker PostgreSQL...\n');
 
   try {
     // Test 1: Basic connection
-    console.log('📡 Test 1: Basic connection test...');
+    logger.info('📡 Test 1: Basic connection test...');
     await prisma.$connect();
-    console.log('✅ Successfully connected to Docker PostgreSQL\n');
+    logger.info('✅ Successfully connected to Docker PostgreSQL\n');
 
     // Test 2: Query execution
-    console.log('📊 Test 2: Query execution test...');
+    logger.info('📊 Test 2: Query execution test...');
     const startTime = Date.now();
     
     const [users, operators, warehouses] = await Promise.all([
@@ -32,10 +33,10 @@ async function testConnection() {
     ]);
     
     const queryTime = Date.now() - startTime;
-    console.log(`✅ Queries executed successfully in ${queryTime}ms\n`);
+    logger.info(`✅ Queries executed successfully in ${queryTime}ms\n`);
 
     // Test 3: Complex query with joins
-    console.log('🔗 Test 3: Complex query test...');
+    logger.info('🔗 Test 3: Complex query test...');
     const quotes = await prisma.quote.findMany({
       include: {
         rfq: {
@@ -51,10 +52,10 @@ async function testConnection() {
         items: true
       }
     });
-    console.log(`✅ Found ${quotes.length} quotes with related data\n`);
+    logger.info(`✅ Found ${quotes.length} quotes with related data\n`);
 
     // Test 4: Transaction test
-    console.log('💱 Test 4: Transaction test...');
+    logger.info('💱 Test 4: Transaction test...');
     await prisma.$transaction(async (tx) => {
       const lead = await tx.lead.create({
         data: {
@@ -67,11 +68,11 @@ async function testConnection() {
       
       // Immediately delete it to test rollback
       await tx.lead.delete({ where: { id: lead.id } });
-      console.log('✅ Transaction completed successfully\n');
+      logger.info('✅ Transaction completed successfully\n');
     });
 
     // Test 5: Raw SQL query
-    console.log('📝 Test 5: Raw SQL query test...');
+    logger.info('📝 Test 5: Raw SQL query test...');
     const tableStats = await prisma.$queryRaw`
       SELECT 
         s.relname as tablename,
@@ -85,36 +86,36 @@ async function testConnection() {
       LIMIT 10;
     `;
     
-    console.log('✅ Top tables by size:');
+    logger.info('✅ Top tables by size:');
     tableStats.forEach(stat => {
-      console.log(`   - ${stat.tablename}: ${stat.size} (${stat.row_count} rows)`);
+      logger.info(`   - ${stat.tablename}: ${stat.size} (${stat.row_count} rows)`);
     });
 
     // Summary
-    console.log('\n📈 Connection Test Summary:');
-    console.log(`- Total Users: ${users.length}`);
-    console.log(`- Total Operators: ${operators.length}`);
-    console.log(`- Total Warehouses: ${warehouses.length}`);
-    console.log(`- Connection URL: postgresql://warehouse:****@localhost:5433/warehouse_network`);
-    console.log('\n✨ All tests passed successfully!');
+    logger.info('\n📈 Connection Test Summary:');
+    logger.info(`- Total Users: ${users.length}`);
+    logger.info(`- Total Operators: ${operators.length}`);
+    logger.info(`- Total Warehouses: ${warehouses.length}`);
+    logger.info(`- Connection URL: postgresql://warehouse:****@localhost:5433/warehouse_network`);
+    logger.info('\n✨ All tests passed successfully!');
 
     // Display sample data
     if (warehouses.length > 0) {
-      console.log('\n🏢 Sample Warehouse:');
+      logger.info('\n🏢 Sample Warehouse:');
       const warehouse = warehouses[0];
-      console.log(`- Name: ${warehouse.name}`);
-      console.log(`- Location: ${warehouse.city}, ${warehouse.province}`);
-      console.log(`- Features: ${warehouse.features.map(f => f.feature).join(', ')}`);
-      console.log(`- Images: ${warehouse.images.length}`);
+      logger.info(`- Name: ${warehouse.name}`);
+      logger.info(`- Location: ${warehouse.city}, ${warehouse.province}`);
+      logger.info(`- Features: ${warehouse.features.map(f => f.feature).join(', ')}`);
+      logger.info(`- Images: ${warehouse.images.length}`);
     }
 
   } catch (error) {
-    console.error('❌ Test failed:', error);
-    console.error('\n💡 Troubleshooting tips:');
-    console.error('1. Ensure Docker PostgreSQL is running: docker ps | grep warehouse-postgres');
-    console.error('2. Check if port 5433 is available: lsof -i :5433');
-    console.error('3. Verify credentials in docker-compose.yml');
-    console.error('4. Run migrations: ./scripts/docker-migrate.sh');
+    logger.error('❌ Test failed:', error);
+    logger.error('\n💡 Troubleshooting tips:');
+    logger.error('1. Ensure Docker PostgreSQL is running: docker ps | grep warehouse-postgres');
+    logger.error('2. Check if port 5433 is available: lsof -i :5433');
+    logger.error('3. Verify credentials in docker-compose.yml');
+    logger.error('4. Run migrations: ./scripts/docker-migrate.sh');
     process.exit(1);
   } finally {
     await prisma.$disconnect();

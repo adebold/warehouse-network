@@ -1,0 +1,764 @@
+{
+  "name": "Analytics Reporting - Automated Reports & Dashboards",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 8 * * *"
+            }
+          ]
+        }
+      },
+      "id": "daily-trigger",
+      "name": "Daily Report Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [150, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "id": "weekly-trigger",
+      "name": "Weekly Report Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [150, 350],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 10 1 * *"
+            }
+          ]
+        }
+      },
+      "id": "monthly-trigger",
+      "name": "Monthly Report Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [150, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "generate-report",
+        "authentication": "headerAuth",
+        "headerAuth": {
+          "name": "X-API-Key",
+          "value": "={{ $credentials.apiKey }}"
+        },
+        "responseMode": "onReceived"
+      },
+      "id": "manual-trigger",
+      "name": "Manual Report Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "position": [150, 650],
+      "webhookId": "analytics-report-webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.trigger_type }}",
+              "operation": "equals",
+              "value2": "daily"
+            }
+          ]
+        }
+      },
+      "id": "report-router",
+      "name": "Report Type Router",
+      "type": "n8n-nodes-base.switch",
+      "position": [450, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Collect KPIs from multiple sources\nconst reportType = $input.item.json.report_type || 'daily';\nconst dateRange = getDateRange(reportType);\n\nconst kpis = {\n  marketing: {\n    leads_generated: 0,\n    conversion_rate: 0,\n    cost_per_lead: 0,\n    revenue_attributed: 0,\n    roi: 0\n  },\n  content: {\n    posts_published: 0,\n    total_reach: 0,\n    engagement_rate: 0,\n    shares: 0,\n    comments: 0\n  },\n  email: {\n    emails_sent: 0,\n    open_rate: 0,\n    click_rate: 0,\n    unsubscribe_rate: 0,\n    deliverability: 0\n  },\n  social_media: {\n    followers_growth: 0,\n    mentions: 0,\n    share_of_voice: 0,\n    sentiment_score: 0\n  },\n  website: {\n    unique_visitors: 0,\n    page_views: 0,\n    bounce_rate: 0,\n    avg_session_duration: 0,\n    conversion_rate: 0\n  },\n  paid_advertising: {\n    impressions: 0,\n    clicks: 0,\n    ctr: 0,\n    cpc: 0,\n    spend: 0,\n    roas: 0\n  }\n};\n\nreturn {\n  report_type: reportType,\n  date_range: dateRange,\n  kpis: kpis,\n  generated_at: new Date().toISOString()\n};\n\nfunction getDateRange(type) {\n  const end = new Date();\n  const start = new Date();\n  \n  switch(type) {\n    case 'daily':\n      start.setDate(end.getDate() - 1);\n      break;\n    case 'weekly':\n      start.setDate(end.getDate() - 7);\n      break;\n    case 'monthly':\n      start.setMonth(end.getMonth() - 1);\n      break;\n  }\n  \n  return {\n    start: start.toISOString(),\n    end: end.toISOString()\n  };\n}"
+      },
+      "id": "kpi-collector",
+      "name": "KPI Collector",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(DISTINCT id) as leads_generated,\n  AVG(CASE WHEN status = 'converted' THEN 1 ELSE 0 END) * 100 as conversion_rate,\n  AVG(acquisition_cost) as cost_per_lead,\n  SUM(revenue_attributed) as revenue_attributed\nFROM leads\nWHERE created_at BETWEEN '{{ $json.date_range.start }}' AND '{{ $json.date_range.end }}'"
+      },
+      "id": "lead-metrics",
+      "name": "Lead Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "position": [850, 200],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(*) as posts_published,\n  SUM(reach) as total_reach,\n  AVG(engagement_rate) as avg_engagement_rate,\n  SUM(shares) as total_shares,\n  SUM(comments) as total_comments\nFROM content_performance\nWHERE published_at BETWEEN '{{ $json.date_range.start }}' AND '{{ $json.date_range.end }}'"
+      },
+      "id": "content-metrics",
+      "name": "Content Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "position": [850, 350],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "SELECT \n  COUNT(*) as emails_sent,\n  AVG(open_rate) as open_rate,\n  AVG(click_rate) as click_rate,\n  AVG(unsubscribe_rate) as unsubscribe_rate,\n  AVG(deliverability_rate) as deliverability\nFROM email_analytics\nWHERE sent_at BETWEEN '{{ $json.date_range.start }}' AND '{{ $json.date_range.end }}'"
+      },
+      "id": "email-metrics",
+      "name": "Email Metrics",
+      "type": "n8n-nodes-base.postgres",
+      "position": [850, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "reports",
+        "operation": "run",
+        "viewId": "{{ $credentials.viewId }}",
+        "dateRanges": {
+          "startDate": "={{ $json.date_range.start.split('T')[0] }}",
+          "endDate": "={{ $json.date_range.end.split('T')[0] }}"
+        },
+        "metrics": {
+          "metric": [
+            {
+              "expression": "ga:users"
+            },
+            {
+              "expression": "ga:pageviews"
+            },
+            {
+              "expression": "ga:bounceRate"
+            },
+            {
+              "expression": "ga:avgSessionDuration"
+            },
+            {
+              "expression": "ga:goalConversionRateAll"
+            }
+          ]
+        }
+      },
+      "id": "google-analytics",
+      "name": "Google Analytics",
+      "type": "n8n-nodes-base.googleAnalytics",
+      "position": [850, 650],
+      "typeVersion": 1,
+      "credentials": {
+        "googleAnalyticsOAuth2": {
+          "id": "11",
+          "name": "Google Analytics"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v12.0/act_{{ $credentials.adAccountId }}/insights",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookOAuth2Api",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "time_range",
+              "value": "={{ JSON.stringify({since: $json.date_range.start, until: $json.date_range.end}) }}"
+            },
+            {
+              "name": "fields",
+              "value": "impressions,clicks,ctr,cpc,spend,purchase_roas"
+            }
+          ]
+        }
+      },
+      "id": "facebook-ads",
+      "name": "Facebook Ads",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [850, 800],
+      "typeVersion": 3,
+      "credentials": {
+        "facebookOAuth2Api": {
+          "id": "2",
+          "name": "Facebook Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://googleads.googleapis.com/v11/customers/{{ $credentials.customerId }}/googleAds:searchStream",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleAdsOAuth2",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "SELECT metrics.impressions, metrics.clicks, metrics.ctr, metrics.average_cpc, metrics.cost_micros FROM campaign WHERE segments.date BETWEEN '{{ $json.date_range.start }}' AND '{{ $json.date_range.end }}'"
+            }
+          ]
+        }
+      },
+      "id": "google-ads",
+      "name": "Google Ads",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1050, 800],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "jsCode": "// Aggregate all metrics\nconst metrics = $input.all();\nconst kpis = $json.kpis;\n\n// Process lead metrics\nif (metrics[0]?.json?.leads_generated) {\n  kpis.marketing.leads_generated = metrics[0].json.leads_generated;\n  kpis.marketing.conversion_rate = metrics[0].json.conversion_rate;\n  kpis.marketing.cost_per_lead = metrics[0].json.cost_per_lead;\n  kpis.marketing.revenue_attributed = metrics[0].json.revenue_attributed;\n  kpis.marketing.roi = ((metrics[0].json.revenue_attributed - metrics[0].json.total_spend) / metrics[0].json.total_spend * 100) || 0;\n}\n\n// Process content metrics\nif (metrics[1]?.json?.posts_published) {\n  kpis.content.posts_published = metrics[1].json.posts_published;\n  kpis.content.total_reach = metrics[1].json.total_reach;\n  kpis.content.engagement_rate = metrics[1].json.avg_engagement_rate;\n  kpis.content.shares = metrics[1].json.total_shares;\n  kpis.content.comments = metrics[1].json.total_comments;\n}\n\n// Process email metrics\nif (metrics[2]?.json?.emails_sent) {\n  kpis.email.emails_sent = metrics[2].json.emails_sent;\n  kpis.email.open_rate = metrics[2].json.open_rate;\n  kpis.email.click_rate = metrics[2].json.click_rate;\n  kpis.email.unsubscribe_rate = metrics[2].json.unsubscribe_rate;\n  kpis.email.deliverability = metrics[2].json.deliverability;\n}\n\n// Process website metrics (GA)\nif (metrics[3]?.json?.reports) {\n  const gaData = metrics[3].json.reports[0].data.rows[0].metrics[0].values;\n  kpis.website.unique_visitors = parseInt(gaData[0]);\n  kpis.website.page_views = parseInt(gaData[1]);\n  kpis.website.bounce_rate = parseFloat(gaData[2]);\n  kpis.website.avg_session_duration = parseFloat(gaData[3]);\n  kpis.website.conversion_rate = parseFloat(gaData[4]);\n}\n\n// Process paid advertising metrics\nlet totalImpressions = 0;\nlet totalClicks = 0;\nlet totalSpend = 0;\nlet totalRevenue = 0;\n\n// Facebook Ads\nif (metrics[4]?.json?.data) {\n  const fbData = metrics[4].json.data[0];\n  totalImpressions += parseInt(fbData.impressions);\n  totalClicks += parseInt(fbData.clicks);\n  totalSpend += parseFloat(fbData.spend);\n  totalRevenue += parseFloat(fbData.purchase_roas) * parseFloat(fbData.spend);\n}\n\n// Google Ads\nif (metrics[5]?.json?.results) {\n  const googleData = metrics[5].json.results[0].metrics;\n  totalImpressions += googleData.impressions;\n  totalClicks += googleData.clicks;\n  totalSpend += googleData.cost_micros / 1000000;\n}\n\nkpis.paid_advertising.impressions = totalImpressions;\nkpis.paid_advertising.clicks = totalClicks;\nkpis.paid_advertising.ctr = totalClicks / totalImpressions * 100;\nkpis.paid_advertising.cpc = totalSpend / totalClicks;\nkpis.paid_advertising.spend = totalSpend;\nkpis.paid_advertising.roas = totalRevenue / totalSpend;\n\nreturn {\n  report_type: $json.report_type,\n  date_range: $json.date_range,\n  kpis: kpis,\n  generated_at: new Date().toISOString()\n};"
+      },
+      "id": "aggregate-metrics",
+      "name": "Aggregate Metrics",
+      "type": "n8n-nodes-base.code",
+      "position": [1250, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Generate Executive Summary\nconst kpis = $input.item.json.kpis;\nconst reportType = $input.item.json.report_type;\n\n// Calculate highlights and lowlights\nconst highlights = [];\nconst concerns = [];\nconst recommendations = [];\n\n// Marketing Performance\nif (kpis.marketing.roi > 200) {\n  highlights.push(`Outstanding ROI of ${kpis.marketing.roi.toFixed(1)}%`);\n} else if (kpis.marketing.roi < 100) {\n  concerns.push(`ROI below target at ${kpis.marketing.roi.toFixed(1)}%`);\n  recommendations.push('Review and optimize campaign targeting');\n}\n\nif (kpis.marketing.conversion_rate > 5) {\n  highlights.push(`Strong conversion rate of ${kpis.marketing.conversion_rate.toFixed(1)}%`);\n}\n\n// Content Performance\nif (kpis.content.engagement_rate > 5) {\n  highlights.push(`Excellent engagement rate of ${kpis.content.engagement_rate.toFixed(1)}%`);\n} else if (kpis.content.engagement_rate < 2) {\n  concerns.push('Low content engagement');\n  recommendations.push('A/B test content formats and posting times');\n}\n\n// Email Marketing\nif (kpis.email.open_rate > 25) {\n  highlights.push(`Strong email open rate of ${kpis.email.open_rate.toFixed(1)}%`);\n}\nif (kpis.email.unsubscribe_rate > 1) {\n  concerns.push('High unsubscribe rate');\n  recommendations.push('Review email frequency and content relevance');\n}\n\n// Website Performance\nif (kpis.website.bounce_rate > 60) {\n  concerns.push(`High bounce rate of ${kpis.website.bounce_rate.toFixed(1)}%`);\n  recommendations.push('Improve page load speed and content relevance');\n}\n\n// Paid Advertising\nconst targetCPC = 2.5;\nif (kpis.paid_advertising.cpc > targetCPC) {\n  concerns.push(`CPC above target at $${kpis.paid_advertising.cpc.toFixed(2)}`);\n  recommendations.push('Refine keyword bidding strategy');\n}\n\nreturn {\n  ...kpis,\n  executive_summary: {\n    period: reportType,\n    highlights: highlights,\n    concerns: concerns,\n    recommendations: recommendations,\n    overall_health: calculateHealthScore(kpis)\n  }\n};\n\nfunction calculateHealthScore(kpis) {\n  let score = 0;\n  let factors = 0;\n  \n  // Weight different metrics\n  if (kpis.marketing.roi > 150) score += 20;\n  else if (kpis.marketing.roi > 100) score += 10;\n  factors += 20;\n  \n  if (kpis.marketing.conversion_rate > 3) score += 15;\n  else if (kpis.marketing.conversion_rate > 1) score += 7;\n  factors += 15;\n  \n  if (kpis.content.engagement_rate > 3) score += 15;\n  else if (kpis.content.engagement_rate > 1) score += 7;\n  factors += 15;\n  \n  if (kpis.email.open_rate > 20) score += 10;\n  else if (kpis.email.open_rate > 15) score += 5;\n  factors += 10;\n  \n  if (kpis.website.bounce_rate < 50) score += 10;\n  else if (kpis.website.bounce_rate < 70) score += 5;\n  factors += 10;\n  \n  if (kpis.paid_advertising.roas > 4) score += 15;\n  else if (kpis.paid_advertising.roas > 2) score += 7;\n  factors += 15;\n  \n  const healthScore = (score / factors * 100).toFixed(0);\n  \n  return {\n    score: healthScore,\n    rating: healthScore > 80 ? 'Excellent' : healthScore > 60 ? 'Good' : healthScore > 40 ? 'Fair' : 'Poor'\n  };\n}"
+      },
+      "id": "executive-summary",
+      "name": "Executive Summary",
+      "type": "n8n-nodes-base.function",
+      "position": [1450, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Create Dashboard JSON for visualization tools\nconst data = $input.item.json;\n\nconst dashboard = {\n  id: `${data.report_type}_${Date.now()}`,\n  title: `Marketing ${data.report_type.charAt(0).toUpperCase() + data.report_type.slice(1)} Dashboard`,\n  created_at: new Date().toISOString(),\n  date_range: data.date_range,\n  widgets: [\n    {\n      type: 'scorecard',\n      title: 'Overall Health',\n      value: data.executive_summary.overall_health.score,\n      label: data.executive_summary.overall_health.rating,\n      color: data.executive_summary.overall_health.score > 70 ? 'green' : data.executive_summary.overall_health.score > 50 ? 'orange' : 'red'\n    },\n    {\n      type: 'metric_grid',\n      title: 'Key Performance Indicators',\n      metrics: [\n        { label: 'Leads Generated', value: data.marketing.leads_generated, trend: 'up' },\n        { label: 'Conversion Rate', value: `${data.marketing.conversion_rate.toFixed(1)}%`, trend: 'stable' },\n        { label: 'ROI', value: `${data.marketing.roi.toFixed(0)}%`, trend: data.marketing.roi > 150 ? 'up' : 'down' },\n        { label: 'Total Reach', value: formatNumber(data.content.total_reach), trend: 'up' }\n      ]\n    },\n    {\n      type: 'bar_chart',\n      title: 'Channel Performance',\n      data: [\n        { channel: 'Email', value: data.email.click_rate },\n        { channel: 'Social', value: data.content.engagement_rate },\n        { channel: 'Website', value: data.website.conversion_rate },\n        { channel: 'Paid Ads', value: data.paid_advertising.ctr }\n      ]\n    },\n    {\n      type: 'line_chart',\n      title: 'Spend vs Revenue',\n      data: [\n        { metric: 'Ad Spend', value: data.paid_advertising.spend },\n        { metric: 'Revenue', value: data.marketing.revenue_attributed }\n      ]\n    },\n    {\n      type: 'alerts',\n      title: 'Alerts & Recommendations',\n      items: [\n        ...data.executive_summary.concerns.map(c => ({ type: 'warning', message: c })),\n        ...data.executive_summary.recommendations.map(r => ({ type: 'info', message: r }))\n      ]\n    }\n  ]\n};\n\nreturn {\n  dashboard: dashboard,\n  raw_data: data\n};\n\nfunction formatNumber(num) {\n  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;\n  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;\n  return num.toString();\n}"
+      },
+      "id": "dashboard-generator",
+      "name": "Dashboard Generator",
+      "type": "n8n-nodes-base.code",
+      "position": [1650, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "analytics_reports",
+        "columns": "report_type,date_range_start,date_range_end,kpis,executive_summary,dashboard_config,generated_at",
+        "values": "={{ $json.raw_data.report_type }},={{ $json.raw_data.date_range.start }},={{ $json.raw_data.date_range.end }},={{ JSON.stringify($json.raw_data.kpis) }},={{ JSON.stringify($json.raw_data.executive_summary) }},={{ JSON.stringify($json.dashboard) }},={{ $now }}"
+      },
+      "id": "store-report",
+      "name": "Store Report",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1850, 400],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fromEmail": "analytics@company.com",
+        "toEmail": "={{ $json.recipients }}",
+        "subject": "{{ $json.raw_data.report_type.charAt(0).toUpperCase() + $json.raw_data.report_type.slice(1) }} Marketing Report - {{ $now.toFormat('MMM dd, yyyy') }}",
+        "html": "<html>\n<head>\n  <style>\n    body { font-family: Arial, sans-serif; }\n    .header { background-color: #2c3e50; color: white; padding: 20px; }\n    .metric { display: inline-block; margin: 10px; padding: 15px; background: #f4f4f4; border-radius: 5px; }\n    .highlight { color: #27ae60; font-weight: bold; }\n    .concern { color: #e74c3c; font-weight: bold; }\n    table { width: 100%; border-collapse: collapse; margin: 20px 0; }\n    th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }\n  </style>\n</head>\n<body>\n  <div class=\"header\">\n    <h1>Marketing Performance Report</h1>\n    <p>{{ $json.raw_data.date_range.start }} to {{ $json.raw_data.date_range.end }}</p>\n  </div>\n  \n  <h2>Executive Summary</h2>\n  <p>Overall Health Score: <span class=\"{{ $json.raw_data.executive_summary.overall_health.score > 70 ? 'highlight' : 'concern' }}\">{{ $json.raw_data.executive_summary.overall_health.score }}% ({{ $json.raw_data.executive_summary.overall_health.rating }})</span></p>\n  \n  <h3>Highlights:</h3>\n  <ul>\n    {{ $json.raw_data.executive_summary.highlights.map(h => '<li>' + h + '</li>').join('') }}\n  </ul>\n  \n  <h3>Concerns:</h3>\n  <ul>\n    {{ $json.raw_data.executive_summary.concerns.map(c => '<li class=\"concern\">' + c + '</li>').join('') }}\n  </ul>\n  \n  <h2>Key Metrics</h2>\n  <div>\n    <div class=\"metric\">\n      <h4>Leads Generated</h4>\n      <p>{{ $json.raw_data.kpis.marketing.leads_generated }}</p>\n    </div>\n    <div class=\"metric\">\n      <h4>Conversion Rate</h4>\n      <p>{{ $json.raw_data.kpis.marketing.conversion_rate.toFixed(1) }}%</p>\n    </div>\n    <div class=\"metric\">\n      <h4>ROI</h4>\n      <p>{{ $json.raw_data.kpis.marketing.roi.toFixed(0) }}%</p>\n    </div>\n    <div class=\"metric\">\n      <h4>Email Open Rate</h4>\n      <p>{{ $json.raw_data.kpis.email.open_rate.toFixed(1) }}%</p>\n    </div>\n  </div>\n  \n  <h2>Detailed Performance</h2>\n  <table>\n    <tr>\n      <th>Channel</th>\n      <th>Key Metric</th>\n      <th>Performance</th>\n      <th>Target</th>\n      <th>Status</th>\n    </tr>\n    <tr>\n      <td>Email Marketing</td>\n      <td>Open Rate</td>\n      <td>{{ $json.raw_data.kpis.email.open_rate.toFixed(1) }}%</td>\n      <td>20%</td>\n      <td>{{ $json.raw_data.kpis.email.open_rate > 20 ? '✅' : '⚠️' }}</td>\n    </tr>\n    <tr>\n      <td>Content Marketing</td>\n      <td>Engagement Rate</td>\n      <td>{{ $json.raw_data.kpis.content.engagement_rate.toFixed(1) }}%</td>\n      <td>3%</td>\n      <td>{{ $json.raw_data.kpis.content.engagement_rate > 3 ? '✅' : '⚠️' }}</td>\n    </tr>\n    <tr>\n      <td>Paid Advertising</td>\n      <td>ROAS</td>\n      <td>{{ $json.raw_data.kpis.paid_advertising.roas.toFixed(1) }}</td>\n      <td>4.0</td>\n      <td>{{ $json.raw_data.kpis.paid_advertising.roas > 4 ? '✅' : '⚠️' }}</td>\n    </tr>\n  </table>\n  \n  <h2>Recommendations</h2>\n  <ol>\n    {{ $json.raw_data.executive_summary.recommendations.map(r => '<li>' + r + '</li>').join('') }}\n  </ol>\n  \n  <p style=\"margin-top: 40px; color: #666;\">\n    <small>This is an automated report. For detailed analytics, please visit the marketing dashboard.</small>\n  </p>\n</body>\n</html>",
+        "attachments": {
+          "attachment": [
+            {
+              "propertyName": "data",
+              "binaryPropertyName": "report_pdf"
+            }
+          ]
+        }
+      },
+      "id": "email-report",
+      "name": "Email Report",
+      "type": "n8n-nodes-base.sendGrid",
+      "position": [2050, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "sendGridApi": {
+          "id": "9",
+          "name": "SendGrid Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "📊 *{{ $json.raw_data.report_type.charAt(0).toUpperCase() + $json.raw_data.report_type.slice(1) }} Marketing Report Ready*\n\nOverall Health: {{ $json.raw_data.executive_summary.overall_health.rating }} ({{ $json.raw_data.executive_summary.overall_health.score }}%)\n\n*Key Metrics:*\n• Leads: {{ $json.raw_data.kpis.marketing.leads_generated }}\n• Conversion Rate: {{ $json.raw_data.kpis.marketing.conversion_rate.toFixed(1) }}%\n• ROI: {{ $json.raw_data.kpis.marketing.roi.toFixed(0) }}%\n• Total Reach: {{ $json.raw_data.kpis.content.total_reach }}\n\n*Top Concerns:*\n{{ $json.raw_data.executive_summary.concerns.map(c => '• ' + c).join('\\n') }}\n\nView full dashboard: {{ $env.DASHBOARD_URL }}/reports/{{ $json.dashboard.id }}",
+        "additionalFields": {
+          "channel": "#marketing-reports",
+          "username": "Analytics Bot",
+          "icon_emoji": ":chart_with_upwards_trend:"
+        }
+      },
+      "id": "slack-notification",
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "position": [2050, 400],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.raw_data.executive_summary.overall_health.score }}",
+              "operation": "smaller",
+              "value2": 50
+            }
+          ]
+        }
+      },
+      "id": "alert-check",
+      "name": "Alert Check",
+      "type": "n8n-nodes-base.if",
+      "position": [1850, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "sendPrivate",
+        "user": "@marketing-director",
+        "text": "🚨 *URGENT: Marketing Performance Alert*\n\nThe {{ $json.raw_data.report_type }} report shows concerning metrics:\n\nHealth Score: {{ $json.raw_data.executive_summary.overall_health.score }}% (Poor)\n\n*Critical Issues:*\n{{ $json.raw_data.executive_summary.concerns.map(c => '• ' + c).join('\\n') }}\n\n*Immediate Actions Required:*\n{{ $json.raw_data.executive_summary.recommendations.map(r => '• ' + r).join('\\n') }}\n\nPlease review the full report and schedule an emergency meeting.",
+        "attachments": []
+      },
+      "id": "urgent-alert",
+      "name": "Urgent Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [2050, 700],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DASHBOARD_API_URL }}/api/dashboards",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dashboard_config",
+              "value": "={{ JSON.stringify($json.dashboard) }}"
+            },
+            {
+              "name": "report_id",
+              "value": "={{ $json.dashboard.id }}"
+            },
+            {
+              "name": "auto_refresh",
+              "value": "false"
+            },
+            {
+              "name": "share_settings",
+              "value": "={{ JSON.stringify({public: false, allowed_users: ['marketing-team']}) }}"
+            }
+          ]
+        }
+      },
+      "id": "push-dashboard",
+      "name": "Push to Dashboard",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1850, 300],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "mode": "passThrough"
+      },
+      "id": "merge-triggers",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "position": [350, 400],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $execution.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "error-check",
+      "name": "Error Check",
+      "type": "n8n-nodes-base.if",
+      "position": [2250, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "workflow_errors",
+        "columns": "workflow_name,error_message,error_data,timestamp",
+        "values": "analytics-reporting,={{ $json.error.message }},={{ JSON.stringify($json.error) }},={{ $now }}"
+      },
+      "id": "log-errors",
+      "name": "Log Errors",
+      "type": "n8n-nodes-base.postgres",
+      "position": [2450, 600],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Daily Report Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weekly Report Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Monthly Report Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Manual Report Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Report Type Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Type Router": {
+      "main": [
+        [
+          {
+            "node": "KPI Collector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KPI Collector": {
+      "main": [
+        [
+          {
+            "node": "Lead Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Content Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email Metrics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Analytics",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Facebook Ads",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Google Ads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Metrics": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Metrics": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Metrics": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Analytics": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Ads": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Ads": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Metrics": {
+      "main": [
+        [
+          {
+            "node": "Executive Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive Summary": {
+      "main": [
+        [
+          {
+            "node": "Dashboard Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dashboard Generator": {
+      "main": [
+        [
+          {
+            "node": "Store Report",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Alert Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Report": {
+      "main": [
+        [
+          {
+            "node": "Push to Dashboard",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Push to Dashboard": {
+      "main": [
+        [
+          {
+            "node": "Email Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Notification": {
+      "main": [
+        [
+          {
+            "node": "Error Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email Report": {
+      "main": [
+        [
+          {
+            "node": "Error Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Alert Check": {
+      "main": [
+        [
+          {
+            "node": "Urgent Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Error Check": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 600,
+    "maxExecutionRetries": 2,
+    "executionRetryDelay": 60000,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "errorWorkflow": "error-handling-workflow"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 4
+}

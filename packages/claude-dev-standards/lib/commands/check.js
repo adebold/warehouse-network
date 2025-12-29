@@ -3,6 +3,7 @@ const ora = require('ora');
 const validators = require('../validators');
 const config = require('../config');
 const reporter = require('../utils/reporter');
+const { logger } = require('../../../../../../utils/logger');
 
 const checkTypes = {
   mocks: 'Mock Usage Check',
@@ -55,7 +56,7 @@ async function check(type) {
     
   } catch (error) {
     spinner.fail(`Check failed: ${error.message}`);
-    console.error(chalk.red(error.stack));
+    logger.error(chalk.red(error.stack));
     process.exit(1);
   }
 }
@@ -92,62 +93,62 @@ async function runAllChecks(configuration) {
 function displayCheckResults(type, results) {
   if (Array.isArray(results)) {
     // Multiple check results
-    console.log(chalk.bold('\nValidation Results:\n'));
+    logger.info(chalk.bold('\nValidation Results:\n'));
     
     let totalErrors = 0;
     let totalWarnings = 0;
     
     results.forEach(result => {
       const status = result.passed ? chalk.green('✓') : chalk.red('✗');
-      console.log(`${status} ${result.name}`);
+      logger.info(`${status} ${result.name}`);
       
       if (result.errors && result.errors.length > 0) {
         totalErrors += result.errors.length;
         result.errors.forEach(error => {
-          console.log(`  ${chalk.red('●')} ${error}`);
+          logger.info(`  ${chalk.red('●')} ${error}`);
         });
       }
       
       if (result.warnings && result.warnings.length > 0) {
         totalWarnings += result.warnings.length;
         result.warnings.forEach(warning => {
-          console.log(`  ${chalk.yellow('●')} ${warning}`);
+          logger.info(`  ${chalk.yellow('●')} ${warning}`);
         });
       }
       
-      console.log();
+      logger.info();
     });
     
     // Summary
-    console.log(chalk.bold('Summary:'));
-    console.log(`  Errors: ${totalErrors > 0 ? chalk.red(totalErrors) : chalk.green(0)}`);
-    console.log(`  Warnings: ${totalWarnings > 0 ? chalk.yellow(totalWarnings) : chalk.green(0)}`);
+    logger.info(chalk.bold('Summary:'));
+    logger.info(`  Errors: ${totalErrors > 0 ? chalk.red(totalErrors) : chalk.green(0)}`);
+    logger.info(`  Warnings: ${totalWarnings > 0 ? chalk.yellow(totalWarnings) : chalk.green(0)}`);
     
   } else {
     // Single check result
     const status = results.passed ? chalk.green('✓ PASSED') : chalk.red('✗ FAILED');
-    console.log(`\n${checkTypes[type]}: ${status}\n`);
+    logger.info(`\n${checkTypes[type]}: ${status}\n`);
     
     if (results.errors && results.errors.length > 0) {
-      console.log(chalk.red('Errors:'));
+      logger.info(chalk.red('Errors:'));
       results.errors.forEach(error => {
-        console.log(`  ${chalk.red('●')} ${error}`);
+        logger.info(`  ${chalk.red('●')} ${error}`);
       });
-      console.log();
+      logger.info();
     }
     
     if (results.warnings && results.warnings.length > 0) {
-      console.log(chalk.yellow('Warnings:'));
+      logger.info(chalk.yellow('Warnings:'));
       results.warnings.forEach(warning => {
-        console.log(`  ${chalk.yellow('●')} ${warning}`);
+        logger.info(`  ${chalk.yellow('●')} ${warning}`);
       });
-      console.log();
+      logger.info();
     }
     
     if (results.info && results.info.length > 0) {
-      console.log(chalk.blue('Info:'));
+      logger.info(chalk.blue('Info:'));
       results.info.forEach(info => {
-        console.log(`  ${chalk.blue('●')} ${info}`);
+        logger.info(`  ${chalk.blue('●')} ${info}`);
       });
     }
   }

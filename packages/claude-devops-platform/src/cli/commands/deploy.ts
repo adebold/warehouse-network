@@ -442,22 +442,22 @@ export async function runDeploy(environment: string, options: any): Promise<void
       
       if (!qualityResult.allowed) {
         spinner.fail('Deployment blocked by quality gate');
-        console.error(chalk.red(`\n${qualityResult.reason}`));
+        logger.error(chalk.red(`\n${qualityResult.reason}`));
         
         if (qualityResult.check?.blockers && qualityResult.check.blockers.length > 0) {
-          console.log('\nQuality blockers detected:');
+          logger.info('\nQuality blockers detected:');
           qualityResult.check.blockers.forEach((blocker, index) => {
             const icon = blocker.severity === 'critical' ? '🚨' :
                         blocker.severity === 'high' ? '⚠️' :
                         blocker.severity === 'medium' ? '📋' : 'ℹ️';
-            console.log(`${icon}  ${index + 1}. [${blocker.severity.toUpperCase()}] ${blocker.description}`);
+            logger.info(`${icon}  ${index + 1}. [${blocker.severity.toUpperCase()}] ${blocker.description}`);
             if (blocker.recommendation) {
-              console.log(`    → ${blocker.recommendation}`);
+              logger.info(`    → ${blocker.recommendation}`);
             }
           });
         }
         
-        console.log(chalk.yellow('\nTo force deployment despite quality issues, use --force flag'));
+        logger.info(chalk.yellow('\nTo force deployment despite quality issues, use --force flag'));
         throw new Error('Quality gate failed');
       }
       
@@ -508,7 +508,7 @@ export async function runDeploy(environment: string, options: any): Promise<void
     
     // Schedule post-deployment quality check
     if (!options.skipQuality) {
-      console.log(chalk.gray('\nPost-deployment quality monitoring scheduled...'));
+      logger.info(chalk.gray('\nPost-deployment quality monitoring scheduled...'));
       setTimeout(async () => {
         try {
           const projectPath = options.qualityProjectPath || process.cwd();
@@ -520,8 +520,8 @@ export async function runDeploy(environment: string, options: any): Promise<void
           );
           
           if (rollbackCheck.needed) {
-            console.log(chalk.red(`\n⚠️  Quality degradation detected: ${rollbackCheck.reason}`));
-            console.log(chalk.yellow('Consider rolling back the deployment'));
+            logger.info(chalk.red(`\n⚠️  Quality degradation detected: ${rollbackCheck.reason}`));
+            logger.info(chalk.yellow('Consider rolling back the deployment'));
           }
         } catch (err) {
           logger.debug('Post-deployment quality check failed:', err);

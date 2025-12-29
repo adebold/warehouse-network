@@ -10,6 +10,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 
 import { 
+import { logger } from '../../../../../../utils/logger';
   AnalysisResult, 
   CodeQualityConfig, 
   IssueSeverity
@@ -50,10 +51,10 @@ export class ReportGenerator {
    * Display results in terminal
    */
   displayTerminal(result: AnalysisResult) {
-    console.log('\n' + chalk.bold.underline('Code Quality Analysis Report'));
-    console.log(chalk.gray(`Generated: ${result.timestamp.toLocaleString()}`));
-    console.log(chalk.gray(`Duration: ${result.duration}ms`));
-    console.log();
+    logger.info('\n' + chalk.bold.underline('Code Quality Analysis Report'));
+    logger.info(chalk.gray(`Generated: ${result.timestamp.toLocaleString()}`));
+    logger.info(chalk.gray(`Duration: ${result.duration}ms`));
+    logger.info();
 
     // Summary
     this.displaySummary(result);
@@ -81,50 +82,50 @@ export class ReportGenerator {
    * Display summary section
    */
   private displaySummary(result: AnalysisResult) {
-    console.log(chalk.bold('Summary:'));
-    console.log(`  Files analyzed: ${result.summary.totalFiles}`);
-    console.log(`  Total issues: ${result.summary.totalIssues}`);
-    console.log(`  Overall score: ${this.getScoreColor(result.summary.overallScore)}`);
-    console.log(`  Quality trend: ${this.getTrendIcon(result.summary.trend)}`);
-    console.log();
+    logger.info(chalk.bold('Summary:'));
+    logger.info(`  Files analyzed: ${result.summary.totalFiles}`);
+    logger.info(`  Total issues: ${result.summary.totalIssues}`);
+    logger.info(`  Overall score: ${this.getScoreColor(result.summary.overallScore)}`);
+    logger.info(`  Quality trend: ${this.getTrendIcon(result.summary.trend)}`);
+    logger.info();
 
     // Issues by severity
-    console.log(chalk.bold('Issues by severity:'));
+    logger.info(chalk.bold('Issues by severity:'));
     const severities: IssueSeverity[] = ['critical', 'error', 'warning', 'info'];
     severities.forEach(severity => {
       const count = result.summary.issuesBySeverity[severity] || 0;
       if (count > 0) {
-        console.log(`  ${this.getSeverityIcon(severity)} ${severity}: ${count}`);
+        logger.info(`  ${this.getSeverityIcon(severity)} ${severity}: ${count}`);
       }
     });
-    console.log();
+    logger.info();
   }
 
   /**
    * Display metrics section
    */
   private displayMetrics(result: AnalysisResult) {
-    console.log(chalk.bold('Metrics:'));
+    logger.info(chalk.bold('Metrics:'));
     const metrics = result.metrics;
     
-    console.log(chalk.underline('  Complexity:'));
-    console.log(`    Cyclomatic: ${metrics.complexity.cyclomatic}`);
-    console.log(`    Cognitive: ${metrics.complexity.cognitive}`);
-    console.log(`    Maintainability Index: ${metrics.complexity.maintainabilityIndex.toFixed(1)}`);
+    logger.info(chalk.underline('  Complexity:'));
+    logger.info(`    Cyclomatic: ${metrics.complexity.cyclomatic}`);
+    logger.info(`    Cognitive: ${metrics.complexity.cognitive}`);
+    logger.info(`    Maintainability Index: ${metrics.complexity.maintainabilityIndex.toFixed(1)}`);
     
-    console.log(chalk.underline('  Quality Scores:'));
-    console.log(`    Security: ${this.getScoreColor(metrics.quality.security)}`);
-    console.log(`    Performance: ${this.getScoreColor(metrics.quality.performance)}`);
-    console.log(`    Reliability: ${this.getScoreColor(metrics.quality.reliability)}`);
-    console.log(`    Testability: ${this.getScoreColor(metrics.quality.testability)}`);
+    logger.info(chalk.underline('  Quality Scores:'));
+    logger.info(`    Security: ${this.getScoreColor(metrics.quality.security)}`);
+    logger.info(`    Performance: ${this.getScoreColor(metrics.quality.performance)}`);
+    logger.info(`    Reliability: ${this.getScoreColor(metrics.quality.reliability)}`);
+    logger.info(`    Testability: ${this.getScoreColor(metrics.quality.testability)}`);
     
     if (metrics.debt.score > 0) {
-      console.log(chalk.underline('  Technical Debt:'));
-      console.log(`    Score: ${metrics.debt.score}`);
-      console.log(`    Estimated time: ${metrics.debt.time}`);
-      console.log(`    Estimated cost: $${metrics.debt.cost.toFixed(2)}`);
+      logger.info(chalk.underline('  Technical Debt:'));
+      logger.info(`    Score: ${metrics.debt.score}`);
+      logger.info(`    Estimated time: ${metrics.debt.time}`);
+      logger.info(`    Estimated cost: $${metrics.debt.cost.toFixed(2)}`);
     }
-    console.log();
+    logger.info();
   }
 
   /**
@@ -132,11 +133,11 @@ export class ReportGenerator {
    */
   private displayIssues(result: AnalysisResult) {
     if (result.issues.length === 0) {
-      console.log(chalk.green('No issues found!'));
+      logger.info(chalk.green('No issues found!'));
       return;
     }
 
-    console.log(chalk.bold(`Issues (${result.issues.length}):`));
+    logger.info(chalk.bold(`Issues (${result.issues.length}):`));
     
     // Group by file
     const issuesByFile = new Map<string, typeof result.issues>();
@@ -149,30 +150,30 @@ export class ReportGenerator {
 
     // Display issues
     issuesByFile.forEach((issues, file) => {
-      console.log(`\n  ${chalk.cyan(this.getRelativePath(file))}`);
+      logger.info(`\n  ${chalk.cyan(this.getRelativePath(file))}`);
       
       issues.forEach(issue => {
         const icon = this.getSeverityIcon(issue.severity);
         const location = `${issue.startLine}:${issue.startColumn}`;
-        console.log(`    ${icon} ${chalk.gray(location)} ${issue.message}`);
+        logger.info(`    ${icon} ${chalk.gray(location)} ${issue.message}`);
         
         if (this.config.output.verbosity === 'detailed') {
-          console.log(`       ${chalk.gray(`Rule: ${issue.rule}`)}`);
-          console.log(`       ${chalk.gray(`Category: ${issue.category}`)}`);
+          logger.info(`       ${chalk.gray(`Rule: ${issue.rule}`)}`);
+          logger.info(`       ${chalk.gray(`Category: ${issue.category}`)}`);
           if (issue.aiConfidence < 1) {
-            console.log(`       ${chalk.gray(`AI Confidence: ${(issue.aiConfidence * 100).toFixed(0)}%`)}`);
+            logger.info(`       ${chalk.gray(`AI Confidence: ${(issue.aiConfidence * 100).toFixed(0)}%`)}`);
           }
         }
       });
     });
-    console.log();
+    logger.info();
   }
 
   /**
    * Display recommendations section
    */
   private displayRecommendations(result: AnalysisResult) {
-    console.log(chalk.bold('Refactoring Recommendations:'));
+    logger.info(chalk.bold('Refactoring Recommendations:'));
     
     const uniqueRecommendations = new Map();
     result.recommendations.forEach(rec => {
@@ -183,11 +184,11 @@ export class ReportGenerator {
     });
 
     uniqueRecommendations.forEach(rec => {
-      console.log(`\n  ${chalk.yellow('→')} ${rec.description}`);
-      console.log(`     Type: ${rec.type}`);
-      console.log(`     Impact: ${this.getImpactColor(rec.impact)} | Effort: ${this.getEffortColor(rec.effort)}`);
+      logger.info(`\n  ${chalk.yellow('→')} ${rec.description}`);
+      logger.info(`     Type: ${rec.type}`);
+      logger.info(`     Impact: ${this.getImpactColor(rec.impact)} | Effort: ${this.getEffortColor(rec.effort)}`);
     });
-    console.log();
+    logger.info();
   }
 
   /**
@@ -197,26 +198,26 @@ export class ReportGenerator {
     const insights = result.aiInsights;
     
     if (insights.patterns.length > 0) {
-      console.log(chalk.bold('Detected Patterns:'));
+      logger.info(chalk.bold('Detected Patterns:'));
       insights.patterns.forEach(pattern => {
         const icon = pattern.impact === 'positive' ? '✓' : 
                     pattern.impact === 'negative' ? '✗' : '•';
-        console.log(`  ${icon} ${pattern.name} (${(pattern.confidence * 100).toFixed(0)}% confidence)`);
-        console.log(`     ${chalk.gray(pattern.description)}`);
+        logger.info(`  ${icon} ${pattern.name} (${(pattern.confidence * 100).toFixed(0)}% confidence)`);
+        logger.info(`     ${chalk.gray(pattern.description)}`);
       });
-      console.log();
+      logger.info();
     }
 
     if (insights.risks.length > 0) {
-      console.log(chalk.bold('Risk Assessment:'));
+      logger.info(chalk.bold('Risk Assessment:'));
       insights.risks.forEach(risk => {
         const color = risk.level === 'critical' ? chalk.red :
                      risk.level === 'high' ? chalk.yellow :
                      risk.level === 'medium' ? chalk.blue :
                      chalk.gray;
-        console.log(`  ${color('●')} ${risk.category}: ${risk.description}`);
+        logger.info(`  ${color('●')} ${risk.category}: ${risk.description}`);
       });
-      console.log();
+      logger.info();
     }
   }
 

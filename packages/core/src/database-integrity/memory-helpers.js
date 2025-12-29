@@ -6,6 +6,7 @@
 
 const { ClaudeFlowIntegration, MEMORY_NAMESPACES, LOG_LEVELS, LOG_CATEGORIES } = require('./claude-flow-integration');
 const { v4: uuidv4 } = require('uuid');
+const { logger } = require('../../../../../../../utils/logger');
 
 /**
  * Memory helper class for database integrity operations
@@ -290,7 +291,7 @@ class MemoryHelpers {
 
       return analytics;
     } catch (error) {
-      console.error('Failed to get drift analytics:', error);
+      logger.error('Failed to get drift analytics:', error);
       return { totalReports: 0, totalDrifts: 0, severityBreakdown: {}, trends: [] };
     }
   }
@@ -336,7 +337,7 @@ class MemoryHelpers {
 
       return analytics;
     } catch (error) {
-      console.error('Failed to get migration analytics:', error);
+      logger.error('Failed to get migration analytics:', error);
       return { totalMigrations: 0, successRate: 100, avgExecutionTime: 0, trends: [] };
     }
   }
@@ -406,7 +407,7 @@ class MemoryHelpers {
 
       return analytics;
     } catch (error) {
-      console.error('Failed to get validation analytics:', error);
+      logger.error('Failed to get validation analytics:', error);
       return { totalValidations: 0, overallSuccessRate: 100, byType: {}, trends: [] };
     }
   }
@@ -471,7 +472,7 @@ class MemoryHelpers {
 
       return analytics;
     } catch (error) {
-      console.error('Failed to get performance metrics:', error);
+      logger.error('Failed to get performance metrics:', error);
       return { components: {}, trends: [] };
     }
   }
@@ -498,7 +499,7 @@ class MemoryHelpers {
           return new Date(b.timestamp) - new Date(a.timestamp);
         });
     } catch (error) {
-      console.error('Failed to get active alerts:', error);
+      logger.error('Failed to get active alerts:', error);
       return [];
     }
   }
@@ -558,7 +559,7 @@ class MemoryHelpers {
 
       return trends;
     } catch (error) {
-      console.error('Failed to get trends:', error);
+      logger.error('Failed to get trends:', error);
       return [];
     }
   }
@@ -605,7 +606,7 @@ class MemoryHelpers {
         searchedAt: new Date().toISOString()
       };
     } catch (error) {
-      console.error('Global search failed:', error);
+      logger.error('Global search failed:', error);
       return {
         query,
         totalMatches: 0,

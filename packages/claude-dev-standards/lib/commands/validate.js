@@ -5,6 +5,7 @@ const path = require('path');
 const validator = require('../validator');
 const config = require('../config');
 const reporter = require('../utils/reporter');
+const { logger } = require('../../../../../../utils/logger');
 
 async function validate(options) {
   const spinner = ora('Loading configuration...').start();
@@ -21,7 +22,7 @@ async function validate(options) {
     
     // Output results
     if (options.json) {
-      console.log(JSON.stringify(results, null, 2));
+      logger.info(JSON.stringify(results, null, 2));
     } else {
       reporter.displayResults(results);
     }
@@ -29,11 +30,11 @@ async function validate(options) {
     // Save report
     const reportPath = path.join(process.cwd(), 'validation-report.json');
     await fs.writeJSON(reportPath, results, { spaces: 2 });
-    console.log('\nDetailed report saved to:', chalk.cyan(reportPath));
+    logger.info('\nDetailed report saved to:', chalk.cyan(reportPath));
     
     // Auto-fix if requested
     if (options.fix && results.fixable.length > 0) {
-      console.log('\n' + chalk.yellow(`Found ${results.fixable.length} auto-fixable issues.`));
+      logger.info('\n' + chalk.yellow(`Found ${results.fixable.length} auto-fixable issues.`));
       const { default: fix } = require('./fix');
       await fix({ interactive: false });
     }
@@ -46,11 +47,11 @@ async function validate(options) {
       process.exit(1);
     }
     
-    console.log('\n' + chalk.green('✓ Validation completed successfully!'));
+    logger.info('\n' + chalk.green('✓ Validation completed successfully!'));
     
   } catch (error) {
     spinner.fail('Validation failed: ' + error.message);
-    console.error(chalk.red(error.stack));
+    logger.error(chalk.red(error.stack));
     process.exit(1);
   }
 }

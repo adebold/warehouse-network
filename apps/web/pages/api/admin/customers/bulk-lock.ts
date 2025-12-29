@@ -6,6 +6,7 @@ import { authOptions } from '../../auth/[...nextauth]';
 
 import { sendAccountLockNotification } from '@/lib/notifications/accountNotifications';
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -120,7 +121,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         warnings,
       });
     } catch (error) {
-      console.error('Error performing bulk lock operation:', error);
+      logger.error('Error performing bulk lock operation:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   } else {

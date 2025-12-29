@@ -1,0 +1,136 @@
+{
+  "rate_limiting_config": {
+    "global_settings": {
+      "default_requests_per_minute": 60,
+      "default_burst_size": 100,
+      "backoff_multiplier": 2,
+      "max_backoff_seconds": 3600,
+      "jitter_enabled": true,
+      "jitter_range": 0.1
+    },
+    "platform_limits": {
+      "facebook": {
+        "requests_per_hour": 200,
+        "requests_per_day": 4800,
+        "concurrent_requests": 50,
+        "rate_limit_headers": {
+          "remaining": "X-App-Usage",
+          "limit": "X-Page-Usage",
+          "reset": "X-Rate-Limit-Reset"
+        }
+      },
+      "twitter": {
+        "requests_per_15_minutes": 300,
+        "requests_per_day": 500000,
+        "concurrent_requests": 100,
+        "rate_limit_headers": {
+          "remaining": "x-rate-limit-remaining",
+          "limit": "x-rate-limit-limit",
+          "reset": "x-rate-limit-reset"
+        }
+      },
+      "linkedin": {
+        "requests_per_day": 1000,
+        "requests_per_minute": 20,
+        "concurrent_requests": 10,
+        "rate_limit_headers": {
+          "remaining": "X-RateLimit-Remaining",
+          "limit": "X-RateLimit-Limit",
+          "reset": "X-RateLimit-Reset"
+        }
+      },
+      "google_ads": {
+        "requests_per_second": 5,
+        "requests_per_day": 10000,
+        "concurrent_requests": 20,
+        "operations_per_request": 5000
+      },
+      "salesforce": {
+        "requests_per_hour": 1000,
+        "concurrent_requests": 25,
+        "api_version_limit": 5000000,
+        "rate_limit_headers": {
+          "remaining": "Sforce-Limit-Info",
+          "limit": "api-usage"
+        }
+      },
+      "hubspot": {
+        "requests_per_second": 10,
+        "requests_per_day": 500000,
+        "burst_size": 100,
+        "concurrent_requests": 40
+      },
+      "sendgrid": {
+        "emails_per_second": 100,
+        "emails_per_day": 100000,
+        "api_requests_per_second": 10
+      }
+    },
+    "webhook_limits": {
+      "incoming_requests_per_minute": 100,
+      "max_payload_size_mb": 10,
+      "timeout_seconds": 30,
+      "ip_based_limiting": true,
+      "require_authentication": true
+    },
+    "circuit_breaker": {
+      "failure_threshold": 5,
+      "success_threshold": 2,
+      "timeout_seconds": 60,
+      "monitoring_window_seconds": 120,
+      "half_open_requests": 3
+    },
+    "retry_strategies": {
+      "exponential_backoff": {
+        "initial_delay_ms": 1000,
+        "max_delay_ms": 60000,
+        "multiplier": 2,
+        "max_retries": 5
+      },
+      "linear_backoff": {
+        "delay_ms": 5000,
+        "max_retries": 3
+      },
+      "custom_backoff": {
+        "delays_ms": [1000, 5000, 10000, 30000, 60000]
+      }
+    },
+    "monitoring": {
+      "track_metrics": true,
+      "alert_threshold_percentage": 80,
+      "log_violations": true,
+      "metrics_retention_days": 30
+    }
+  },
+  "rate_limiter_implementation": {
+    "redis_keys": {
+      "counter": "rate_limit:{platform}:{endpoint}:{identifier}",
+      "backoff": "rate_limit:backoff:{platform}:{identifier}",
+      "circuit_breaker": "circuit_breaker:{platform}:{endpoint}"
+    },
+    "lua_scripts": {
+      "check_and_increment": "local key = KEYS[1]\\nlocal limit = tonumber(ARGV[1])\\nlocal window = tonumber(ARGV[2])\\nlocal current = redis.call('GET', key)\\nif current == false then\\n  redis.call('SET', key, 1)\\n  redis.call('EXPIRE', key, window)\\n  return {1, limit}\\nend\\ncurrent = tonumber(current)\\nif current < limit then\\n  redis.call('INCR', key)\\n  return {current + 1, limit}\\nelse\\n  return {current, limit}\\nend",
+      "sliding_window": "local key = KEYS[1]\\nlocal limit = tonumber(ARGV[1])\\nlocal window = tonumber(ARGV[2])\\nlocal now = tonumber(ARGV[3])\\nlocal clearBefore = now - window\\nredis.call('ZREMRANGEBYSCORE', key, 0, clearBefore)\\nlocal current = redis.call('ZCARD', key)\\nif current < limit then\\n  redis.call('ZADD', key, now, now)\\n  redis.call('EXPIRE', key, window)\\n  return 1\\nelse\\n  return 0\\nend"
+    }
+  },
+  "rate_limiting_nodes": [
+    {
+      "parameters": {
+        "functionCode": "// Rate limiting check before API call\nconst platform = $input.item.json.platform;\nconst endpoint = $input.item.json.endpoint;\nconst identifier = $input.item.json.identifier || 'default';\n\nconst rateLimitKey = `rate_limit:${platform}:${endpoint}:${identifier}`;\nconst limits = $getNodeParameter('platformLimits')[platform];\n\n// Check current usage\nconst usage = await $redis.get(rateLimitKey) || 0;\nconst limit = limits.requests_per_minute || 60;\n\nif (usage >= limit) {\n  // Calculate backoff time\n  const backoffKey = `rate_limit:backoff:${platform}:${identifier}`;\n  const backoffTime = await $redis.get(backoffKey) || 60;\n  \n  throw new Error(`Rate limit exceeded for ${platform}. Retry after ${backoffTime} seconds.`);\n}\n\n// Increment counter\nawait $redis.incr(rateLimitKey);\nawait $redis.expire(rateLimitKey, 60);\n\nreturn {\n  ...item.json,\n  rate_limit_checked: true,\n  current_usage: usage + 1,\n  limit: limit\n};"
+      },
+      "id": "rate-limit-check",
+      "name": "Rate Limit Check",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract and store rate limit headers\nconst response = $input.item.json;\nconst headers = response.headers;\nconst platform = response.platform;\n\nconst rateLimitInfo = {};\n\n// Platform-specific header extraction\nswitch(platform) {\n  case 'twitter':\n    rateLimitInfo.remaining = parseInt(headers['x-rate-limit-remaining']);\n    rateLimitInfo.limit = parseInt(headers['x-rate-limit-limit']);\n    rateLimitInfo.reset = parseInt(headers['x-rate-limit-reset']);\n    break;\n    \n  case 'facebook':\n    const usage = JSON.parse(headers['x-app-usage'] || '{}');\n    rateLimitInfo.call_count = usage.call_count;\n    rateLimitInfo.total_time = usage.total_time;\n    rateLimitInfo.total_cputime = usage.total_cputime;\n    break;\n    \n  case 'linkedin':\n    rateLimitInfo.remaining = parseInt(headers['x-ratelimit-remaining']);\n    rateLimitInfo.limit = parseInt(headers['x-ratelimit-limit']);\n    rateLimitInfo.reset = parseInt(headers['x-ratelimit-reset']);\n    break;\n}\n\n// Store rate limit info\nif (rateLimitInfo.remaining !== undefined) {\n  const key = `rate_limit:status:${platform}`;\n  await $redis.set(key, JSON.stringify(rateLimitInfo), 'EX', 300);\n  \n  // If approaching limit, set backoff\n  if (rateLimitInfo.remaining < rateLimitInfo.limit * 0.1) {\n    const backoffKey = `rate_limit:backoff:${platform}:global`;\n    const backoffTime = Math.ceil((rateLimitInfo.reset - Date.now() / 1000) + 60);\n    await $redis.set(backoffKey, backoffTime, 'EX', backoffTime);\n  }\n}\n\nreturn {\n  ...response,\n  rate_limit_info: rateLimitInfo\n};"
+      },
+      "id": "rate-limit-tracker",
+      "name": "Rate Limit Tracker",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1
+    }
+  ]
+}

@@ -1,10 +1,11 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { logger } from '../../../../../../../utils/logger';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Start seeding ...');
+  logger.info('Start seeding ...');
 
   // Create a default platform
   const platform = await prisma.platform.upsert({
@@ -14,7 +15,7 @@ async function main() {
       name: 'Warehouse Network',
     },
   });
-  console.log(`Created platform with id: ${platform.id}`);
+  logger.info(`Created platform with id: ${platform.id}`);
 
   // Create Super Admin User
   const hashedPassword = await bcrypt.hash('password', 10);
@@ -28,7 +29,7 @@ async function main() {
       role: UserRole.SUPER_ADMIN,
     },
   });
-  console.log(`Created super admin user with id: ${superAdmin.id}`);
+  logger.info(`Created super admin user with id: ${superAdmin.id}`);
 
   // Create Operator
   const operator = await prisma.operator.upsert({
@@ -47,7 +48,7 @@ async function main() {
       termsAcceptedAt: new Date(),
     },
   });
-  console.log(`Created operator with id: ${operator.id}`);
+  logger.info(`Created operator with id: ${operator.id}`);
 
   // Create Operator Admin User
   const operatorAdmin = await prisma.user.upsert({
@@ -65,7 +66,7 @@ async function main() {
       },
     },
   });
-  console.log(`Created operator admin user with id: ${operatorAdmin.id}`);
+  logger.info(`Created operator admin user with id: ${operatorAdmin.id}`);
 
   // Create Warehouse Staff User
   const warehouseStaff = await prisma.user.upsert({
@@ -84,7 +85,7 @@ async function main() {
       },
     },
   });
-  console.log(`Created warehouse staff user with id: ${warehouseStaff.id}`);
+  logger.info(`Created warehouse staff user with id: ${warehouseStaff.id}`);
 
   // Create Customer
   const customer = await prisma.customer.upsert({
@@ -94,7 +95,7 @@ async function main() {
       name: 'Test Customer Corp.',
     },
   });
-  console.log(`Created customer with id: ${customer.id}`);
+  logger.info(`Created customer with id: ${customer.id}`);
 
   // Create Customer Admin User
   const customerAdmin = await prisma.user.upsert({
@@ -108,7 +109,7 @@ async function main() {
       customerId: customer.id,
     },
   });
-  console.log(`Created customer admin user with id: ${customerAdmin.id}`);
+  logger.info(`Created customer admin user with id: ${customerAdmin.id}`);
 
   // Create Customer User
   const customerUser = await prisma.user.upsert({
@@ -122,9 +123,9 @@ async function main() {
       customerId: customer.id,
     },
   });
-  console.log(`Created customer user with id: ${customerUser.id}`);
+  logger.info(`Created customer user with id: ${customerUser.id}`);
 
-  console.log('Seeding finished.');
+  logger.info('Seeding finished.');
 }
 
 main()
@@ -132,7 +133,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async e => {
-    console.error(e);
+    logger.error(e);
     await prisma.$disconnect();
     process.exit(1);
   });

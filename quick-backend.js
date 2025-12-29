@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { logger } = require('./utils/logger');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -66,5 +67,5 @@ app.get('/api/status', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Warehouse Backend API running on port ${PORT}`);
+  logger.info(`🚀 Warehouse Backend API running on port ${PORT}`);
 });

@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 
 import prisma from '../../lib/prisma';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface OperatorDashboardProps {
   operator: Operator;
@@ -30,7 +31,7 @@ const OperatorDashboard: NextPage<OperatorDashboardProps> = ({ operator }) => {
       const { url } = await response.json();
       router.push(url);
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while connecting to Stripe.');
     }
   };

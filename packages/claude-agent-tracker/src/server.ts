@@ -23,6 +23,7 @@ import { logger } from './monitoring/logger.js';
 import { startMetricsServer } from './monitoring/metrics.js';
 import { initializeTracing, shutdownTracing } from './monitoring/tracing.js';
 import { eventStreamer } from './streaming/events.js';
+import { logger } from '../../../../../utils/logger';
 
 export async function startServer(): Promise<void> {
   // Validate configuration
@@ -160,7 +161,7 @@ export async function startServer(): Promise<void> {
       pid: process.pid
     });
 
-    console.log(`
+    logger.info(`
 🚀 Claude Agent Tracker Server
 ================================
 Environment: ${config.env}

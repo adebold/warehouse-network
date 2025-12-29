@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import prisma from '../../../../lib/prisma';
 import { authOptions } from '../../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 // Schema for updating quote
 const updateQuoteSchema = z.object({
@@ -48,7 +49,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json(quote);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else if (req.method === 'PUT' || req.method === 'PATCH') {
@@ -86,7 +87,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json(quote);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else if (req.method === 'DELETE') {
@@ -102,7 +103,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(204).end();
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

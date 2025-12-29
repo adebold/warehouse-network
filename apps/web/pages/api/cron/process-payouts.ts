@@ -1,11 +1,12 @@
 
 import prisma from '../../../lib/prisma';
+import { logger } from './utils/logger';
 
 // Process payouts logic - simplified implementation
 async function processPayouts() {
   // TODO: Implement payout processing logic
   // This would typically process pending payouts to operators/warehouses
-  console.log('Processing payouts...');
+  logger.info('Processing payouts...');
 
   // Example: Find operators with pending payouts
   const operatorsWithEarnings = await prisma.operator.findMany({
@@ -13,7 +14,7 @@ async function processPayouts() {
     include: { warehouses: true },
   });
 
-  console.log(`Processing payouts for ${operatorsWithEarnings.length} operators`);
+  logger.info(`Processing payouts for ${operatorsWithEarnings.length} operators`);
   // Payout processing logic would go here
 }
 
@@ -29,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       await processPayouts();
       res.status(200).json({ message: 'Payout processing job initiated successfully.' });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred during payout processing.' });
     }
   } else {

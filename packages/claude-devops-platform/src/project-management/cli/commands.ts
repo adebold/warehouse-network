@@ -14,6 +14,7 @@ import * as path from 'path';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
 import { execSync } from 'child_process';
+import { logger } from '../../../../../../utils/logger';
 
 const storyManager = new StoryManager();
 const qualityGates = new QualityGateManager();
@@ -192,7 +193,7 @@ export function createProjectManagementCommands(): Command {
     .description('Jira integration')
     .option('--sync', 'Sync with Jira')
     .action(async (options) => {
-      console.log('Jira integration coming soon...');
+      logger.info('Jira integration coming soon...');
     });
 
   integrateCmd
@@ -200,7 +201,7 @@ export function createProjectManagementCommands(): Command {
     .description('Linear integration')
     .option('--sync', 'Sync with Linear')
     .action(async (options) => {
-      console.log('Linear integration coming soon...');
+      logger.info('Linear integration coming soon...');
     });
 
   return program;
@@ -261,26 +262,26 @@ async function createStoryCommand(options: any): Promise<void> {
     if (fs.existsSync(templatePath)) {
       storyData = JSON.parse(fs.readFileSync(templatePath, 'utf-8'));
     } else {
-      console.error(chalk.red(`Template "${options.template}" not found`));
+      logger.error(chalk.red(`Template "${options.template}" not found`));
       return;
     }
   }
 
   if (options.aiAssist) {
     // Use Claude Flow to enhance story
-    console.log(chalk.blue('Using AI to enhance story...'));
+    logger.info(chalk.blue('Using AI to enhance story...'));
     const enhanced = await enhanceStoryWithAI(storyData);
     storyData = { ...storyData, ...enhanced };
   }
 
   try {
     const story = await storyManager.createStory(storyData);
-    console.log(chalk.green(`✓ Story created: ${story.id}`));
-    console.log(chalk.gray(`  Title: ${story.title}`));
-    console.log(chalk.gray(`  Type: ${story.type}`));
-    console.log(chalk.gray(`  Priority: ${story.priority}`));
+    logger.info(chalk.green(`✓ Story created: ${story.id}`));
+    logger.info(chalk.gray(`  Title: ${story.title}`));
+    logger.info(chalk.gray(`  Type: ${story.type}`));
+    logger.info(chalk.gray(`  Priority: ${story.priority}`));
   } catch (error: any) {
-    console.error(chalk.red(`✗ Failed to create story: ${error.message}`));
+    logger.error(chalk.red(`✗ Failed to create story: ${error.message}`));
   }
 }
 
@@ -292,23 +293,23 @@ async function listStoriesCommand(options: any): Promise<void> {
   });
 
   if (stories.length === 0) {
-    console.log(chalk.yellow('No stories found'));
+    logger.info(chalk.yellow('No stories found'));
     return;
   }
 
-  console.log(chalk.bold('\nUser Stories:\n'));
+  logger.info(chalk.bold('\nUser Stories:\n'));
   
   for (const story of stories) {
     const statusColor = story.status === 'done' ? 'green' : 
                        story.status === 'in_progress' ? 'yellow' : 'gray';
     
-    console.log(`${chalk.blue(story.id)} - ${chalk.bold(story.title)}`);
-    console.log(`  Status: ${chalk[statusColor](story.status)} | Type: ${story.type} | Priority: ${story.priority}`);
-    console.log(`  Points: ${story.storyPoints || '-'} | Assignee: ${story.assignee || 'Unassigned'}`);
-    console.log();
+    logger.info(`${chalk.blue(story.id)} - ${chalk.bold(story.title)}`);
+    logger.info(`  Status: ${chalk[statusColor](story.status)} | Type: ${story.type} | Priority: ${story.priority}`);
+    logger.info(`  Points: ${story.storyPoints || '-'} | Assignee: ${story.assignee || 'Unassigned'}`);
+    logger.info();
   }
 
-  console.log(chalk.gray(`Total: ${stories.length} stories`));
+  logger.info(chalk.gray(`Total: ${stories.length} stories`));
 }
 
 async function updateStoryCommand(storyId: string, options: any): Promise<void> {
@@ -320,9 +321,9 @@ async function updateStoryCommand(storyId: string, options: any): Promise<void> 
     if (options.assignee) updates.assignee = options.assignee;
 
     const story = await storyManager.updateStory(storyId, updates);
-    console.log(chalk.green(`✓ Story ${storyId} updated`));
+    logger.info(chalk.green(`✓ Story ${storyId} updated`));
   } catch (error: any) {
-    console.error(chalk.red(`✗ Failed to update story: ${error.message}`));
+    logger.error(chalk.red(`✗ Failed to update story: ${error.message}`));
   }
 }
 
@@ -330,11 +331,11 @@ async function generateFromStoryCommand(storyId: string, options: any): Promise<
   try {
     const story = storyManager['stories'].get(storyId);
     if (!story) {
-      console.error(chalk.red(`Story ${storyId} not found`));
+      logger.error(chalk.red(`Story ${storyId} not found`));
       return;
     }
 
-    console.log(chalk.blue('Generating code from story...'));
+    logger.info(chalk.blue('Generating code from story...'));
     
     const generated = await storyDrivenDev.generateFromStory(story, {
       language: options.language,
@@ -344,9 +345,9 @@ async function generateFromStoryCommand(storyId: string, options: any): Promise<
     });
 
     if (options.dryRun) {
-      console.log(chalk.yellow('\nDry run - files that would be generated:\n'));
+      logger.info(chalk.yellow('\nDry run - files that would be generated:\n'));
       [...generated.mainCode, ...generated.testCode, ...generated.documentation].forEach(file => {
-        console.log(`  ${chalk.green('+')} ${file.path}`);
+        logger.info(`  ${chalk.green('+')} ${file.path}`);
       });
     } else {
       // Write files
@@ -354,11 +355,11 @@ async function generateFromStoryCommand(storyId: string, options: any): Promise<
         const filePath = path.resolve(file.path);
         fs.mkdirSync(path.dirname(filePath), { recursive: true });
         fs.writeFileSync(filePath, file.content);
-        console.log(chalk.green(`✓ Generated ${file.path}`));
+        logger.info(chalk.green(`✓ Generated ${file.path}`));
       }
     }
   } catch (error: any) {
-    console.error(chalk.red(`✗ Failed to generate code: ${error.message}`));
+    logger.error(chalk.red(`✗ Failed to generate code: ${error.message}`));
   }
 }
 
@@ -400,7 +401,7 @@ async function planEpicCommand(options: any): Promise<void> {
   }
 
   // Use Claude Flow to plan epic
-  console.log(chalk.blue('Planning epic with AI assistance...'));
+  logger.info(chalk.blue('Planning epic with AI assistance...'));
   const command = `npx claude-flow@alpha sparc run planner "Plan epic: ${epicData.name} - ${epicData.description}"`;
   
   try {
@@ -418,20 +419,20 @@ async function planEpicCommand(options: any): Promise<void> {
       soThat: 'business value is delivered'
     });
 
-    console.log(chalk.green(`✓ Epic created: ${epic.id}`));
+    logger.info(chalk.green(`✓ Epic created: ${epic.id}`));
 
     if (options.autoStories && plan.stories) {
-      console.log(chalk.blue('\nGenerating child stories...'));
+      logger.info(chalk.blue('\nGenerating child stories...'));
       for (const storyData of plan.stories) {
         const story = await storyManager.createStory({
           ...storyData,
           parentId: epic.id
         });
-        console.log(chalk.green(`  ✓ Story created: ${story.title}`));
+        logger.info(chalk.green(`  ✓ Story created: ${story.title}`));
       }
     }
   } catch (error: any) {
-    console.error(chalk.red(`✗ Failed to plan epic: ${error.message}`));
+    logger.error(chalk.red(`✗ Failed to plan epic: ${error.message}`));
   }
 }
 
@@ -439,22 +440,22 @@ async function breakdownEpicCommand(epicId: string, options: any): Promise<void>
   try {
     const epic = storyManager['epics'].get(epicId);
     if (!epic) {
-      console.error(chalk.red(`Epic ${epicId} not found`));
+      logger.error(chalk.red(`Epic ${epicId} not found`));
       return;
     }
 
     if (options.aiAssist) {
-      console.log(chalk.blue('Using AI to suggest story breakdown...'));
+      logger.info(chalk.blue('Using AI to suggest story breakdown...'));
       const command = `npx claude-flow@alpha sparc run breakdown "Break down epic: ${epic.title} - ${epic.description}"`;
       const result = execSync(command, { encoding: 'utf-8' });
       const breakdown = JSON.parse(result);
 
-      console.log(chalk.bold('\nSuggested Stories:\n'));
+      logger.info(chalk.bold('\nSuggested Stories:\n'));
       for (const story of breakdown.stories) {
-        console.log(`${chalk.blue('○')} ${story.title}`);
-        console.log(`  ${chalk.gray(story.description)}`);
-        console.log(`  Points: ${story.storyPoints || '?'} | Priority: ${story.priority}`);
-        console.log();
+        logger.info(`${chalk.blue('○')} ${story.title}`);
+        logger.info(`  ${chalk.gray(story.description)}`);
+        logger.info(`  Points: ${story.storyPoints || '?'} | Priority: ${story.priority}`);
+        logger.info();
       }
 
       const { confirm } = await inquirer.prompt([
@@ -472,58 +473,58 @@ async function breakdownEpicCommand(epicId: string, options: any): Promise<void>
             ...storyData,
             parentId: epicId
           });
-          console.log(chalk.green(`✓ Created: ${story.title}`));
+          logger.info(chalk.green(`✓ Created: ${story.title}`));
         }
       }
     }
   } catch (error: any) {
-    console.error(chalk.red(`✗ Failed to breakdown epic: ${error.message}`));
+    logger.error(chalk.red(`✗ Failed to breakdown epic: ${error.message}`));
   }
 }
 
 async function validateSchemaCommand(schemaPath: string, options: any): Promise<void> {
   const validator = new PrismaValidator(schemaPath);
   
-  console.log(chalk.blue('Validating Prisma schema...'));
+  logger.info(chalk.blue('Validating Prisma schema...'));
   const result = await validator.validate();
 
   if (result.errors.length > 0) {
-    console.log(chalk.red('\n✗ Validation Errors:\n'));
+    logger.info(chalk.red('\n✗ Validation Errors:\n'));
     for (const error of result.errors) {
-      console.log(`  ${chalk.red('●')} ${error.message}`);
-      if (error.model) console.log(`    Model: ${error.model}`);
-      if (error.field) console.log(`    Field: ${error.field}`);
+      logger.info(`  ${chalk.red('●')} ${error.message}`);
+      if (error.model) logger.info(`    Model: ${error.model}`);
+      if (error.field) logger.info(`    Field: ${error.field}`);
     }
   }
 
   if (result.warnings.length > 0) {
-    console.log(chalk.yellow('\n⚠ Warnings:\n'));
+    logger.info(chalk.yellow('\n⚠ Warnings:\n'));
     for (const warning of result.warnings) {
-      console.log(`  ${chalk.yellow('●')} ${warning.message}`);
-      if (warning.model) console.log(`    Model: ${warning.model}`);
-      if (warning.field) console.log(`    Field: ${warning.field}`);
+      logger.info(`  ${chalk.yellow('●')} ${warning.message}`);
+      if (warning.model) logger.info(`    Model: ${warning.model}`);
+      if (warning.field) logger.info(`    Field: ${warning.field}`);
     }
   }
 
   if (result.suggestions.length > 0) {
-    console.log(chalk.blue('\n💡 Optimization Suggestions:\n'));
+    logger.info(chalk.blue('\n💡 Optimization Suggestions:\n'));
     for (const suggestion of result.suggestions) {
-      console.log(`  ${chalk.blue('●')} ${suggestion.description}`);
-      console.log(`    Impact: ${suggestion.impact}`);
+      logger.info(`  ${chalk.blue('●')} ${suggestion.description}`);
+      logger.info(`    Impact: ${suggestion.impact}`);
       if (suggestion.estimatedImprovement) {
-        console.log(`    Expected improvement: ${suggestion.estimatedImprovement}`);
+        logger.info(`    Expected improvement: ${suggestion.estimatedImprovement}`);
       }
-      console.log(`    ${chalk.gray('Code:')} ${suggestion.code}`);
+      logger.info(`    ${chalk.gray('Code:')} ${suggestion.code}`);
     }
   }
 
   if (result.valid) {
-    console.log(chalk.green('\n✓ Schema is valid'));
+    logger.info(chalk.green('\n✓ Schema is valid'));
   } else {
-    console.log(chalk.red('\n✗ Schema validation failed'));
+    logger.info(chalk.red('\n✗ Schema validation failed'));
     
     if (options.fix) {
-      console.log(chalk.yellow('\nAttempting auto-fix...'));
+      logger.info(chalk.yellow('\nAttempting auto-fix...'));
       // Auto-fix logic would go here
     }
   }
@@ -532,22 +533,22 @@ async function validateSchemaCommand(schemaPath: string, options: any): Promise<
 async function optimizeSchemaCommand(schemaPath: string, options: any): Promise<void> {
   const validator = new PrismaValidator(schemaPath);
   
-  console.log(chalk.blue('Analyzing schema for optimizations...'));
+  logger.info(chalk.blue('Analyzing schema for optimizations...'));
   const result = await validator.validate();
 
   if (result.suggestions.length === 0) {
-    console.log(chalk.green('✓ No optimizations found'));
+    logger.info(chalk.green('✓ No optimizations found'));
     return;
   }
 
-  console.log(chalk.bold('\nOptimization Opportunities:\n'));
+  logger.info(chalk.bold('\nOptimization Opportunities:\n'));
   
   for (const [index, suggestion] of result.suggestions.entries()) {
-    console.log(`${index + 1}. ${chalk.bold(suggestion.description)}`);
-    console.log(`   Impact: ${chalk.yellow(suggestion.impact)}`);
-    console.log(`   ${chalk.gray('Implementation:')}`);
-    console.log(`   ${suggestion.code}`);
-    console.log();
+    logger.info(`${index + 1}. ${chalk.bold(suggestion.description)}`);
+    logger.info(`   Impact: ${chalk.yellow(suggestion.impact)}`);
+    logger.info(`   ${chalk.gray('Implementation:')}`);
+    logger.info(`   ${suggestion.code}`);
+    logger.info();
   }
 
   if (options.apply) {
@@ -564,9 +565,9 @@ async function optimizeSchemaCommand(schemaPath: string, options: any): Promise<
     ]);
 
     if (selectedOptimizations.length > 0) {
-      console.log(chalk.blue('\nApplying optimizations...'));
+      logger.info(chalk.blue('\nApplying optimizations...'));
       // Apply selected optimizations
-      console.log(chalk.green('✓ Optimizations applied'));
+      logger.info(chalk.green('✓ Optimizations applied'));
     }
   }
 }
@@ -574,42 +575,42 @@ async function optimizeSchemaCommand(schemaPath: string, options: any): Promise<
 async function analyzeSchemaImpactCommand(schemaPath: string, options: any): Promise<void> {
   const validator = new PrismaValidator(schemaPath);
   
-  console.log(chalk.blue('Analyzing schema change impact...'));
+  logger.info(chalk.blue('Analyzing schema change impact...'));
   
   // This would compare with previous version
   const impact = await validator['analyzeImpact']();
 
-  console.log(chalk.bold('\nSchema Change Impact Analysis:\n'));
+  logger.info(chalk.bold('\nSchema Change Impact Analysis:\n'));
 
   if (impact.models.length > 0) {
-    console.log(chalk.bold('Model Changes:'));
+    logger.info(chalk.bold('Model Changes:'));
     for (const model of impact.models) {
-      console.log(`  ${model.breaking ? chalk.red('●') : chalk.green('●')} ${model.name}`);
+      logger.info(`  ${model.breaking ? chalk.red('●') : chalk.green('●')} ${model.name}`);
       for (const change of model.changes) {
-        console.log(`    - ${change}`);
+        logger.info(`    - ${change}`);
       }
     }
-    console.log();
+    logger.info();
   }
 
-  console.log(chalk.bold('Migration Impact:'));
-  console.log(`  Data migration required: ${impact.migrations.requiresDataMigration ? chalk.red('Yes') : chalk.green('No')}`);
-  console.log(`  Estimated downtime: ${impact.migrations.estimatedDowntime}s`);
+  logger.info(chalk.bold('Migration Impact:'));
+  logger.info(`  Data migration required: ${impact.migrations.requiresDataMigration ? chalk.red('Yes') : chalk.green('No')}`);
+  logger.info(`  Estimated downtime: ${impact.migrations.estimatedDowntime}s`);
   
   if (impact.migrations.risks.length > 0) {
-    console.log(`  ${chalk.red('Risks:')}`);
+    logger.info(`  ${chalk.red('Risks:')}`);
     for (const risk of impact.migrations.risks) {
-      console.log(`    - ${risk}`);
+      logger.info(`    - ${risk}`);
     }
   }
 
-  console.log(chalk.bold('\nPerformance Impact:'));
-  console.log(`  Query performance: ${impact.performance.estimatedQueryImpact}`);
-  console.log(`  Index changes: ${impact.performance.indexChanges}`);
+  logger.info(chalk.bold('\nPerformance Impact:'));
+  logger.info(`  Query performance: ${impact.performance.estimatedQueryImpact}`);
+  logger.info(`  Index changes: ${impact.performance.indexChanges}`);
 }
 
 async function traceRequirementCommand(requirementId: string, options: any): Promise<void> {
-  console.log(chalk.blue(`Tracing requirement: ${requirementId}`));
+  logger.info(chalk.blue(`Tracing requirement: ${requirementId}`));
   
   // This would trace requirement through the system
   const trace = {
@@ -621,22 +622,22 @@ async function traceRequirementCommand(requirementId: string, options: any): Pro
   };
 
   if (options.format === 'json') {
-    console.log(JSON.stringify(trace, null, 2));
+    logger.info(JSON.stringify(trace, null, 2));
   } else {
-    console.log(chalk.bold('\nRequirement Traceability:\n'));
-    console.log(`Requirement: ${chalk.yellow(trace.requirement)}`);
-    console.log(`Coverage: ${chalk.green(`${trace.coverage}%`)}`);
-    console.log('\nUser Stories:');
-    trace.stories.forEach(s => console.log(`  - ${s}`));
-    console.log('\nCode Artifacts:');
-    trace.code.forEach(c => console.log(`  - ${c}`));
-    console.log('\nTests:');
-    trace.tests.forEach(t => console.log(`  - ${t}`));
+    logger.info(chalk.bold('\nRequirement Traceability:\n'));
+    logger.info(`Requirement: ${chalk.yellow(trace.requirement)}`);
+    logger.info(`Coverage: ${chalk.green(`${trace.coverage}%`)}`);
+    logger.info('\nUser Stories:');
+    trace.stories.forEach(s => logger.info(`  - ${s}`));
+    logger.info('\nCode Artifacts:');
+    trace.code.forEach(c => logger.info(`  - ${c}`));
+    logger.info('\nTests:');
+    trace.tests.forEach(t => logger.info(`  - ${t}`));
   }
 }
 
 async function requirementsCoverageCommand(options: any): Promise<void> {
-  console.log(chalk.blue('Analyzing requirements coverage...'));
+  logger.info(chalk.blue('Analyzing requirements coverage...'));
   
   // This would analyze all requirements
   const coverage = {
@@ -647,28 +648,28 @@ async function requirementsCoverageCommand(options: any): Promise<void> {
     percentage: 84
   };
 
-  console.log(chalk.bold('\nRequirements Coverage Report:\n'));
-  console.log(`Total requirements: ${coverage.total}`);
-  console.log(`Traced to stories: ${chalk.green(coverage.traced)} (${(coverage.traced/coverage.total*100).toFixed(1)}%)`);
-  console.log(`Implemented: ${chalk.green(coverage.implemented)} (${(coverage.implemented/coverage.total*100).toFixed(1)}%)`);
-  console.log(`Tested: ${chalk.green(coverage.tested)} (${(coverage.tested/coverage.total*100).toFixed(1)}%)`);
-  console.log(`\nOverall coverage: ${chalk.bold.green(`${coverage.percentage}%`)}`);
+  logger.info(chalk.bold('\nRequirements Coverage Report:\n'));
+  logger.info(`Total requirements: ${coverage.total}`);
+  logger.info(`Traced to stories: ${chalk.green(coverage.traced)} (${(coverage.traced/coverage.total*100).toFixed(1)}%)`);
+  logger.info(`Implemented: ${chalk.green(coverage.implemented)} (${(coverage.implemented/coverage.total*100).toFixed(1)}%)`);
+  logger.info(`Tested: ${chalk.green(coverage.tested)} (${(coverage.tested/coverage.total*100).toFixed(1)}%)`);
+  logger.info(`\nOverall coverage: ${chalk.bold.green(`${coverage.percentage}%`)}`);
 
   if (options.report) {
     const reportPath = 'coverage/requirements-report.html';
-    console.log(chalk.blue(`\nGenerating detailed report to ${reportPath}...`));
+    logger.info(chalk.blue(`\nGenerating detailed report to ${reportPath}...`));
     // Generate HTML report
-    console.log(chalk.green('✓ Report generated'));
+    logger.info(chalk.green('✓ Report generated'));
   }
 }
 
 async function importRequirementsCommand(file: string, options: any): Promise<void> {
   if (!fs.existsSync(file)) {
-    console.error(chalk.red(`File not found: ${file}`));
+    logger.error(chalk.red(`File not found: ${file}`));
     return;
   }
 
-  console.log(chalk.blue(`Importing requirements from ${file}...`));
+  logger.info(chalk.blue(`Importing requirements from ${file}...`));
   
   try {
     const content = fs.readFileSync(file, 'utf-8');
@@ -686,20 +687,20 @@ async function importRequirementsCommand(file: string, options: any): Promise<vo
         break;
     }
 
-    console.log(chalk.green(`✓ Imported ${requirements.length} requirements`));
+    logger.info(chalk.green(`✓ Imported ${requirements.length} requirements`));
   } catch (error: any) {
-    console.error(chalk.red(`✗ Failed to import: ${error.message}`));
+    logger.error(chalk.red(`✗ Failed to import: ${error.message}`));
   }
 }
 
 async function checkQualityCommand(storyId: string, options: any): Promise<void> {
   const story = storyManager['stories'].get(storyId);
   if (!story) {
-    console.error(chalk.red(`Story ${storyId} not found`));
+    logger.error(chalk.red(`Story ${storyId} not found`));
     return;
   }
 
-  console.log(chalk.blue('Running quality gates...'));
+  logger.info(chalk.blue('Running quality gates...'));
   
   const context = {
     codebasePath: process.cwd()
@@ -707,50 +708,50 @@ async function checkQualityCommand(storyId: string, options: any): Promise<void>
 
   const results = await qualityGates.runGates(story, context);
 
-  console.log(chalk.bold('\nQuality Gate Results:\n'));
+  logger.info(chalk.bold('\nQuality Gate Results:\n'));
 
   for (const [gateId, result] of results) {
     const gate = qualityGates['gates'].get(gateId);
     if (!gate) continue;
 
     const statusIcon = result.passed ? chalk.green('✓') : chalk.red('✗');
-    console.log(`${statusIcon} ${chalk.bold(gate.name)}`);
+    logger.info(`${statusIcon} ${chalk.bold(gate.name)}`);
     
     if (result.score !== undefined) {
-      console.log(`  Score: ${result.score.toFixed(1)}%`);
+      logger.info(`  Score: ${result.score.toFixed(1)}%`);
     }
     
-    console.log(`  ${chalk.gray(result.details)}`);
+    logger.info(`  ${chalk.gray(result.details)}`);
     
     if (result.recommendations && result.recommendations.length > 0) {
-      console.log(`  ${chalk.yellow('Recommendations:')}`);
-      result.recommendations.forEach(r => console.log(`    - ${r}`));
+      logger.info(`  ${chalk.yellow('Recommendations:')}`);
+      result.recommendations.forEach(r => logger.info(`    - ${r}`));
     }
     
     if (result.blockers && result.blockers.length > 0) {
-      console.log(`  ${chalk.red('Blockers:')}`);
-      result.blockers.forEach(b => console.log(`    - ${b}`));
+      logger.info(`  ${chalk.red('Blockers:')}`);
+      result.blockers.forEach(b => logger.info(`    - ${b}`));
     }
     
-    console.log();
+    logger.info();
   }
 
   const allPassed = Array.from(results.values()).every(r => r.passed);
   
   if (allPassed) {
-    console.log(chalk.green('✓ All quality gates passed'));
+    logger.info(chalk.green('✓ All quality gates passed'));
   } else {
-    console.log(chalk.red('✗ Some quality gates failed'));
+    logger.info(chalk.red('✗ Some quality gates failed'));
     
     if (options.fix) {
-      console.log(chalk.yellow('\nAttempting auto-fix...'));
+      logger.info(chalk.yellow('\nAttempting auto-fix...'));
       // Auto-fix logic
     }
   }
 }
 
 async function qualityReportCommand(options: any): Promise<void> {
-  console.log(chalk.blue('Generating quality report...'));
+  logger.info(chalk.blue('Generating quality report...'));
   
   // Generate quality report
   const report = {
@@ -763,21 +764,21 @@ async function qualityReportCommand(options: any): Promise<void> {
   };
 
   if (options.format === 'json') {
-    console.log(JSON.stringify(report, null, 2));
+    logger.info(JSON.stringify(report, null, 2));
   } else {
-    console.log(chalk.bold('\nQuality Report:\n'));
-    console.log(`Sprint: ${report.sprint}`);
-    console.log(`Total stories: ${report.stories}`);
-    console.log(`Passed quality gates: ${chalk.green(report.passedGates)}`);
-    console.log(`Failed quality gates: ${chalk.red(report.failedGates)}`);
-    console.log(`Average test coverage: ${report.averageCoverage}%`);
-    console.log(`Average quality score: ${report.averageQuality}%`);
+    logger.info(chalk.bold('\nQuality Report:\n'));
+    logger.info(`Sprint: ${report.sprint}`);
+    logger.info(`Total stories: ${report.stories}`);
+    logger.info(`Passed quality gates: ${chalk.green(report.passedGates)}`);
+    logger.info(`Failed quality gates: ${chalk.red(report.failedGates)}`);
+    logger.info(`Average test coverage: ${report.averageCoverage}%`);
+    logger.info(`Average quality score: ${report.averageQuality}%`);
 
     if (options.format === 'html') {
       const reportPath = 'quality-report.html';
-      console.log(chalk.blue(`\nGenerating HTML report to ${reportPath}...`));
+      logger.info(chalk.blue(`\nGenerating HTML report to ${reportPath}...`));
       // Generate HTML report
-      console.log(chalk.green('✓ Report generated'));
+      logger.info(chalk.green('✓ Report generated'));
     }
   }
 }
@@ -785,7 +786,7 @@ async function qualityReportCommand(options: any): Promise<void> {
 async function githubIntegrationCommand(options: any): Promise<void> {
   const token = process.env.GITHUB_TOKEN;
   if (!token) {
-    console.error(chalk.red('GitHub token not found. Set GITHUB_TOKEN environment variable.'));
+    logger.error(chalk.red('GitHub token not found. Set GITHUB_TOKEN environment variable.'));
     return;
   }
 
@@ -795,7 +796,7 @@ async function githubIntegrationCommand(options: any): Promise<void> {
   const github = new GitHubIntegration(token, owner, repo);
 
   if (options.syncStories) {
-    console.log(chalk.blue('Syncing stories to GitHub issues...'));
+    logger.info(chalk.blue('Syncing stories to GitHub issues...'));
     
     const stories = storyManager.getStoriesByFilter({});
     let synced = 0;
@@ -803,24 +804,24 @@ async function githubIntegrationCommand(options: any): Promise<void> {
     for (const story of stories) {
       try {
         const issueNumber = await github.syncStoryToIssue(story);
-        console.log(chalk.green(`✓ Synced ${story.id} to issue #${issueNumber}`));
+        logger.info(chalk.green(`✓ Synced ${story.id} to issue #${issueNumber}`));
         synced++;
       } catch (error: any) {
-        console.error(chalk.red(`✗ Failed to sync ${story.id}: ${error.message}`));
+        logger.error(chalk.red(`✗ Failed to sync ${story.id}: ${error.message}`));
       }
     }
     
-    console.log(chalk.green(`\n✓ Synced ${synced} stories to GitHub`));
+    logger.info(chalk.green(`\n✓ Synced ${synced} stories to GitHub`));
   }
 
   if (options.setupWorkflows) {
-    console.log(chalk.blue('\nSetting up GitHub Actions workflows...'));
+    logger.info(chalk.blue('\nSetting up GitHub Actions workflows...'));
     
     try {
       await github.setupAutomatedWorkflows();
-      console.log(chalk.green('✓ GitHub Actions workflows created'));
+      logger.info(chalk.green('✓ GitHub Actions workflows created'));
     } catch (error: any) {
-      console.error(chalk.red(`✗ Failed to setup workflows: ${error.message}`));
+      logger.error(chalk.red(`✗ Failed to setup workflows: ${error.message}`));
     }
   }
 }

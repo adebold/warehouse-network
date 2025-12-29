@@ -8,6 +8,7 @@
 const https = require('https');
 const http = require('http');
 const fs = require('fs');
+const { logger } = require('./utils/logger');
 
 const BASE_URL = process.env.TEST_URL || 'http://localhost:3000';
 const isHTTPS = BASE_URL.startsWith('https');
@@ -56,7 +57,7 @@ async function makeRequest(options, data = null) {
 }
 
 async function testRateLimiting() {
-  console.log(`\n${colors.blue}Testing Rate Limiting...${colors.reset}`);
+  logger.info(`\n${colors.blue}Testing Rate Limiting...${colors.reset}`);
   
   const endpoint = '/api/auth/register';
   const testData = {
@@ -78,24 +79,24 @@ async function testRateLimiting() {
 
       if (response.statusCode === 429) {
         rateLimitHit = true;
-        console.log(`${colors.green}✓ Rate limit triggered after ${i} requests${colors.reset}`);
-        console.log(`  Response: ${JSON.stringify(response.body)}`);
+        logger.info(`${colors.green}✓ Rate limit triggered after ${i} requests${colors.reset}`);
+        logger.info(`  Response: ${JSON.stringify(response.body)}`);
         break;
       } else {
         successCount++;
       }
     } catch (error) {
-      console.error(`${colors.red}✗ Request failed: ${error.message}${colors.reset}`);
+      logger.error(`${colors.red}✗ Request failed: ${error.message}${colors.reset}`);
     }
   }
 
   if (!rateLimitHit) {
-    console.log(`${colors.red}✗ Rate limit not triggered after 10 requests${colors.reset}`);
+    logger.info(`${colors.red}✗ Rate limit not triggered after 10 requests${colors.reset}`);
   }
 }
 
 async function testCSRFProtection() {
-  console.log(`\n${colors.blue}Testing CSRF Protection...${colors.reset}`);
+  logger.info(`\n${colors.blue}Testing CSRF Protection...${colors.reset}`);
 
   // Test 1: POST without CSRF token
   try {
@@ -110,12 +111,12 @@ async function testCSRFProtection() {
     });
 
     if (response.statusCode === 403) {
-      console.log(`${colors.green}✓ CSRF protection blocked request without token${colors.reset}`);
+      logger.info(`${colors.green}✓ CSRF protection blocked request without token${colors.reset}`);
     } else {
-      console.log(`${colors.red}✗ Request succeeded without CSRF token (status: ${response.statusCode})${colors.reset}`);
+      logger.info(`${colors.red}✗ Request succeeded without CSRF token (status: ${response.statusCode})${colors.reset}`);
     }
   } catch (error) {
-    console.error(`${colors.red}✗ CSRF test failed: ${error.message}${colors.reset}`);
+    logger.error(`${colors.red}✗ CSRF test failed: ${error.message}${colors.reset}`);
   }
 
   // Test 2: Get CSRF token and use it
@@ -126,7 +127,7 @@ async function testCSRFProtection() {
     });
 
     if (tokenResponse.body && tokenResponse.body.csrfToken) {
-      console.log(`${colors.green}✓ CSRF token obtained successfully${colors.reset}`);
+      logger.info(`${colors.green}✓ CSRF token obtained successfully${colors.reset}`);
       
       // Extract cookies
       const cookies = tokenResponse.headers['set-cookie'];
@@ -148,16 +149,16 @@ async function testCSRFProtection() {
       });
 
       if (protectedResponse.statusCode !== 403) {
-        console.log(`${colors.green}✓ Request with valid CSRF token allowed${colors.reset}`);
+        logger.info(`${colors.green}✓ Request with valid CSRF token allowed${colors.reset}`);
       }
     }
   } catch (error) {
-    console.error(`${colors.red}✗ CSRF token test failed: ${error.message}${colors.reset}`);
+    logger.error(`${colors.red}✗ CSRF token test failed: ${error.message}${colors.reset}`);
   }
 }
 
 async function testSecurityHeaders() {
-  console.log(`\n${colors.blue}Testing Security Headers...${colors.reset}`);
+  logger.info(`\n${colors.blue}Testing Security Headers...${colors.reset}`);
 
   try {
     const response = await makeRequest({
@@ -179,18 +180,18 @@ async function testSecurityHeaders() {
 
     securityHeaders.forEach(header => {
       if (response.headers[header]) {
-        console.log(`${colors.green}✓ ${header}: ${response.headers[header]}${colors.reset}`);
+        logger.info(`${colors.green}✓ ${header}: ${response.headers[header]}${colors.reset}`);
       } else {
-        console.log(`${colors.yellow}⚠ ${header} not set${colors.reset}`);
+        logger.info(`${colors.yellow}⚠ ${header} not set${colors.reset}`);
       }
     });
   } catch (error) {
-    console.error(`${colors.red}✗ Security headers test failed: ${error.message}${colors.reset}`);
+    logger.error(`${colors.red}✗ Security headers test failed: ${error.message}${colors.reset}`);
   }
 }
 
 async function testPasswordValidation() {
-  console.log(`\n${colors.blue}Testing Password Validation...${colors.reset}`);
+  logger.info(`\n${colors.blue}Testing Password Validation...${colors.reset}`);
 
   const testCases = [
     { password: 'short', expected: false, reason: 'Too short' },
@@ -216,29 +217,29 @@ async function testPasswordValidation() {
       const success = response.statusCode === 201 || response.statusCode === 403; // 403 if CSRF is working
 
       if (testCase.expected && success) {
-        console.log(`${colors.green}✓ ${testCase.reason}: Password accepted${colors.reset}`);
+        logger.info(`${colors.green}✓ ${testCase.reason}: Password accepted${colors.reset}`);
       } else if (!testCase.expected && failed) {
-        console.log(`${colors.green}✓ ${testCase.reason}: Password rejected${colors.reset}`);
-        console.log(`  Errors: ${JSON.stringify(response.body.errors)}`);
+        logger.info(`${colors.green}✓ ${testCase.reason}: Password rejected${colors.reset}`);
+        logger.info(`  Errors: ${JSON.stringify(response.body.errors)}`);
       } else {
-        console.log(`${colors.red}✗ ${testCase.reason}: Unexpected result${colors.reset}`);
+        logger.info(`${colors.red}✗ ${testCase.reason}: Unexpected result${colors.reset}`);
       }
     } catch (error) {
-      console.error(`${colors.red}✗ Password test failed: ${error.message}${colors.reset}`);
+      logger.error(`${colors.red}✗ Password test failed: ${error.message}${colors.reset}`);
     }
   }
 }
 
 async function runAllTests() {
-  console.log(`${colors.blue}=== Security Implementation Tests ===${colors.reset}`);
-  console.log(`Testing against: ${BASE_URL}`);
+  logger.info(`${colors.blue}=== Security Implementation Tests ===${colors.reset}`);
+  logger.info(`Testing against: ${BASE_URL}`);
 
   await testSecurityHeaders();
   await testPasswordValidation();
   await testCSRFProtection();
   await testRateLimiting();
 
-  console.log(`\n${colors.blue}=== Tests Complete ===${colors.reset}`);
+  logger.info(`\n${colors.blue}=== Tests Complete ===${colors.reset}`);
 }
 
 // Run tests

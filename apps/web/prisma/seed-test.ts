@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { subDays } from 'date-fns';
+import { logger } from './utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -67,7 +68,7 @@ const testScenarios: TestScenario[] = [
 ];
 
 async function seed() {
-  console.log('🌱 Starting test database seed...');
+  logger.info('🌱 Starting test database seed...');
 
   // Clear existing test data
   await prisma.accountLockHistory.deleteMany({});
@@ -79,7 +80,7 @@ async function seed() {
   await prisma.operator.deleteMany({});
   await prisma.platform.deleteMany({});
 
-  console.log('✅ Cleared existing test data');
+  logger.info('✅ Cleared existing test data');
 
   // Create platform
   const platform = await prisma.platform.create({
@@ -147,7 +148,7 @@ async function seed() {
     }),
   ]);
 
-  console.log('✅ Created test warehouses');
+  logger.info('✅ Created test warehouses');
 
   // Create admin user
   const adminUser = await prisma.user.create({
@@ -173,7 +174,7 @@ async function seed() {
     },
   });
 
-  console.log('✅ Created test admin and operator users');
+  logger.info('✅ Created test admin and operator users');
 
   // Create test customers with different scenarios
   for (const [index, scenario] of testScenarios.entries()) {
@@ -244,7 +245,7 @@ async function seed() {
     }
     await Promise.all(skidPromises);
 
-    console.log(`✅ Created test customer: ${scenario.name}`);
+    logger.info(`✅ Created test customer: ${scenario.name}`);
   }
 
   // Create a regular test customer for general E2E tests
@@ -273,7 +274,7 @@ async function seed() {
     },
   });
 
-  console.log('✅ Created regular test customer');
+  logger.info('✅ Created regular test customer');
 
   // Create some release requests for testing
   const pendingSkids = await prisma.skid.findMany({
@@ -300,24 +301,24 @@ async function seed() {
         },
       },
     });
-    console.log('✅ Created test release request');
+    logger.info('✅ Created test release request');
   }
 
-  console.log('🎉 Test database seed completed!');
-  console.log('\n📋 Test Accounts:');
-  console.log('Admin: admin@test.com / admin123');
-  console.log('Operator: operator@test.com / operator123');
-  console.log('Customer: customer@test.com / customer123');
-  console.log('Customer 1 (Good Standing): customer1@test.com / customer123');
-  console.log('Customer 2 (Overdue 15 days): customer2@test.com / customer123');
-  console.log('Customer 3 (Delinquent 45 days): customer3@test.com / customer123');
-  console.log('Customer 4 (Locked): customer4@test.com / customer123');
-  console.log('Customer 5 (Suspended): customer5@test.com / customer123');
+  logger.info('🎉 Test database seed completed!');
+  logger.info('\n📋 Test Accounts:');
+  logger.info('Admin: admin@test.com / admin123');
+  logger.info('Operator: operator@test.com / operator123');
+  logger.info('Customer: customer@test.com / customer123');
+  logger.info('Customer 1 (Good Standing): customer1@test.com / customer123');
+  logger.info('Customer 2 (Overdue 15 days): customer2@test.com / customer123');
+  logger.info('Customer 3 (Delinquent 45 days): customer3@test.com / customer123');
+  logger.info('Customer 4 (Locked): customer4@test.com / customer123');
+  logger.info('Customer 5 (Suspended): customer5@test.com / customer123');
 }
 
 seed()
   .catch(e => {
-    console.error('❌ Seed failed:', e);
+    logger.error('❌ Seed failed:', e);
     process.exit(1);
   })
   .finally(async () => {

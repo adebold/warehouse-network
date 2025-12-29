@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 
 interface CustomerQuoteDetailsProps {
@@ -42,11 +43,11 @@ const CustomerQuoteDetails: NextPage<CustomerQuoteDetailsProps> = ({ quote }) =>
         router.replace(router.asPath);
       } else {
         const errorData = await response.json();
-        console.error('Failed to accept quote', errorData);
+        logger.error('Failed to accept quote', errorData);
         alert('Failed to accept quote');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while accepting the quote.');
     }
   };
@@ -65,11 +66,11 @@ const CustomerQuoteDetails: NextPage<CustomerQuoteDetailsProps> = ({ quote }) =>
         router.replace(router.asPath);
       } else {
         const errorData = await response.json();
-        console.error('Failed to reject quote', errorData);
+        logger.error('Failed to reject quote', errorData);
         alert('Failed to reject quote');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while rejecting the quote.');
     }
   };
@@ -89,11 +90,11 @@ const CustomerQuoteDetails: NextPage<CustomerQuoteDetailsProps> = ({ quote }) =>
         router.push(url);
       } else {
         const errorData = await response.json();
-        console.error('Failed to create checkout session', errorData);
+        logger.error('Failed to create checkout session', errorData);
         alert('Failed to create checkout session');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the checkout session.');
     }
   };

@@ -1,0 +1,514 @@
+{
+  "name": "Content Distribution - Multi-Channel Publishing",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "publish-content",
+        "authentication": "headerAuth",
+        "headerAuth": {
+          "name": "X-API-Key",
+          "value": "={{ $credentials.apiKey }}"
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Content Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "webhookId": "content-distribution-webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "select",
+        "table": "content_queue",
+        "returnAll": true,
+        "where": {
+          "conditions": [
+            {
+              "column": "status",
+              "value": "pending"
+            },
+            {
+              "column": "scheduled_time",
+              "operator": "<=",
+              "value": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "id": "postgres-queue",
+      "name": "Content Queue",
+      "type": "n8n-nodes-base.postgres",
+      "position": [450, 300],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.channel }}",
+              "operation": "contains",
+              "value2": "facebook,twitter,linkedin,instagram"
+            }
+          ]
+        }
+      },
+      "id": "channel-router",
+      "name": "Channel Router",
+      "type": "n8n-nodes-base.if",
+      "position": [650, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "batch-processor",
+      "name": "Batch Processor",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [850, 200],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "post",
+        "operation": "create",
+        "page": "={{ $json.facebook_page_id }}",
+        "message": "={{ $json.content.text }}",
+        "additionalFields": {
+          "link": "={{ $json.content.link }}",
+          "picture": "={{ $json.content.image_url }}",
+          "scheduled_publish_time": "={{ $json.scheduled_time }}"
+        }
+      },
+      "id": "facebook-publish",
+      "name": "Facebook Publish",
+      "type": "n8n-nodes-base.facebook",
+      "position": [1050, 100],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookOAuth2Api": {
+          "id": "2",
+          "name": "Facebook Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.content.text }}",
+        "additionalFields": {
+          "attachments": "={{ $json.content.media_ids }}",
+          "possibly_sensitive": false
+        }
+      },
+      "id": "twitter-publish",
+      "name": "Twitter Publish",
+      "type": "n8n-nodes-base.twitter",
+      "position": [1050, 250],
+      "typeVersion": 1,
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "3",
+          "name": "Twitter Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "post",
+        "operation": "create",
+        "organizationUrn": "={{ $json.linkedin_org_urn }}",
+        "text": "={{ $json.content.text }}",
+        "shareMediaCategory": "IMAGE",
+        "additionalFields": {
+          "visibility": "PUBLIC",
+          "media": "={{ $json.content.media }}"
+        }
+      },
+      "id": "linkedin-publish",
+      "name": "LinkedIn Publish",
+      "type": "n8n-nodes-base.linkedIn",
+      "position": [1050, 400],
+      "typeVersion": 1,
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "4",
+          "name": "LinkedIn Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "create",
+        "accountId": "={{ $json.instagram_account_id }}",
+        "mediaType": "IMAGE",
+        "caption": "={{ $json.content.text }}",
+        "imageUrl": "={{ $json.content.image_url }}"
+      },
+      "id": "instagram-publish",
+      "name": "Instagram Publish",
+      "type": "n8n-nodes-base.instagram",
+      "position": [1050, 550],
+      "typeVersion": 1,
+      "credentials": {
+        "instagramOAuth2Api": {
+          "id": "5",
+          "name": "Instagram Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// A/B Testing Logic\nconst content = $input.item.json;\nconst variants = content.ab_test_variants || [];\n\nif (variants.length > 0) {\n  // Randomly select variant based on distribution\n  const random = Math.random();\n  let cumulative = 0;\n  \n  for (const variant of variants) {\n    cumulative += variant.distribution;\n    if (random <= cumulative) {\n      return {\n        ...content,\n        selected_variant: variant.id,\n        content: {\n          ...content.content,\n          text: variant.text || content.content.text,\n          image_url: variant.image_url || content.content.image_url\n        }\n      };\n    }\n  }\n}\n\nreturn content;"
+      },
+      "id": "ab-testing",
+      "name": "A/B Testing",
+      "type": "n8n-nodes-base.code",
+      "position": [850, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "content_performance",
+        "columns": "content_id,channel,variant_id,published_at,status,response_data",
+        "values": "={{ $json.content_id }},={{ $json.channel }},={{ $json.selected_variant }},={{ $now }},={{ $json.publish_status }},={{ JSON.stringify($json.response) }}"
+      },
+      "id": "track-performance",
+      "name": "Track Performance",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1250, 300],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Optimal Timing Analysis\nconst analytics = await $redis.get('channel_analytics:' + $json.channel);\nconst parsed = JSON.parse(analytics || '{}');\n\nconst optimalHours = parsed.optimal_hours || [9, 12, 15, 18];\nconst currentHour = new Date().getHours();\n\nif (!optimalHours.includes(currentHour) && !$json.force_publish) {\n  // Schedule for next optimal time\n  const nextOptimal = optimalHours.find(h => h > currentHour) || optimalHours[0];\n  const scheduledTime = new Date();\n  \n  if (nextOptimal <= currentHour) {\n    scheduledTime.setDate(scheduledTime.getDate() + 1);\n  }\n  scheduledTime.setHours(nextOptimal, 0, 0, 0);\n  \n  return {\n    should_publish: false,\n    scheduled_time: scheduledTime.toISOString(),\n    reason: 'Scheduled for optimal engagement time'\n  };\n}\n\nreturn {\n  should_publish: true,\n  publish_now: true\n};"
+      },
+      "id": "timing-optimizer",
+      "name": "Timing Optimizer",
+      "type": "n8n-nodes-base.function",
+      "position": [650, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MONITORING_URL }}/webhooks/content-distribution",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_id",
+              "value": "content-distribution"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "name": "status",
+              "value": "={{ $json.status }}"
+            },
+            {
+              "name": "metrics",
+              "value": "={{ JSON.stringify($json.metrics) }}"
+            }
+          ]
+        }
+      },
+      "id": "monitoring-webhook",
+      "name": "Send Monitoring Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 300],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "mode": "passThrough",
+        "output": "allBranches"
+      },
+      "id": "merge-results",
+      "name": "Merge Results",
+      "type": "n8n-nodes-base.merge",
+      "position": [1250, 500],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.if",
+      "position": [1450, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "workflow_errors",
+        "columns": "workflow_name,error_message,error_data,timestamp",
+        "values": "content-distribution,={{ $json.error.message }},={{ JSON.stringify($json.error) }},={{ $now }}"
+      },
+      "id": "log-errors",
+      "name": "Log Errors",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1650, 600],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "Content Distribution Error: {{ $json.error.message }}",
+        "additionalFields": {
+          "channel": "#marketing-alerts",
+          "username": "n8n-bot",
+          "icon_emoji": ":warning:"
+        }
+      },
+      "id": "slack-alert",
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [1650, 700],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Content Webhook": {
+      "main": [
+        [
+          {
+            "node": "Content Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Queue": {
+      "main": [
+        [
+          {
+            "node": "Channel Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Channel Router": {
+      "main": [
+        [
+          {
+            "node": "Timing Optimizer",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Timing Optimizer": {
+      "main": [
+        [
+          {
+            "node": "A/B Testing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "A/B Testing": {
+      "main": [
+        [
+          {
+            "node": "Batch Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch Processor": {
+      "main": [
+        [
+          {
+            "node": "Facebook Publish",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Twitter Publish",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LinkedIn Publish",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Instagram Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Publish": {
+      "main": [
+        [
+          {
+            "node": "Track Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twitter Publish": {
+      "main": [
+        [
+          {
+            "node": "Track Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Publish": {
+      "main": [
+        [
+          {
+            "node": "Track Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Publish": {
+      "main": [
+        [
+          {
+            "node": "Track Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Performance": {
+      "main": [
+        [
+          {
+            "node": "Merge Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Results": {
+      "main": [
+        [
+          {
+            "node": "Send Monitoring Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Log Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Errors": {
+      "main": [
+        [
+          {
+            "node": "Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 300,
+    "maxExecutionRetries": 3,
+    "executionRetryDelay": 5000,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "errorWorkflow": "error-handling-workflow"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 1
+}

@@ -12,6 +12,7 @@ import { db, initializeDatabase } from '../../src/database/index.js';
 import { redis } from '../../src/database/redis.js';
 import { GitIntegration } from '../../src/integrations/git.js';
 import { ChangeType } from '../../src/types/index.js';
+import { logger } from '../../../../../../utils/logger';
 
 describe('GitIntegration', () => {
   let tempDir: string;
@@ -50,7 +51,7 @@ describe('GitIntegration', () => {
 
     it('should track file changes', async () => {
       const testFile = join(tempDir, 'test.js');
-      writeFileSync(testFile, 'console.log("hello");');
+      writeFileSync(testFile, 'logger.info("hello");');
 
       const change = await gitIntegration.trackChange(
         'agent-123',

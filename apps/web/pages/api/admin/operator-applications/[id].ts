@@ -1,6 +1,7 @@
 
 import prisma from '../../../../lib/prisma';
 import { applicationReviewSchema } from '../../../../lib/schemas';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -23,7 +24,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json(updatedOperator);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

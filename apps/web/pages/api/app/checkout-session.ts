@@ -5,6 +5,7 @@ import { z } from 'zod';
 import prisma from '../../../lib/prisma';
 import { stripe } from '../../../lib/stripe';
 import { authOptions } from '../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 
 const checkoutSessionSchema = z.object({
@@ -71,7 +72,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ url: checkoutSession.url });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

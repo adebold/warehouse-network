@@ -8,6 +8,7 @@ import { getServerSession } from 'next-auth/next';
 
 import { goapService } from '../../../../lib/goap/goap-service';
 import { authOptions } from '../../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'GET') {
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
   } catch (error) {
-    console.error('GOAP system status error:', error);
+    logger.error('GOAP system status error:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to get system status',

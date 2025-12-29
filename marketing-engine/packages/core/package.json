@@ -1,0 +1,23 @@
+{
+  "name": "@marketing-engine/core",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "jest",
+    "dev": "tsx watch src/index.ts"
+  },
+  "dependencies": {
+    "winston": "^3.11.0",
+    "pg": "^8.11.3",
+    "redis": "^4.6.11",
+    "ioredis": "^5.3.2",
+    "joi": "^17.11.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.9",
+    "@types/uuid": "^9.0.7"
+  }
+}

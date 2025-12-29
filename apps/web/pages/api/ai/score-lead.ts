@@ -10,6 +10,7 @@ import { z } from 'zod';
 import { authOptions } from '../auth/[...nextauth]';
 
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 const scoreLeadSchema = z.object({
   warehouseId: z.string(),
@@ -205,7 +206,7 @@ export default async function handler(
     });
     
   } catch (error) {
-    console.error('Lead scoring error:', error);
+    logger.error('Lead scoring error:', error);
     res.status(500).json({ error: 'Failed to score lead' });
   }
 }

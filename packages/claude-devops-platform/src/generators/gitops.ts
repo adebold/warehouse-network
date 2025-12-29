@@ -666,9 +666,9 @@ async function setupBranchProtection() {
       required_conversation_resolution: true,
     });
 
-    console.log('Branch protection rules applied successfully!');
+    logger.info('Branch protection rules applied successfully!');
   } catch (error) {
-    console.error('Failed to apply branch protection:', error.message);
+    logger.error('Failed to apply branch protection:', error.message);
     process.exit(1);
   }
 }

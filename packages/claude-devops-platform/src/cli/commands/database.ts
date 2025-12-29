@@ -153,11 +153,11 @@ export class DatabaseCommand extends Command {
         const pending = status.data?.filter(m => m.status === MigrationStatus.PENDING) || [];
         
         if (options.json) {
-          console.log(JSON.stringify({ pending }, null, 2));
+          logger.info(JSON.stringify({ pending }, null, 2));
         } else {
           spinner?.succeed(`Found ${pending.length} pending migrations`);
           pending.forEach((m: Migration) => {
-            console.log(chalk.gray(`  - ${m.name} (${m.version})`));
+            logger.info(chalk.gray(`  - ${m.name} (${m.version})`));
           });
         }
         return;
@@ -169,13 +169,13 @@ export class DatabaseCommand extends Command {
       });
       
       if (options.json) {
-        console.log(JSON.stringify(results, null, 2));
+        logger.info(JSON.stringify(results, null, 2));
       } else {
         spinner?.succeed(`Successfully ran ${results.data?.length || 0} migrations`);
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Migration failed');
         logger.error(String(error));
@@ -213,13 +213,13 @@ export class DatabaseCommand extends Command {
       }
       
       if (options.json) {
-        console.log(JSON.stringify(result, null, 2));
+        logger.info(JSON.stringify(result, null, 2));
       } else {
         spinner?.succeed(`Created migration: ${name}`);
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Failed to create migration');
         logger.error(String(error));
@@ -234,20 +234,20 @@ export class DatabaseCommand extends Command {
       const status = await system.getMigrationStatus();
       
       if (options.json) {
-        console.log(JSON.stringify(status, null, 2));
+        logger.info(JSON.stringify(status, null, 2));
       } else {
-        console.log(chalk.bold('\nMigration Status:\n'));
+        logger.info(chalk.bold('\nMigration Status:\n'));
         
         status.data?.forEach((m: Migration) => {
           const statusColor = m.status === MigrationStatus.COMPLETED ? 'green' : 
                             m.status === MigrationStatus.FAILED ? 'red' : 'yellow';
           
-          console.log(`${chalk[statusColor]('●')} ${m.version} - ${m.name}`);
-          console.log(chalk.gray(`    Status: ${m.status}`));
+          logger.info(`${chalk[statusColor]('●')} ${m.version} - ${m.name}`);
+          logger.info(chalk.gray(`    Status: ${m.status}`));
           if (m.executedAt) {
-            console.log(chalk.gray(`    Executed: ${m.executedAt}`));
+            logger.info(chalk.gray(`    Executed: ${m.executedAt}`));
           }
-          console.log();
+          logger.info();
         });
       }
     } catch (error) {
@@ -267,13 +267,13 @@ export class DatabaseCommand extends Command {
       });
       
       if (options.json) {
-        console.log(JSON.stringify(results, null, 2));
+        logger.info(JSON.stringify(results, null, 2));
       } else {
         spinner?.succeed(`Rolled back ${results.data?.length || 0} migrations`);
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Rollback failed');
         logger.error(String(error));
@@ -294,13 +294,13 @@ export class DatabaseCommand extends Command {
         const migrations = await system.generateDriftMigration(driftReport.data);
         
         if (options.json) {
-          console.log(JSON.stringify({ driftReport, migrations }, null, 2));
+          logger.info(JSON.stringify({ driftReport, migrations }, null, 2));
         } else {
           spinner?.succeed(`Generated ${migrations.data?.length || 0} fix migrations`);
         }
       } else {
         if (options.json) {
-          console.log(JSON.stringify(driftReport, null, 2));
+          logger.info(JSON.stringify(driftReport, null, 2));
         } else {
           const driftCount = driftReport.data?.drifts.length || 0;
           if (driftCount === 0) {
@@ -308,14 +308,14 @@ export class DatabaseCommand extends Command {
           } else {
             spinner?.warn(`Detected ${driftCount} drifts`);
             driftReport.data?.drifts.forEach((drift: any) => {
-              console.log(chalk.yellow(`  - ${drift.type}: ${drift.description}`));
+              logger.info(chalk.yellow(`  - ${drift.type}: ${drift.description}`));
             });
           }
         }
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Drift detection failed');
         logger.error(String(error));
@@ -325,11 +325,11 @@ export class DatabaseCommand extends Command {
   }
 
   private async startDriftMonitoring(options: any) {
-    console.log(chalk.blue('Starting drift monitoring...'));
-    console.log(chalk.gray(`Checking every ${options.interval} minutes`));
+    logger.info(chalk.blue('Starting drift monitoring...'));
+    logger.info(chalk.gray(`Checking every ${options.interval} minutes`));
     
     // This would typically start a background process or daemon
-    console.log(chalk.yellow('Note: Continuous monitoring requires running as a service'));
+    logger.info(chalk.yellow('Note: Continuous monitoring requires running as a service'));
   }
 
   private async analyzeSchema(options: any) {
@@ -340,28 +340,28 @@ export class DatabaseCommand extends Command {
       const schema = await system.analyzeSchema();
       
       if (options.json) {
-        console.log(JSON.stringify(schema, null, 2));
+        logger.info(JSON.stringify(schema, null, 2));
       } else {
         spinner?.succeed('Schema analysis complete');
         
         if (schema.data) {
-          console.log(chalk.bold('\nDatabase Schema:\n'));
-          console.log(`Tables: ${schema.data.tables.length}`);
-          console.log(`Views: ${schema.data.views.length}`);
-          console.log(`Indexes: ${schema.data.indexes.length}`);
-          console.log(`Constraints: ${schema.data.constraints.length}`);
+          logger.info(chalk.bold('\nDatabase Schema:\n'));
+          logger.info(`Tables: ${schema.data.tables.length}`);
+          logger.info(`Views: ${schema.data.views.length}`);
+          logger.info(`Indexes: ${schema.data.indexes.length}`);
+          logger.info(`Constraints: ${schema.data.constraints.length}`);
           
           if (options.format === 'table') {
-            console.log(chalk.bold('\nTables:'));
+            logger.info(chalk.bold('\nTables:'));
             schema.data.tables.forEach(table => {
-              console.log(`  ${chalk.cyan(table.name)} (${table.columns.length} columns)`);
+              logger.info(`  ${chalk.cyan(table.name)} (${table.columns.length} columns)`);
             });
           }
         }
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Schema analysis failed');
         logger.error(String(error));
@@ -378,18 +378,18 @@ export class DatabaseCommand extends Command {
       const result = await system.runFullIntegrityCheck();
       
       if (options.json) {
-        console.log(JSON.stringify(result, null, 2));
+        logger.info(JSON.stringify(result, null, 2));
       } else {
         if (result.data?.schema.success) {
           spinner?.succeed('Schema validation passed');
         } else {
           spinner?.fail('Schema validation failed');
-          console.log(chalk.red(`  Error: ${result.data?.schema.error?.message}`));
+          logger.info(chalk.red(`  Error: ${result.data?.schema.error?.message}`));
         }
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Validation failed');
         logger.error(String(error));
@@ -404,7 +404,7 @@ export class DatabaseCommand extends Command {
     try {
       // This would use a TypeGenerator class
       spinner?.succeed('Type generation complete');
-      console.log(chalk.gray(`Types written to: ${options.output}`));
+      logger.info(chalk.gray(`Types written to: ${options.output}`));
     } catch (error) {
       spinner?.fail('Type generation failed');
       logger.error(String(error));
@@ -422,8 +422,8 @@ export class DatabaseCommand extends Command {
       if (result.success && result.data) {
         spinner?.succeed(`Validated ${result.data.length} routes`);
         if (result.warnings && result.warnings.length > 0) {
-          console.log(chalk.yellow('\nWarnings:'));
-          result.warnings.forEach((w: string) => console.log(chalk.yellow(`  - ${w}`)));
+          logger.info(chalk.yellow('\nWarnings:'));
+          result.warnings.forEach((w: string) => logger.info(chalk.yellow(`  - ${w}`)));
         }
       } else {
         spinner?.fail('Route validation failed');
@@ -462,7 +462,7 @@ export class DatabaseCommand extends Command {
       const result = await system.runFullIntegrityCheck();
       
       if (options.json) {
-        console.log(JSON.stringify(result, null, 2));
+        logger.info(JSON.stringify(result, null, 2));
       } else {
         const overallSuccess = result.metadata?.overallSuccess;
         
@@ -472,16 +472,16 @@ export class DatabaseCommand extends Command {
           spinner?.warn('Integrity check completed with issues');
           const issues = result.metadata?.issues || [];
           if (Array.isArray(issues) && issues.length > 0) {
-            console.log(chalk.yellow('\nIssues found:'));
+            logger.info(chalk.yellow('\nIssues found:'));
             issues.forEach((issue: string) => {
-              console.log(chalk.yellow(`  - ${issue}`));
+              logger.info(chalk.yellow(`  - ${issue}`));
             });
           }
         }
       }
     } catch (error) {
       if (options.json) {
-        console.log(JSON.stringify({ error: String(error) }, null, 2));
+        logger.info(JSON.stringify({ error: String(error) }, null, 2));
       } else {
         spinner?.fail('Integrity check failed');
         logger.error(String(error));
@@ -498,7 +498,7 @@ export class DatabaseCommand extends Command {
     } else if (options.set) {
       await this.setConfig(options.set);
     } else {
-      console.log('Use --init, --show, or --set <key=value>');
+      logger.info('Use --init, --show, or --set <key=value>');
     }
   }
 
@@ -577,18 +577,18 @@ export class DatabaseCommand extends Command {
     }
     
     writeFileSync(configPath, JSON.stringify(config, null, 2));
-    console.log(chalk.green(`✅ Configuration initialized at: ${configPath}`));
+    logger.info(chalk.green(`✅ Configuration initialized at: ${configPath}`));
   }
 
   private async showConfig() {
     const config = await this.loadConfig();
-    console.log(JSON.stringify(config, null, 2));
+    logger.info(JSON.stringify(config, null, 2));
   }
 
   private async setConfig(keyValue: string) {
     const [key, value] = keyValue.split('=');
     if (!key || value === undefined) {
-      console.log(chalk.red('Invalid format. Use: --set key=value'));
+      logger.info(chalk.red('Invalid format. Use: --set key=value'));
       return;
     }
     
@@ -614,6 +614,6 @@ export class DatabaseCommand extends Command {
     const configPath = join(process.cwd(), '.claude', 'database.config.json');
     writeFileSync(configPath, JSON.stringify(config, null, 2));
     
-    console.log(chalk.green(`✅ Updated ${key} = ${value}`));
+    logger.info(chalk.green(`✅ Updated ${key} = ${value}`));
   }
 }

@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import { logger } from '../../../../../utils/logger';
 
 // Global test setup for Claude DB Integrity
 
@@ -234,4 +235,4 @@ export const cleanup = async () => {
   // This is called by individual tests as needed
 };
 
-console.log('📋 Claude DB Integrity test setup completed');
+logger.info('📋 Claude DB Integrity test setup completed');

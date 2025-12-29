@@ -6,6 +6,7 @@ import { z } from 'zod';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 
 const inviteSchema = z.object({
@@ -54,11 +55,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // TODO: Send email with invitation link
-      console.log(`Sending invitation to ${email} with token ${token}`);
+      logger.info(`Sending invitation to ${email} with token ${token}`);
 
       res.status(201).json(invitation);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

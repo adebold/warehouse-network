@@ -24,6 +24,7 @@ import { Progress } from '@/components/ui/progress';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import log from '@/lib/logger';
 
 interface User {
   id: string;
@@ -86,7 +87,7 @@ export const UserManagementDashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [_selectedUser, setSelectedUser] = useState<User | null>(null);
 
   useEffect(() => {
     loadData();
@@ -111,7 +112,7 @@ export const UserManagementDashboard: React.FC = () => {
         setOnboardingStats(statsData);
       }
     } catch (error) {
-      console.error('Failed to load data:', error);
+      log.error('Failed to load data', error as Error);
     } finally {
       setLoading(false);
     }
@@ -158,7 +159,7 @@ export const UserManagementDashboard: React.FC = () => {
       
       loadData(); // Refresh data
     } catch (error) {
-      console.error('Failed to start onboarding:', error);
+      log.error('Failed to start onboarding', error as Error);
     }
   };
 
@@ -172,7 +173,7 @@ export const UserManagementDashboard: React.FC = () => {
       
       loadData(); // Refresh data
     } catch (error) {
-      console.error('Failed to reset onboarding:', error);
+      log.error('Failed to reset onboarding', error as Error);
     }
   };
 

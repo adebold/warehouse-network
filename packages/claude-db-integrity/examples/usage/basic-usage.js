@@ -17,26 +17,27 @@ const {
   ValidationManager,
   healthCheck 
 } = require('claude-db-integrity');
+const { logger } = require('../../../../../../utils/logger');
 
 async function basicUsageExample() {
-  console.log('🚀 Claude DB Integrity - Basic Usage Example');
-  console.log('=============================================\n');
+  logger.info('🚀 Claude DB Integrity - Basic Usage Example');
+  logger.info('=============================================\n');
 
   try {
     // 1. Quick health check
-    console.log('1. Running health check...');
+    logger.info('1. Running health check...');
     const health = await healthCheck();
-    console.log(`   Status: ${health.status}`);
-    console.log(`   Checks: ${JSON.stringify(health.checks, null, 2)}\n`);
+    logger.info(`   Status: ${health.status}`);
+    logger.info(`   Checks: ${JSON.stringify(health.checks, null, 2)}\n`);
 
     // 2. Initialize integrity engine
-    console.log('2. Initializing integrity engine...');
+    logger.info('2. Initializing integrity engine...');
     const engine = createIntegrityEngine();
     await engine.initialize();
-    console.log('   ✅ Engine initialized\n');
+    logger.info('   ✅ Engine initialized\n');
 
     // 3. Create and load a schema
-    console.log('3. Loading validation schema...');
+    logger.info('3. Loading validation schema...');
     const userSchema = {
       type: 'object',
       properties: {
@@ -77,10 +78,10 @@ async function basicUsageExample() {
 
     const validator = new ValidationManager();
     await validator.loadSchema('user', userSchema);
-    console.log('   ✅ User schema loaded\n');
+    logger.info('   ✅ User schema loaded\n');
 
     // 4. Validate some data
-    console.log('4. Validating data...');
+    logger.info('4. Validating data...');
     
     const validUser = {
       id: 'user12345',
@@ -101,17 +102,17 @@ async function basicUsageExample() {
       extraField: 'not allowed' // Additional property
     };
 
-    console.log('   Validating valid user...');
+    logger.info('   Validating valid user...');
     const validResult = await validator.validate('user', validUser);
-    console.log(`   Result: ${validResult.isValid ? '✅ Valid' : '❌ Invalid'}`);
+    logger.info(`   Result: ${validResult.isValid ? '✅ Valid' : '❌ Invalid'}`);
     
-    console.log('   Validating invalid user...');
+    logger.info('   Validating invalid user...');
     const invalidResult = await validator.validate('user', invalidUser);
-    console.log(`   Result: ${invalidResult.isValid ? '✅ Valid' : '❌ Invalid'}`);
-    console.log(`   Errors: ${JSON.stringify(invalidResult.errors, null, 2)}\n`);
+    logger.info(`   Result: ${invalidResult.isValid ? '✅ Valid' : '❌ Invalid'}`);
+    logger.info(`   Errors: ${JSON.stringify(invalidResult.errors, null, 2)}\n`);
 
     // 5. Batch validation
-    console.log('5. Running batch validation...');
+    logger.info('5. Running batch validation...');
     const batchData = [
       { id: 'user001', email: 'alice@example.com', name: 'Alice Smith', age: 25 },
       { id: 'user002', email: 'bob@example.com', name: 'Bob Johnson', age: 35 },
@@ -121,10 +122,10 @@ async function basicUsageExample() {
 
     const batchResults = await validator.validateBatch('user', batchData);
     const validCount = batchResults.filter(r => r.isValid).length;
-    console.log(`   Batch results: ${validCount}/${batchResults.length} valid\n`);
+    logger.info(`   Batch results: ${validCount}/${batchResults.length} valid\n`);
 
     // 6. Claude memory integration
-    console.log('6. Using Claude memory integration...');
+    logger.info('6. Using Claude memory integration...');
     const memory = createMemoryManager({
       claude: {
         enabled: true,
@@ -141,60 +142,60 @@ async function basicUsageExample() {
       sampleData: validUser
     }, { ttl: 3600 });
 
-    console.log('   ✅ Validation results stored in memory\n');
+    logger.info('   ✅ Validation results stored in memory\n');
 
     // 7. Run integrity checks
-    console.log('7. Running integrity checks...');
+    logger.info('7. Running integrity checks...');
     const integrityReport = await engine.runIntegrityChecks();
-    console.log(`   Summary:`);
-    console.log(`     Total checks: ${integrityReport.summary.total}`);
-    console.log(`     Passed: ${integrityReport.summary.passed}`);
-    console.log(`     Failed: ${integrityReport.summary.failed}`);
-    console.log(`     Skipped: ${integrityReport.summary.skipped}\n`);
+    logger.info(`   Summary:`);
+    logger.info(`     Total checks: ${integrityReport.summary.total}`);
+    logger.info(`     Passed: ${integrityReport.summary.passed}`);
+    logger.info(`     Failed: ${integrityReport.summary.failed}`);
+    logger.info(`     Skipped: ${integrityReport.summary.skipped}\n`);
 
     // 8. Check for schema drift
-    console.log('8. Checking for schema drift...');
+    logger.info('8. Checking for schema drift...');
     const driftReport = await engine.checkSchemaDrift();
-    console.log(`   Has changes: ${driftReport.hasChanges}`);
+    logger.info(`   Has changes: ${driftReport.hasChanges}`);
     if (driftReport.hasChanges) {
-      console.log(`   Changes detected: ${JSON.stringify(driftReport.changes, null, 2)}`);
+      logger.info(`   Changes detected: ${JSON.stringify(driftReport.changes, null, 2)}`);
     }
-    console.log();
+    logger.info();
 
     // 9. Retrieve data from memory
-    console.log('9. Retrieving data from memory...');
+    logger.info('9. Retrieving data from memory...');
     const storedData = await memory.retrieve('validation-summary');
     if (storedData) {
-      console.log(`   Retrieved: ${JSON.stringify(storedData, null, 2)}\n`);
+      logger.info(`   Retrieved: ${JSON.stringify(storedData, null, 2)}\n`);
     }
 
     // 10. Get memory statistics
-    console.log('10. Memory statistics...');
+    logger.info('10. Memory statistics...');
     const stats = await memory.getStats();
-    console.log(`    Total keys: ${stats.totalKeys}`);
-    console.log(`    Memory usage: ${stats.memoryUsage} bytes`);
-    console.log(`    Operations: ${JSON.stringify(stats.operations)}\n`);
+    logger.info(`    Total keys: ${stats.totalKeys}`);
+    logger.info(`    Memory usage: ${stats.memoryUsage} bytes`);
+    logger.info(`    Operations: ${JSON.stringify(stats.operations)}\n`);
 
     // Clean up
     await engine.shutdown();
     await memory.clear();
 
-    console.log('✅ Basic usage example completed successfully!');
+    logger.info('✅ Basic usage example completed successfully!');
     
   } catch (error) {
-    console.error('❌ Error in basic usage example:', error);
+    logger.error('❌ Error in basic usage example:', error);
     process.exit(1);
   }
 }
 
 // Advanced usage examples
 async function advancedUsageExample() {
-  console.log('\n🔬 Advanced Usage Examples');
-  console.log('===========================\n');
+  logger.info('\n🔬 Advanced Usage Examples');
+  logger.info('===========================\n');
 
   try {
     // Custom validation rules
-    console.log('1. Custom validation rules...');
+    logger.info('1. Custom validation rules...');
     const validator = new ValidationManager();
     
     // Add custom password strength rule
@@ -230,11 +231,11 @@ async function advancedUsageExample() {
     const weakResult = await validator.validate('auth', weakAuth);
     const strongResult = await validator.validate('auth', strongAuth);
 
-    console.log(`   Weak password valid: ${weakResult.isValid}`);
-    console.log(`   Strong password valid: ${strongResult.isValid}\n`);
+    logger.info(`   Weak password valid: ${weakResult.isValid}`);
+    logger.info(`   Strong password valid: ${strongResult.isValid}\n`);
 
     // Schema evolution and migration
-    console.log('2. Schema evolution...');
+    logger.info('2. Schema evolution...');
     const engine = createIntegrityEngine();
     await engine.initialize();
 
@@ -259,11 +260,11 @@ async function advancedUsageExample() {
     await schemaManager.loadSchema('person', originalSchema);
 
     const compatibility = await schemaManager.isCompatible('person', evolvedSchema);
-    console.log(`   Schema compatibility: ${compatibility.isCompatible}`);
-    console.log(`   Breaking changes: ${compatibility.breakingChanges.length}\n`);
+    logger.info(`   Schema compatibility: ${compatibility.isCompatible}`);
+    logger.info(`   Breaking changes: ${compatibility.breakingChanges.length}\n`);
 
     // Performance monitoring
-    console.log('3. Performance monitoring...');
+    logger.info('3. Performance monitoring...');
     const startTime = Date.now();
     
     // Simulate bulk validation
@@ -287,35 +288,35 @@ async function advancedUsageExample() {
     const duration = Date.now() - startTime;
     const throughput = bulkData.length / (duration / 1000);
 
-    console.log(`   Validated ${bulkData.length} records in ${duration}ms`);
-    console.log(`   Throughput: ${throughput.toFixed(0)} records/second\n`);
+    logger.info(`   Validated ${bulkData.length} records in ${duration}ms`);
+    logger.info(`   Throughput: ${throughput.toFixed(0)} records/second\n`);
 
     await engine.shutdown();
 
-    console.log('✅ Advanced usage examples completed!');
+    logger.info('✅ Advanced usage examples completed!');
 
   } catch (error) {
-    console.error('❌ Error in advanced usage example:', error);
+    logger.error('❌ Error in advanced usage example:', error);
   }
 }
 
 // Error handling examples
 async function errorHandlingExample() {
-  console.log('\n⚠️  Error Handling Examples');
-  console.log('============================\n');
+  logger.info('\n⚠️  Error Handling Examples');
+  logger.info('============================\n');
 
   try {
     // 1. Graceful handling of invalid configurations
-    console.log('1. Invalid configuration handling...');
+    logger.info('1. Invalid configuration handling...');
     try {
       const engine = createIntegrityEngine('./non-existent-config.js');
       await engine.initialize();
     } catch (error) {
-      console.log(`   ✅ Caught configuration error: ${error.message}\n`);
+      logger.info(`   ✅ Caught configuration error: ${error.message}\n`);
     }
 
     // 2. Schema validation errors
-    console.log('2. Schema validation errors...');
+    logger.info('2. Schema validation errors...');
     const validator = new ValidationManager();
     
     try {
@@ -323,11 +324,11 @@ async function errorHandlingExample() {
         type: 'invalid-type' // This will cause an error
       });
     } catch (error) {
-      console.log(`   ✅ Caught schema error: ${error.message}\n`);
+      logger.info(`   ✅ Caught schema error: ${error.message}\n`);
     }
 
     // 3. Data validation error handling
-    console.log('3. Data validation error handling...');
+    logger.info('3. Data validation error handling...');
     await validator.loadSchema('test', {
       type: 'object',
       properties: {
@@ -340,27 +341,27 @@ async function errorHandlingExample() {
     const result = await validator.validate('test', invalidData);
     
     if (!result.isValid) {
-      console.log('   ✅ Validation failed as expected');
-      console.log(`   Errors: ${result.errors.map(e => e.message).join(', ')}\n`);
+      logger.info('   ✅ Validation failed as expected');
+      logger.info(`   Errors: ${result.errors.map(e => e.message).join(', ')}\n`);
     }
 
     // 4. Memory operation error handling
-    console.log('4. Memory operation error handling...');
+    logger.info('4. Memory operation error handling...');
     const memory = createMemoryManager();
     
     try {
       // Try to store extremely large data
       const largeData = 'x'.repeat(1000000); // 1MB string
       await memory.store('large-key', largeData);
-      console.log('   Large data stored successfully');
+      logger.info('   Large data stored successfully');
     } catch (error) {
-      console.log(`   ✅ Caught memory error: ${error.message}`);
+      logger.info(`   ✅ Caught memory error: ${error.message}`);
     }
 
-    console.log('\n✅ Error handling examples completed!');
+    logger.info('\n✅ Error handling examples completed!');
 
   } catch (error) {
-    console.error('❌ Unexpected error in error handling example:', error);
+    logger.error('❌ Unexpected error in error handling example:', error);
   }
 }
 
@@ -370,15 +371,15 @@ async function runAllExamples() {
   await advancedUsageExample();
   await errorHandlingExample();
   
-  console.log('\n🎉 All examples completed successfully!');
-  console.log('');
-  console.log('Next steps:');
-  console.log('- Customize schemas for your data models');
-  console.log('- Set up monitoring dashboard: npm run integrity:monitor');
-  console.log('- Integrate with your application framework');
-  console.log('- Set up automated integrity checks in CI/CD');
-  console.log('');
-  console.log('Documentation: https://github.com/warehouse-network/claude-db-integrity');
+  logger.info('\n🎉 All examples completed successfully!');
+  logger.info('');
+  logger.info('Next steps:');
+  logger.info('- Customize schemas for your data models');
+  logger.info('- Set up monitoring dashboard: npm run integrity:monitor');
+  logger.info('- Integrate with your application framework');
+  logger.info('- Set up automated integrity checks in CI/CD');
+  logger.info('');
+  logger.info('Documentation: https://github.com/warehouse-network/claude-db-integrity');
 }
 
 // Run if called directly

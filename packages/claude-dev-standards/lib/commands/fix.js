@@ -118,18 +118,18 @@ app.get('/ready', async (req, res) => {
   }
 });`;
       
-      console.log(chalk.yellow('\nAdd this health check code to your main application file:'));
-      console.log(healthCheckCode);
+      logger.info(chalk.yellow('\nAdd this health check code to your main application file:'));
+      logger.info(healthCheckCode);
     }
   },
   
   'weak-password-hashing': {
     description: 'Update to use bcrypt or argon2',
     fix: async (projectPath) => {
-      console.log(chalk.yellow('\nTo fix weak password hashing:'));
-      console.log('1. Install bcrypt: ' + chalk.cyan('npm install bcrypt'));
-      console.log('2. Replace MD5/SHA hashing with bcrypt:');
-      console.log(chalk.gray(`
+      logger.info(chalk.yellow('\nTo fix weak password hashing:'));
+      logger.info('1. Install bcrypt: ' + chalk.cyan('npm install bcrypt'));
+      logger.info('2. Replace MD5/SHA hashing with bcrypt:');
+      logger.info(chalk.gray(`
 const bcrypt = require('bcrypt');
 
 // Hashing
@@ -154,11 +154,11 @@ async function fix(options = {}) {
     spinner.stop();
     
     if (!results.fixable || results.fixable.length === 0) {
-      console.log(chalk.green('✓ No auto-fixable issues found!'));
+      logger.info(chalk.green('✓ No auto-fixable issues found!'));
       return;
     }
     
-    console.log(chalk.yellow(`\nFound ${results.fixable.length} auto-fixable issue(s):\n`));
+    logger.info(chalk.yellow(`\nFound ${results.fixable.length} auto-fixable issue(s):\n`));
     
     // Group fixable issues
     const fixableByType = {};
@@ -173,7 +173,7 @@ async function fix(options = {}) {
     if (options.interactive) {
       const selectedFixes = await selectFixes(fixableByType);
       if (selectedFixes.length === 0) {
-        console.log('No fixes selected.');
+        logger.info('No fixes selected.');
         return;
       }
       await applyFixes(selectedFixes, options.dryRun);
@@ -187,13 +187,13 @@ async function fix(options = {}) {
     }
     
     if (!options.dryRun) {
-      console.log(chalk.green('\n✓ Fixes applied successfully!'));
-      console.log('Run ' + chalk.cyan('npx cds validate') + ' to verify.');
+      logger.info(chalk.green('\n✓ Fixes applied successfully!'));
+      logger.info('Run ' + chalk.cyan('npx cds validate') + ' to verify.');
     }
     
   } catch (error) {
     spinner.fail(`Fix failed: ${error.message}`);
-    console.error(chalk.red(error.stack));
+    logger.error(chalk.red(error.stack));
     process.exit(1);
   }
 }
@@ -222,17 +222,17 @@ async function applyFixes(fixes, dryRun) {
     const fixer = fixers[type];
     
     if (!fixer) {
-      console.log(chalk.yellow(`No automatic fix available for: ${type}`));
+      logger.info(chalk.yellow(`No automatic fix available for: ${type}`));
       continue;
     }
     
-    console.log(`\n${chalk.bold(fixer.description)}...`);
+    logger.info(`\n${chalk.bold(fixer.description)}...`);
     
     if (dryRun) {
-      console.log(chalk.gray('(dry run - no changes will be made)'));
+      logger.info(chalk.gray('(dry run - no changes will be made)'));
     } else {
       await fixer.fix(process.cwd(), issues);
-      console.log(chalk.green('✓ Fixed'));
+      logger.info(chalk.green('✓ Fixed'));
     }
   }
 }

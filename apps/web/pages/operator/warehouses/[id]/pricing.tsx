@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../../../lib/prisma';
 import { authOptions } from '../../../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface PricingProps {
   warehouse: Warehouse & { pricingRules: PricingRule[] };
@@ -65,12 +66,12 @@ const Pricing: NextPage<PricingProps> = ({ warehouse }) => {
       } else {
         const errorData = await response.json();
 
-        console.error('Failed to update pricing', errorData);
+        logger.error('Failed to update pricing', errorData);
 
         alert('Failed to update pricing');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
 
       alert('An error occurred while updating the pricing.');
     }

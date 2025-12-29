@@ -79,7 +79,7 @@ export async function runDoctor(): Promise<void> {
     }
   }
 
-  console.log('');
+  logger.info('');
   
   if (failed > 0) {
     logger.error(`${failed} required checks failed.`);

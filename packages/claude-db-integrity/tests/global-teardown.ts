@@ -1,11 +1,12 @@
 import fs from 'fs/promises';
+import { logger } from '../../../../../utils/logger';
 
 /**
  * Global Jest teardown
  * Runs once after all test suites complete
  */
 export default async () => {
-  console.log('🧹 Cleaning up Claude DB Integrity test environment...');
+  logger.info('🧹 Cleaning up Claude DB Integrity test environment...');
   
   // Clean up test directories
   const testDirs = [
@@ -18,7 +19,7 @@ export default async () => {
     try {
       await fs.rm(dir, { recursive: true, force: true });
     } catch (error) {
-      console.warn(`Failed to clean up test directory ${dir}:`, error);
+      logger.warn(`Failed to clean up test directory ${dir}:`, error);
     }
   }
   
@@ -28,7 +29,7 @@ export default async () => {
   // Reset environment variables
   delete process.env.TEST_DATABASE_URL;
   
-  console.log('✅ Test environment cleanup completed');
+  logger.info('✅ Test environment cleanup completed');
 };
 
 async function cleanupTestDatabase() {

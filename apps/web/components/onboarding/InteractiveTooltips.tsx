@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   X,
   ChevronRight,
   ChevronLeft,
@@ -69,7 +70,7 @@ const DEFAULT_TOURS: TooltipTour[] = [
         placement: 'bottom',
         action: {
           label: 'Try Search',
-          onClick: () => console.log('Navigate to search')
+          onClick: () => logger.info('Navigate to search')
         }
       },
       {

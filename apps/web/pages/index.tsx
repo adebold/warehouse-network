@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   Package,
   Shield,
   Search,
@@ -33,7 +34,7 @@ const Home: NextPage = () => {
     searchTracking.query(searchQuery || 'all', 0);
     trackCTA('search_hero', 'homepage')();
     // TODO: Implement search functionality
-    console.log('Searching for:', { searchQuery, location });
+    logger.info('Searching for:', { searchQuery, location });
   };
 
   return (
@@ -598,7 +599,7 @@ const Home: NextPage = () => {
       {/* AI Chat Assistant */}
       <AIChat 
         onWarehouseSelect={(warehouse) => {
-          console.log('Selected warehouse:', warehouse);
+          logger.info('Selected warehouse:', warehouse);
           // Navigate to warehouse detail page
           window.location.href = `/warehouses/${warehouse.id}`;
         }}

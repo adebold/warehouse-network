@@ -4,6 +4,7 @@ import { z } from 'zod';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 const moveSkidSchema = z.object({
   skidCode: z.string(),
@@ -47,11 +48,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       });
 
       // TODO: Add audit logging when AuditEvent model is implemented
-      console.log(`User ${session.user.id} moved skid ${skid.id} to location ${location.id}`);
+      logger.info(`User ${session.user.id} moved skid ${skid.id} to location ${location.id}`);
 
       res.status(200).json(updatedSkid);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

@@ -1,0 +1,620 @@
+{
+  "name": "Social Media - Engagement Monitoring & Management",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "social-webhook",
+        "authentication": "headerAuth",
+        "headerAuth": {
+          "name": "X-API-Key",
+          "value": "={{ $credentials.apiKey }}"
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "webhook-trigger",
+      "name": "Social Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 450],
+      "webhookId": "social-media-webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "select",
+        "table": "social_accounts",
+        "returnAll": true,
+        "where": {
+          "conditions": [
+            {
+              "column": "active",
+              "value": true
+            }
+          ]
+        }
+      },
+      "id": "get-accounts",
+      "name": "Get Social Accounts",
+      "type": "n8n-nodes-base.postgres",
+      "position": [450, 375],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {
+          "reset": false
+        }
+      },
+      "id": "batch-accounts",
+      "name": "Batch Accounts",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [650, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "search",
+        "searchType": "recent",
+        "query": "{{ $json.brand_mentions }} OR {{ $json.hashtags }}",
+        "additionalFields": {
+          "maxResults": 100,
+          "startTime": "={{ $now.minus({hours: 1}).toISO() }}",
+          "expansions": "author_id,referenced_tweets.id",
+          "tweetFields": "created_at,public_metrics,context_annotations"
+        }
+      },
+      "id": "twitter-mentions",
+      "name": "Twitter Mentions",
+      "type": "n8n-nodes-base.twitter",
+      "position": [850, 200],
+      "typeVersion": 1,
+      "credentials": {
+        "twitterOAuth2Api": {
+          "id": "3",
+          "name": "Twitter Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "page",
+        "operation": "get",
+        "pageId": "={{ $json.facebook_page_id }}",
+        "additionalFields": {
+          "fields": "posts{message,created_time,reactions.summary(true),comments.summary(true),shares}"
+        }
+      },
+      "id": "facebook-posts",
+      "name": "Facebook Posts",
+      "type": "n8n-nodes-base.facebook",
+      "position": [850, 350],
+      "typeVersion": 1,
+      "credentials": {
+        "facebookOAuth2Api": {
+          "id": "2",
+          "name": "Facebook Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "search",
+        "operation": "searchCompany",
+        "organizationUrn": "={{ $json.linkedin_org_urn }}",
+        "additionalFields": {
+          "count": 50
+        }
+      },
+      "id": "linkedin-activity",
+      "name": "LinkedIn Activity",
+      "type": "n8n-nodes-base.linkedIn",
+      "position": [850, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "4",
+          "name": "LinkedIn Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "media",
+        "operation": "getComments",
+        "mediaId": "={{ $json.recent_post_id }}",
+        "returnAll": true
+      },
+      "id": "instagram-comments",
+      "name": "Instagram Comments",
+      "type": "n8n-nodes-base.instagram",
+      "position": [850, 650],
+      "typeVersion": 1,
+      "credentials": {
+        "instagramOAuth2Api": {
+          "id": "5",
+          "name": "Instagram Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Engagement Analysis\nconst engagements = $input.all();\nconst metrics = {\n  total_mentions: 0,\n  positive_sentiment: 0,\n  negative_sentiment: 0,\n  neutral_sentiment: 0,\n  total_engagement: 0,\n  response_required: [],\n  trending_topics: {},\n  influencer_mentions: [],\n  competitor_mentions: []\n};\n\nfor (const item of engagements) {\n  const engagement = item.json;\n  \n  // Count mentions\n  metrics.total_mentions++;\n  \n  // Sentiment analysis (simplified - in production use AI service)\n  const text = engagement.text || engagement.message || '';\n  const sentiment = analyzeSentiment(text);\n  metrics[sentiment + '_sentiment']++;\n  \n  // Calculate engagement\n  const engagementScore = \n    (engagement.likes || 0) + \n    (engagement.comments || 0) * 2 + \n    (engagement.shares || 0) * 3;\n  metrics.total_engagement += engagementScore;\n  \n  // Check if response needed\n  if (sentiment === 'negative' || engagement.is_question) {\n    metrics.response_required.push({\n      id: engagement.id,\n      platform: engagement.platform,\n      text: text,\n      author: engagement.author,\n      priority: sentiment === 'negative' ? 'high' : 'medium'\n    });\n  }\n  \n  // Track influencers (followers > 10k)\n  if (engagement.author_followers > 10000) {\n    metrics.influencer_mentions.push({\n      author: engagement.author,\n      followers: engagement.author_followers,\n      engagement: engagement\n    });\n  }\n  \n  // Extract hashtags\n  const hashtags = text.match(/#\\w+/g) || [];\n  hashtags.forEach(tag => {\n    metrics.trending_topics[tag] = (metrics.trending_topics[tag] || 0) + 1;\n  });\n}\n\n// Sort trending topics\nmetrics.trending_topics = Object.entries(metrics.trending_topics)\n  .sort((a, b) => b[1] - a[1])\n  .slice(0, 10)\n  .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});\n\nreturn metrics;\n\nfunction analyzeSentiment(text) {\n  const positive = /good|great|love|awesome|excellent|amazing|fantastic/i;\n  const negative = /bad|hate|terrible|awful|horrible|disappointed|angry/i;\n  \n  if (positive.test(text)) return 'positive';\n  if (negative.test(text)) return 'negative';\n  return 'neutral';\n}"
+      },
+      "id": "analyze-engagement",
+      "name": "Analyze Engagement",
+      "type": "n8n-nodes-base.code",
+      "position": [1050, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Competitor Analysis\nconst competitors = $getNodeParameter('competitors', []);\nconst mentions = $input.all();\nconst analysis = {\n  competitor_activity: {},\n  share_of_voice: {},\n  engagement_comparison: {},\n  content_gaps: []\n};\n\n// Analyze competitor mentions\ncompetitors.forEach(competitor => {\n  const competitorMentions = mentions.filter(m => \n    m.json.text?.toLowerCase().includes(competitor.toLowerCase())\n  );\n  \n  analysis.competitor_activity[competitor] = {\n    mentions: competitorMentions.length,\n    sentiment: analyzeSentiment(competitorMentions),\n    engagement: calculateEngagement(competitorMentions)\n  };\n});\n\n// Calculate share of voice\nconst totalMentions = Object.values(analysis.competitor_activity)\n  .reduce((sum, c) => sum + c.mentions, 0) + metrics.total_mentions;\n\nanalysis.share_of_voice = {\n  our_brand: (metrics.total_mentions / totalMentions * 100).toFixed(2) + '%',\n  competitors: {}\n};\n\nObject.entries(analysis.competitor_activity).forEach(([name, data]) => {\n  analysis.share_of_voice.competitors[name] = \n    (data.mentions / totalMentions * 100).toFixed(2) + '%';\n});\n\n// Identify content gaps\nconst ourTopics = Object.keys(metrics.trending_topics);\nconst competitorTopics = extractTopics(competitorMentions);\n\nanalysis.content_gaps = competitorTopics\n  .filter(topic => !ourTopics.includes(topic))\n  .slice(0, 5);\n\nreturn analysis;\n\nfunction analyzeSentiment(mentions) {\n  // Sentiment analysis logic\n}\n\nfunction calculateEngagement(mentions) {\n  // Engagement calculation logic\n}\n\nfunction extractTopics(mentions) {\n  // Topic extraction logic\n}"
+      },
+      "id": "competitor-analysis",
+      "name": "Competitor Analysis",
+      "type": "n8n-nodes-base.function",
+      "position": [1250, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Hashtag Performance Tracking\nconst posts = $input.all();\nconst hashtagPerformance = {};\n\nposts.forEach(post => {\n  const hashtags = post.json.hashtags || [];\n  const engagement = post.json.engagement_metrics || {};\n  \n  hashtags.forEach(tag => {\n    if (!hashtagPerformance[tag]) {\n      hashtagPerformance[tag] = {\n        usage_count: 0,\n        total_reach: 0,\n        total_engagement: 0,\n        avg_engagement_rate: 0,\n        posts: []\n      };\n    }\n    \n    const perf = hashtagPerformance[tag];\n    perf.usage_count++;\n    perf.total_reach += engagement.reach || 0;\n    perf.total_engagement += engagement.total || 0;\n    perf.posts.push({\n      id: post.json.id,\n      platform: post.json.platform,\n      engagement: engagement.total,\n      posted_at: post.json.created_at\n    });\n  });\n});\n\n// Calculate average engagement rates\nObject.entries(hashtagPerformance).forEach(([tag, data]) => {\n  data.avg_engagement_rate = data.total_reach > 0 \n    ? (data.total_engagement / data.total_reach * 100).toFixed(2)\n    : 0;\n});\n\n// Sort by performance\nconst sortedHashtags = Object.entries(hashtagPerformance)\n  .sort((a, b) => b[1].avg_engagement_rate - a[1].avg_engagement_rate)\n  .slice(0, 20);\n\nreturn {\n  top_performing_hashtags: sortedHashtags.map(([tag, data]) => ({\n    hashtag: tag,\n    ...data\n  })),\n  recommendations: generateHashtagRecommendations(sortedHashtags)\n};\n\nfunction generateHashtagRecommendations(hashtags) {\n  // Generate recommendations based on performance\n  return {\n    use_more: hashtags.slice(0, 5).map(h => h[0]),\n    use_less: hashtags.slice(-5).map(h => h[0]),\n    optimal_count: 5,\n    best_combinations: findBestCombinations(hashtags)\n  };\n}\n\nfunction findBestCombinations(hashtags) {\n  // Find hashtags that perform well together\n  return [];\n}"
+      },
+      "id": "hashtag-performance",
+      "name": "Hashtag Performance",
+      "type": "n8n-nodes-base.code",
+      "position": [1450, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "select",
+        "table": "content_calendar",
+        "returnAll": true,
+        "where": {
+          "conditions": [
+            {
+              "column": "status",
+              "value": "scheduled"
+            },
+            {
+              "column": "publish_date",
+              "operator": ">=",
+              "value": "={{ $now }}"
+            },
+            {
+              "column": "publish_date",
+              "operator": "<=",
+              "value": "={{ $now.plus({days: 7}) }}"
+            }
+          ]
+        }
+      },
+      "id": "content-calendar",
+      "name": "Content Calendar",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1050, 600],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Auto-schedule content based on performance data\nconst calendar = $input.item.json;\nconst analytics = $getNodeParameter('analytics');\n\n// Best posting times by platform\nconst optimalTimes = {\n  facebook: [9, 13, 15, 19],\n  twitter: [8, 10, 14, 17, 20],\n  linkedin: [7, 10, 12, 17],\n  instagram: [11, 14, 18, 21]\n};\n\n// Adjust schedule based on engagement patterns\nconst scheduledPosts = calendar.posts.map(post => {\n  const platform = post.platform;\n  const currentHour = new Date(post.scheduled_time).getHours();\n  const optimal = optimalTimes[platform];\n  \n  // Find nearest optimal time\n  const nearestOptimal = optimal.reduce((prev, curr) => \n    Math.abs(curr - currentHour) < Math.abs(prev - currentHour) ? curr : prev\n  );\n  \n  // Adjust time if needed\n  if (currentHour !== nearestOptimal) {\n    const newTime = new Date(post.scheduled_time);\n    newTime.setHours(nearestOptimal);\n    \n    return {\n      ...post,\n      original_time: post.scheduled_time,\n      optimized_time: newTime.toISOString(),\n      optimization_reason: 'Adjusted for peak engagement'\n    };\n  }\n  \n  return post;\n});\n\nreturn { optimized_calendar: scheduledPosts };"
+      },
+      "id": "optimize-schedule",
+      "name": "Optimize Schedule",
+      "type": "n8n-nodes-base.function",
+      "position": [1250, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.response_required.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "response-check",
+      "name": "Response Check",
+      "type": "n8n-nodes-base.if",
+      "position": [1450, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "🚨 *Social Media Alerts*\n\n*Urgent Responses Required:* {{ $json.response_required.length }}\n\n{{ $json.response_required.map(r => `• ${r.platform}: ${r.text.substring(0, 100)}... (Priority: ${r.priority})`).join('\\n') }}\n\n*Engagement Summary:*\n• Total Mentions: {{ $json.total_mentions }}\n• Positive: {{ $json.positive_sentiment }}\n• Negative: {{ $json.negative_sentiment }}\n• Total Engagement: {{ $json.total_engagement }}\n\n*Trending Topics:*\n{{ Object.entries($json.trending_topics).map(([tag, count]) => `• ${tag}: ${count} mentions`).join('\\n') }}",
+        "additionalFields": {
+          "channel": "#social-media-alerts",
+          "username": "Social Monitor",
+          "icon_emoji": ":mega:"
+        }
+      },
+      "id": "slack-alert",
+      "name": "Slack Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [1650, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "social_analytics",
+        "columns": "timestamp,platform,metrics,sentiment_data,competitor_data,hashtag_data",
+        "values": "={{ $now }},={{ $json.platform }},={{ JSON.stringify($json.metrics) }},={{ JSON.stringify($json.sentiment) }},={{ JSON.stringify($json.competitor_analysis) }},={{ JSON.stringify($json.hashtag_performance) }}"
+      },
+      "id": "store-analytics",
+      "name": "Store Analytics",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1650, 375],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "update",
+        "table": "content_calendar",
+        "updateKey": "id",
+        "columns": "scheduled_time,optimization_applied,optimization_details",
+        "values": "={{ $json.optimized_time }},true,={{ JSON.stringify($json.optimization_reason) }}"
+      },
+      "id": "update-calendar",
+      "name": "Update Calendar",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1450, 600],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "passThrough"
+      },
+      "id": "merge-triggers",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "position": [350, 375],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $execution.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.if",
+      "position": [1850, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "workflow_errors",
+        "columns": "workflow_name,error_message,error_data,timestamp",
+        "values": "social-media-management,={{ $json.error.message }},={{ JSON.stringify($json.error) }},={{ $now }}"
+      },
+      "id": "log-errors",
+      "name": "Log Errors",
+      "type": "n8n-nodes-base.postgres",
+      "position": [2050, 475],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Social Webhook": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Get Social Accounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Social Accounts": {
+      "main": [
+        [
+          {
+            "node": "Batch Accounts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch Accounts": {
+      "main": [
+        [
+          {
+            "node": "Twitter Mentions",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Facebook Posts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LinkedIn Activity",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Instagram Comments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Twitter Mentions": {
+      "main": [
+        [
+          {
+            "node": "Analyze Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Posts": {
+      "main": [
+        [
+          {
+            "node": "Analyze Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Activity": {
+      "main": [
+        [
+          {
+            "node": "Analyze Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Instagram Comments": {
+      "main": [
+        [
+          {
+            "node": "Analyze Engagement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Engagement": {
+      "main": [
+        [
+          {
+            "node": "Competitor Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Competitor Analysis": {
+      "main": [
+        [
+          {
+            "node": "Hashtag Performance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hashtag Performance": {
+      "main": [
+        [
+          {
+            "node": "Response Check",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Response Check": {
+      "main": [
+        [
+          {
+            "node": "Slack Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Content Calendar": {
+      "main": [
+        [
+          {
+            "node": "Optimize Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Optimize Schedule": {
+      "main": [
+        [
+          {
+            "node": "Update Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Analytics": {
+      "main": [
+        [
+          {
+            "node": "Content Calendar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Calendar": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Alert": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 300,
+    "maxExecutionRetries": 2,
+    "executionRetryDelay": 30000,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "errorWorkflow": "error-handling-workflow"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 2
+}

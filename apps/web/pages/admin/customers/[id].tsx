@@ -1,6 +1,7 @@
 
 import { formatDistanceToNow } from 'date-fns';
 import {
+import { logger } from './utils/logger';
   ArrowLeft,
   Lock,
   Unlock,
@@ -109,7 +110,7 @@ export default function CustomerDetailPage() {
         setCustomer(data);
       }
     } catch (error) {
-      console.error('Error fetching customer detail:', error);
+      logger.error('Error fetching customer detail:', error);
     } finally {
       setLoading(false);
     }
@@ -144,7 +145,7 @@ export default function CustomerDetailPage() {
         setOverrideReason('');
       }
     } catch (error) {
-      console.error('Error updating account lock:', error);
+      logger.error('Error updating account lock:', error);
     } finally {
       setActionLoading(false);
     }
@@ -398,7 +399,7 @@ export default function CustomerDetailPage() {
             <CardHeader>
               <CardTitle>Recent Lock History</CardTitle>
               <CardDescription>
-                Recent changes to this customer's account lock status
+                Recent changes to this customer&apos;s account lock status
               </CardDescription>
             </CardHeader>
             <CardContent>

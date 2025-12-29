@@ -1,0 +1,688 @@
+{
+  "name": "Budget Optimization - Campaign Performance & ROI",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 30
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [250, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "optimize-budget",
+        "authentication": "headerAuth",
+        "headerAuth": {
+          "name": "X-API-Key",
+          "value": "={{ $credentials.apiKey }}"
+        },
+        "responseMode": "onReceived"
+      },
+      "id": "webhook-trigger",
+      "name": "Budget Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 450],
+      "webhookId": "budget-optimization-webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "SELECT \n  c.id,\n  c.name,\n  c.platform,\n  c.budget_allocated,\n  c.budget_spent,\n  c.start_date,\n  c.end_date,\n  c.target_roas,\n  c.target_cpa,\n  p.impressions,\n  p.clicks,\n  p.conversions,\n  p.revenue,\n  p.cost,\n  p.roas,\n  p.cpa,\n  p.ctr,\n  p.conversion_rate\nFROM campaigns c\nJOIN campaign_performance p ON c.id = p.campaign_id\nWHERE c.status = 'active'\n  AND p.date = CURRENT_DATE - INTERVAL '1 day'\nORDER BY p.roas DESC"
+      },
+      "id": "get-campaigns",
+      "name": "Get Active Campaigns",
+      "type": "n8n-nodes-base.postgres",
+      "position": [450, 375],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Campaign Performance Analysis\nconst campaigns = $input.all().map(item => item.json);\nconst totalBudget = campaigns.reduce((sum, c) => sum + parseFloat(c.budget_allocated), 0);\n\nconst performanceAnalysis = campaigns.map(campaign => {\n  const budgetUtilization = (campaign.budget_spent / campaign.budget_allocated) * 100;\n  const daysRemaining = Math.ceil((new Date(campaign.end_date) - new Date()) / (1000 * 60 * 60 * 24));\n  const dailyBudgetRemaining = (campaign.budget_allocated - campaign.budget_spent) / daysRemaining;\n  \n  // Performance scoring\n  let performanceScore = 0;\n  \n  // ROAS performance (40% weight)\n  if (campaign.roas >= campaign.target_roas * 1.2) performanceScore += 40;\n  else if (campaign.roas >= campaign.target_roas) performanceScore += 30;\n  else if (campaign.roas >= campaign.target_roas * 0.8) performanceScore += 20;\n  else if (campaign.roas >= campaign.target_roas * 0.6) performanceScore += 10;\n  \n  // CPA performance (30% weight)\n  if (campaign.cpa <= campaign.target_cpa * 0.8) performanceScore += 30;\n  else if (campaign.cpa <= campaign.target_cpa) performanceScore += 20;\n  else if (campaign.cpa <= campaign.target_cpa * 1.2) performanceScore += 10;\n  \n  // CTR performance (15% weight)\n  const avgCTR = 2; // Industry average\n  if (campaign.ctr >= avgCTR * 1.5) performanceScore += 15;\n  else if (campaign.ctr >= avgCTR) performanceScore += 10;\n  else if (campaign.ctr >= avgCTR * 0.7) performanceScore += 5;\n  \n  // Conversion rate (15% weight)\n  const avgCVR = 3; // Industry average\n  if (campaign.conversion_rate >= avgCVR * 1.5) performanceScore += 15;\n  else if (campaign.conversion_rate >= avgCVR) performanceScore += 10;\n  else if (campaign.conversion_rate >= avgCVR * 0.7) performanceScore += 5;\n  \n  // Budget pacing\n  const idealSpend = (campaign.budget_allocated / 30) * ((30 - daysRemaining) || 1);\n  const pacingRatio = campaign.budget_spent / idealSpend;\n  let pacingStatus = 'on_track';\n  if (pacingRatio > 1.2) pacingStatus = 'overspending';\n  else if (pacingRatio < 0.8) pacingStatus = 'underspending';\n  \n  return {\n    ...campaign,\n    performance_score: performanceScore,\n    budget_utilization: budgetUtilization,\n    days_remaining: daysRemaining,\n    daily_budget_remaining: dailyBudgetRemaining,\n    pacing_status: pacingStatus,\n    pacing_ratio: pacingRatio,\n    efficiency_index: (campaign.roas * campaign.conversion_rate) / campaign.cpa\n  };\n});\n\n// Sort by performance score\nperformanceAnalysis.sort((a, b) => b.performance_score - a.performance_score);\n\nreturn {\n  campaigns: performanceAnalysis,\n  total_budget: totalBudget,\n  analysis_timestamp: new Date().toISOString()\n};"
+      },
+      "id": "performance-analysis",
+      "name": "Performance Analysis",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Budget Reallocation Algorithm\nconst data = $input.item.json;\nconst campaigns = data.campaigns;\nconst totalBudget = data.total_budget;\n\n// Configuration\nconst MIN_BUDGET_PERCENTAGE = 5; // Minimum 5% of total budget per campaign\nconst MAX_BUDGET_PERCENTAGE = 30; // Maximum 30% of total budget per campaign\nconst REALLOCATION_THRESHOLD = 10; // Reallocate if change > 10%\n\n// Calculate optimal budget distribution\nconst totalPerformanceScore = campaigns.reduce((sum, c) => sum + c.performance_score, 0);\n\nconst budgetAllocations = campaigns.map(campaign => {\n  // Base allocation on performance score\n  let newBudgetPercentage = (campaign.performance_score / totalPerformanceScore) * 100;\n  \n  // Apply min/max constraints\n  newBudgetPercentage = Math.max(MIN_BUDGET_PERCENTAGE, Math.min(MAX_BUDGET_PERCENTAGE, newBudgetPercentage));\n  \n  const newBudget = (totalBudget * newBudgetPercentage) / 100;\n  const currentBudget = campaign.budget_allocated;\n  const changePercentage = ((newBudget - currentBudget) / currentBudget) * 100;\n  \n  // Determine if reallocation is needed\n  const needsReallocation = Math.abs(changePercentage) > REALLOCATION_THRESHOLD;\n  \n  // Calculate bid adjustments\n  let bidAdjustment = 0;\n  if (campaign.pacing_status === 'overspending') {\n    bidAdjustment = -10; // Decrease bids by 10%\n  } else if (campaign.pacing_status === 'underspending' && campaign.performance_score > 70) {\n    bidAdjustment = 15; // Increase bids by 15% for high performers\n  } else if (campaign.performance_score > 80) {\n    bidAdjustment = 20; // Aggressive increase for top performers\n  }\n  \n  return {\n    campaign_id: campaign.id,\n    campaign_name: campaign.name,\n    platform: campaign.platform,\n    current_budget: currentBudget,\n    recommended_budget: newBudget,\n    budget_change_percentage: changePercentage,\n    needs_reallocation: needsReallocation,\n    bid_adjustment_percentage: bidAdjustment,\n    performance_score: campaign.performance_score,\n    current_roas: campaign.roas,\n    target_roas: campaign.target_roas,\n    action: determineAction(campaign, changePercentage, bidAdjustment)\n  };\n});\n\n// Ensure total allocation equals 100%\nconst totalAllocated = budgetAllocations.reduce((sum, a) => sum + a.recommended_budget, 0);\nconst scaleFactor = totalBudget / totalAllocated;\n\nbudgetAllocations.forEach(allocation => {\n  allocation.recommended_budget *= scaleFactor;\n  allocation.final_budget = Math.round(allocation.recommended_budget * 100) / 100;\n});\n\nreturn {\n  allocations: budgetAllocations,\n  summary: {\n    total_budget: totalBudget,\n    campaigns_to_increase: budgetAllocations.filter(a => a.budget_change_percentage > 0).length,\n    campaigns_to_decrease: budgetAllocations.filter(a => a.budget_change_percentage < 0).length,\n    total_reallocations: budgetAllocations.filter(a => a.needs_reallocation).length\n  }\n};\n\nfunction determineAction(campaign, budgetChange, bidAdjustment) {\n  const actions = [];\n  \n  if (budgetChange > REALLOCATION_THRESHOLD) {\n    actions.push('increase_budget');\n  } else if (budgetChange < -REALLOCATION_THRESHOLD) {\n    actions.push('decrease_budget');\n  }\n  \n  if (bidAdjustment > 0) {\n    actions.push('increase_bids');\n  } else if (bidAdjustment < 0) {\n    actions.push('decrease_bids');\n  }\n  \n  if (campaign.performance_score < 30 && campaign.roas < campaign.target_roas * 0.5) {\n    actions.push('consider_pausing');\n  }\n  \n  if (campaign.performance_score > 80 && campaign.pacing_status === 'underspending') {\n    actions.push('expand_targeting');\n  }\n  \n  return actions.length > 0 ? actions : ['monitor'];\n}"
+      },
+      "id": "budget-reallocation",
+      "name": "Budget Reallocation",
+      "type": "n8n-nodes-base.function",
+      "position": [850, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "batchSize": 5,
+        "options": {}
+      },
+      "id": "batch-processor",
+      "name": "Batch Processor",
+      "type": "n8n-nodes-base.splitInBatches",
+      "position": [1050, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.platform }}",
+              "operation": "equals",
+              "value2": "google_ads"
+            }
+          ]
+        }
+      },
+      "id": "platform-router",
+      "name": "Platform Router",
+      "type": "n8n-nodes-base.switch",
+      "position": [1250, 375],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://googleads.googleapis.com/v11/customers/{{ $credentials.customerId }}/campaigns/{{ $json.campaign_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleAdsOAuth2",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "campaign_budget.amount_micros",
+              "value": "={{ Math.round($json.final_budget * 1000000) }}"
+            },
+            {
+              "name": "update_mask",
+              "value": "campaign_budget.amount_micros"
+            }
+          ]
+        }
+      },
+      "id": "google-ads-update",
+      "name": "Google Ads Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 200],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.facebook.com/v12.0/{{ $json.campaign_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "facebookOAuth2Api",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "daily_budget",
+              "value": "={{ Math.round($json.final_budget / $json.days_remaining * 100) }}"
+            },
+            {
+              "name": "bid_adjustments",
+              "value": "={{ $json.bid_adjustment_percentage }}"
+            }
+          ]
+        }
+      },
+      "id": "facebook-ads-update",
+      "name": "Facebook Ads Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 350],
+      "typeVersion": 3,
+      "credentials": {
+        "facebookOAuth2Api": {
+          "id": "2",
+          "name": "Facebook Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://ads.linkedin.com/v2/adCampaignsV2/{{ $json.campaign_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "linkedInOAuth2Api",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "dailyBudget",
+              "value": "={{ JSON.stringify({amount: Math.round($json.final_budget / $json.days_remaining * 100), currencyCode: 'USD'}) }}"
+            }
+          ]
+        }
+      },
+      "id": "linkedin-ads-update",
+      "name": "LinkedIn Ads Update",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1450, 500],
+      "typeVersion": 3,
+      "credentials": {
+        "linkedInOAuth2Api": {
+          "id": "4",
+          "name": "LinkedIn Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ROI Optimization Analysis\nconst allocations = $input.all()[0].json.allocations;\n\n// Calculate ROI projections\nconst projections = allocations.map(allocation => {\n  const budgetChange = allocation.final_budget - allocation.current_budget;\n  const budgetChangeRatio = budgetChange / allocation.current_budget;\n  \n  // Estimate impact on performance\n  // Assumption: Performance scales with budget but with diminishing returns\n  const scalingFactor = budgetChangeRatio > 0 \n    ? Math.log(1 + budgetChangeRatio) / budgetChangeRatio  // Diminishing returns for increases\n    : 1 + budgetChangeRatio;  // Linear for decreases\n  \n  const projectedROAS = allocation.current_roas * (1 + (budgetChangeRatio * scalingFactor * 0.5));\n  const projectedRevenue = allocation.final_budget * projectedROAS;\n  const projectedROI = ((projectedRevenue - allocation.final_budget) / allocation.final_budget) * 100;\n  \n  return {\n    campaign_name: allocation.campaign_name,\n    current_roi: ((allocation.current_roas - 1) * 100).toFixed(2),\n    projected_roi: projectedROI.toFixed(2),\n    roi_improvement: (projectedROI - ((allocation.current_roas - 1) * 100)).toFixed(2),\n    current_revenue: (allocation.current_budget * allocation.current_roas).toFixed(2),\n    projected_revenue: projectedRevenue.toFixed(2),\n    revenue_impact: (projectedRevenue - (allocation.current_budget * allocation.current_roas)).toFixed(2)\n  };\n});\n\n// Calculate portfolio metrics\nconst totalCurrentRevenue = projections.reduce((sum, p) => sum + parseFloat(p.current_revenue), 0);\nconst totalProjectedRevenue = projections.reduce((sum, p) => sum + parseFloat(p.projected_revenue), 0);\nconst portfolioROIImprovement = ((totalProjectedRevenue - totalCurrentRevenue) / totalCurrentRevenue) * 100;\n\nreturn {\n  campaign_projections: projections,\n  portfolio_summary: {\n    total_current_revenue: totalCurrentRevenue.toFixed(2),\n    total_projected_revenue: totalProjectedRevenue.toFixed(2),\n    revenue_increase: (totalProjectedRevenue - totalCurrentRevenue).toFixed(2),\n    roi_improvement_percentage: portfolioROIImprovement.toFixed(2)\n  },\n  optimization_confidence: calculateConfidence(allocations)\n};\n\nfunction calculateConfidence(allocations) {\n  // Calculate confidence based on data quality and consistency\n  let confidence = 100;\n  \n  allocations.forEach(allocation => {\n    // Reduce confidence for campaigns with low performance scores\n    if (allocation.performance_score < 50) confidence -= 5;\n    \n    // Reduce confidence for campaigns with high volatility\n    if (Math.abs(allocation.budget_change_percentage) > 50) confidence -= 10;\n  });\n  \n  return Math.max(0, Math.min(100, confidence));\n}"
+      },
+      "id": "roi-optimization",
+      "name": "ROI Optimization",
+      "type": "n8n-nodes-base.code",
+      "position": [1250, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "budget_optimization_log",
+        "columns": "optimization_id,campaign_id,campaign_name,platform,current_budget,recommended_budget,final_budget,budget_change_percentage,bid_adjustment,performance_score,actions,timestamp",
+        "values": "={{ $execution.id }},={{ $json.campaign_id }},={{ $json.campaign_name }},={{ $json.platform }},={{ $json.current_budget }},={{ $json.recommended_budget }},={{ $json.final_budget }},={{ $json.budget_change_percentage }},={{ $json.bid_adjustment_percentage }},={{ $json.performance_score }},={{ JSON.stringify($json.action) }},={{ $now }}"
+      },
+      "id": "log-optimization",
+      "name": "Log Optimization",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1650, 375],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "update",
+        "table": "campaigns",
+        "updateKey": "id",
+        "columns": "budget_allocated,last_optimization,optimization_status",
+        "values": "={{ $json.final_budget }},={{ $now }},={{ $json.needs_reallocation ? 'optimized' : 'monitored' }}"
+      },
+      "id": "update-campaign",
+      "name": "Update Campaign",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1850, 375],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.needs_reallocation }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "reallocation-check",
+      "name": "Reallocation Check",
+      "type": "n8n-nodes-base.if",
+      "position": [1450, 700],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "💰 *Budget Optimization Alert*\n\n*Campaign:* {{ $json.campaign_name }}\n*Platform:* {{ $json.platform }}\n\n*Budget Changes:*\n• Current: ${{ $json.current_budget }}\n• Recommended: ${{ $json.final_budget }}\n• Change: {{ $json.budget_change_percentage > 0 ? '+' : '' }}{{ $json.budget_change_percentage.toFixed(1) }}%\n\n*Performance:*\n• Score: {{ $json.performance_score }}/100\n• Current ROAS: {{ $json.current_roas.toFixed(2) }}\n• Target ROAS: {{ $json.target_roas.toFixed(2) }}\n\n*Actions Taken:*\n{{ $json.action.map(a => '• ' + a.replace(/_/g, ' ')).join('\\n') }}",
+        "additionalFields": {
+          "channel": "#budget-alerts",
+          "username": "Budget Optimizer",
+          "icon_emoji": ":moneybag:"
+        }
+      },
+      "id": "slack-notification",
+      "name": "Slack Notification",
+      "type": "n8n-nodes-base.slack",
+      "position": [1650, 800],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Generate optimization report\nconst optimizations = $input.all()[0].json;\nconst projections = $input.all()[1].json;\n\nconst report = {\n  optimization_summary: optimizations.summary,\n  roi_projections: projections.portfolio_summary,\n  confidence_score: projections.optimization_confidence,\n  top_performers: optimizations.allocations\n    .filter(a => a.performance_score >= 80)\n    .slice(0, 5)\n    .map(a => ({\n      campaign: a.campaign_name,\n      score: a.performance_score,\n      roas: a.current_roas,\n      budget_change: a.budget_change_percentage\n    })),\n  underperformers: optimizations.allocations\n    .filter(a => a.performance_score < 40)\n    .map(a => ({\n      campaign: a.campaign_name,\n      score: a.performance_score,\n      roas: a.current_roas,\n      recommendation: a.action.includes('consider_pausing') ? 'Consider pausing' : 'Monitor closely'\n    })),\n  optimization_actions: {\n    budget_increases: optimizations.allocations.filter(a => a.budget_change_percentage > 10).length,\n    budget_decreases: optimizations.allocations.filter(a => a.budget_change_percentage < -10).length,\n    bid_increases: optimizations.allocations.filter(a => a.bid_adjustment_percentage > 0).length,\n    bid_decreases: optimizations.allocations.filter(a => a.bid_adjustment_percentage < 0).length\n  },\n  next_optimization: new Date(Date.now() + 30 * 60 * 1000).toISOString()\n};\n\nreturn report;"
+      },
+      "id": "generate-report",
+      "name": "Generate Report",
+      "type": "n8n-nodes-base.code",
+      "position": [1450, 900],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "optimization_reports",
+        "columns": "report_id,report_type,summary_data,projections,recommendations,generated_at",
+        "values": "={{ $execution.id }},budget_optimization,={{ JSON.stringify($json.optimization_summary) }},={{ JSON.stringify($json.roi_projections) }},={{ JSON.stringify($json.underperformers) }},={{ $now }}"
+      },
+      "id": "store-report",
+      "name": "Store Report",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1650, 900],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MONITORING_URL }}/webhooks/budget-optimization",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "workflow_id",
+              "value": "budget-optimization"
+            },
+            {
+              "name": "execution_id",
+              "value": "={{ $execution.id }}"
+            },
+            {
+              "name": "optimizations_made",
+              "value": "={{ $json.summary.total_reallocations }}"
+            },
+            {
+              "name": "projected_roi_improvement",
+              "value": "={{ $json.portfolio_summary.roi_improvement_percentage }}"
+            },
+            {
+              "name": "confidence_score",
+              "value": "={{ $json.optimization_confidence }}"
+            }
+          ]
+        }
+      },
+      "id": "monitoring-webhook",
+      "name": "Send Monitoring",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1850, 900],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "mode": "passThrough"
+      },
+      "id": "merge-triggers",
+      "name": "Merge Triggers",
+      "type": "n8n-nodes-base.merge",
+      "position": [350, 375],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $execution.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.if",
+      "position": [2050, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "workflow_errors",
+        "columns": "workflow_name,error_message,error_data,timestamp",
+        "values": "budget-optimization,={{ $json.error.message }},={{ JSON.stringify($json.error) }},={{ $now }}"
+      },
+      "id": "log-errors",
+      "name": "Log Errors",
+      "type": "n8n-nodes-base.postgres",
+      "position": [2250, 700],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "❌ *Budget Optimization Error*\n\nAn error occurred during budget optimization:\n\n{{ $json.error.message }}\n\nPlease check the logs for more details.",
+        "additionalFields": {
+          "channel": "#budget-alerts",
+          "username": "Budget Optimizer",
+          "icon_emoji": ":warning:"
+        }
+      },
+      "id": "error-notification",
+      "name": "Error Notification",
+      "type": "n8n-nodes-base.slack",
+      "position": [2250, 800],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Webhook": {
+      "main": [
+        [
+          {
+            "node": "Merge Triggers",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Triggers": {
+      "main": [
+        [
+          {
+            "node": "Get Active Campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Campaigns": {
+      "main": [
+        [
+          {
+            "node": "Performance Analysis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Performance Analysis": {
+      "main": [
+        [
+          {
+            "node": "Budget Reallocation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Budget Reallocation": {
+      "main": [
+        [
+          {
+            "node": "Batch Processor",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "ROI Optimization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Batch Processor": {
+      "main": [
+        [
+          {
+            "node": "Platform Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Platform Router": {
+      "main": [
+        [
+          {
+            "node": "Google Ads Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Facebook Ads Update",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "LinkedIn Ads Update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Ads Update": {
+      "main": [
+        [
+          {
+            "node": "Log Optimization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Facebook Ads Update": {
+      "main": [
+        [
+          {
+            "node": "Log Optimization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LinkedIn Ads Update": {
+      "main": [
+        [
+          {
+            "node": "Log Optimization",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Optimization": {
+      "main": [
+        [
+          {
+            "node": "Update Campaign",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Campaign": {
+      "main": [
+        [
+          {
+            "node": "Reallocation Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ROI Optimization": {
+      "main": [
+        [
+          {
+            "node": "Generate Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reallocation Check": {
+      "main": [
+        [
+          {
+            "node": "Slack Notification",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    },
+    "Generate Report": {
+      "main": [
+        [
+          {
+            "node": "Store Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Report": {
+      "main": [
+        [
+          {
+            "node": "Send Monitoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Monitoring": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Notification": {
+      "main": [
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Log Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Errors": {
+      "main": [
+        [
+          {
+            "node": "Error Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 300,
+    "maxExecutionRetries": 2,
+    "executionRetryDelay": 30000,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "errorWorkflow": "error-handling-workflow"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 2
+}

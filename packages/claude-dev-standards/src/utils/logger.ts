@@ -1,4 +1,6 @@
 /**
+import { logger } from '../../../../../../utils/logger';
+
  * Logger - Logging utility
  */
 
@@ -9,11 +11,11 @@ export class Logger {
 
   log(message: string): void {
     // Log message
-    console.log(message);
+    logger.info(message);
   }
 
   error(message: string): void {
     // Log error
-    console.error(message);
+    logger.error(message);
   }
 }

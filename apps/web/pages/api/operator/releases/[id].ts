@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import prisma from '../../../../lib/prisma';
 import { updateReleaseRequestSchema } from '../../../../lib/schemas';
 import { authOptions } from '../../auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
@@ -50,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json(updatedReleaseRequest);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

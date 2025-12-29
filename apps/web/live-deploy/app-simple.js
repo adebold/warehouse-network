@@ -1,4 +1,5 @@
 const express = require('express');
+const { logger } = require('./utils/logger');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -102,6 +103,6 @@ app.get('/api/status', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Warehouse Network running on port ${PORT}`);
-  console.log(`✅ Application is LIVE and ready!`);
+  logger.info(`🚀 Warehouse Network running on port ${PORT}`);
+  logger.info(`✅ Application is LIVE and ready!`);
 });

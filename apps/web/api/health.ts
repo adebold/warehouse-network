@@ -1,5 +1,6 @@
 
 import prisma from '../lib/prisma';
+import { logger } from './utils/logger';
 
 interface HealthCheck {
   status: 'healthy' | 'unhealthy';
@@ -39,7 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse<
 
     res.status(200).json(healthCheck);
   } catch (error) {
-    console.error('Health check failed:', error);
+    logger.error('Health check failed:', error);
 
     const healthCheck: HealthCheck = {
       status: 'unhealthy',

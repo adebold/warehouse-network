@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   DollarSign,
   AlertTriangle,
   CheckCircle,
@@ -100,7 +101,7 @@ export default function PaymentDashboard() {
         setPaymentData(data);
       }
     } catch (error) {
-      console.error('Error fetching payment data:', error);
+      logger.error('Error fetching payment data:', error);
     } finally {
       setLoading(false);
     }
@@ -128,7 +129,7 @@ export default function PaymentDashboard() {
         alert('Payment processing failed. Please try again.');
       }
     } catch (error) {
-      console.error('Error processing payment:', error);
+      logger.error('Error processing payment:', error);
       alert('An error occurred. Please try again.');
     } finally {
       setProcessingPayment(false);

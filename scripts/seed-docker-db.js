@@ -2,6 +2,7 @@
 
 const { PrismaClient } = require('@prisma/client');
 const bcrypt = require('bcrypt');
+const { logger } = require('./utils/logger');
 
 // Use Docker PostgreSQL connection
 const prisma = new PrismaClient({
@@ -13,11 +14,11 @@ const prisma = new PrismaClient({
 });
 
 async function seedDatabase() {
-  console.log('🌱 Seeding Docker PostgreSQL database...\n');
+  logger.info('🌱 Seeding Docker PostgreSQL database...\n');
 
   try {
     // Clean existing data
-    console.log('Cleaning existing data...');
+    logger.info('Cleaning existing data...');
     await prisma.$transaction([
       prisma.quoteItem.deleteMany(),
       prisma.quote.deleteMany(),
@@ -36,10 +37,10 @@ async function seedDatabase() {
       prisma.session.deleteMany(),
       prisma.user.deleteMany()
     ]);
-    console.log('✅ Cleaned existing data');
+    logger.info('✅ Cleaned existing data');
 
     // Create test users
-    console.log('\nCreating test users...');
+    logger.info('\nCreating test users...');
     const hashedPassword = await bcrypt.hash('password123', 10);
     
     const testUser = await prisma.user.create({
@@ -72,19 +73,19 @@ async function seedDatabase() {
       }
     });
 
-    console.log('✅ Created test users');
+    logger.info('✅ Created test users');
 
     // Create platform first
-    console.log('\nCreating platform...');
+    logger.info('\nCreating platform...');
     const platform = await prisma.platform.create({
       data: {
         name: 'Warehouse Network'
       }
     });
-    console.log('✅ Created platform');
+    logger.info('✅ Created platform');
 
     // Create test operators
-    console.log('\nCreating test operators...');
+    logger.info('\nCreating test operators...');
     
     const operator1 = await prisma.operator.create({
       data: {
@@ -140,10 +141,10 @@ async function seedDatabase() {
       }
     });
 
-    console.log('✅ Created test operators');
+    logger.info('✅ Created test operators');
 
     // Create test warehouses
-    console.log('\nCreating test warehouses...');
+    logger.info('\nCreating test warehouses...');
     
     const warehouse1 = await prisma.warehouse.create({
       data: {
@@ -228,10 +229,10 @@ async function seedDatabase() {
       }
     });
 
-    console.log('✅ Created test warehouses');
+    logger.info('✅ Created test warehouses');
 
     // Create test customers and leads
-    console.log('\nCreating test customers and leads...');
+    logger.info('\nCreating test customers and leads...');
     
     const customer1 = await prisma.customer.create({
       data: {
@@ -254,10 +255,10 @@ async function seedDatabase() {
       }
     });
 
-    console.log('✅ Created test customers and leads');
+    logger.info('✅ Created test customers and leads');
 
     // Create test RFQ
-    console.log('\nCreating test RFQs...');
+    logger.info('\nCreating test RFQs...');
     
     const rfq1 = await prisma.rFQ.create({
       data: {
@@ -272,10 +273,10 @@ async function seedDatabase() {
       }
     });
     
-    console.log('✅ Created test RFQs');
+    logger.info('✅ Created test RFQs');
 
     // Create test quotes
-    console.log('\nCreating test quotes...');
+    logger.info('\nCreating test quotes...');
     
     const quote1 = await prisma.quote.create({
       data: {
@@ -315,10 +316,10 @@ async function seedDatabase() {
       }
     });
 
-    console.log('✅ Created test quotes');
+    logger.info('✅ Created test quotes');
 
     // Create pricing rules
-    console.log('\nCreating pricing rules...');
+    logger.info('\nCreating pricing rules...');
     
     await prisma.pricingRule.createMany({
       data: [
@@ -373,10 +374,10 @@ async function seedDatabase() {
       ]
     });
 
-    console.log('✅ Created pricing rules');
+    logger.info('✅ Created pricing rules');
 
     // Create city pages
-    console.log('\nCreating city pages...');
+    logger.info('\nCreating city pages...');
     
     await prisma.cityPage.create({
       data: {
@@ -402,7 +403,7 @@ async function seedDatabase() {
       }
     });
 
-    console.log('✅ Created city pages');
+    logger.info('✅ Created city pages');
 
     // Summary
     const counts = {
@@ -420,19 +421,19 @@ async function seedDatabase() {
       warehouseImages: await prisma.warehouseImage.count()
     };
 
-    console.log('\n✨ Seeding completed successfully!');
-    console.log('\n📊 Database Summary:');
+    logger.info('\n✨ Seeding completed successfully!');
+    logger.info('\n📊 Database Summary:');
     Object.entries(counts).forEach(([table, count]) => {
-      console.log(`- ${table}: ${count}`);
+      logger.info(`- ${table}: ${count}`);
     });
 
-    console.log('\n🔐 Test Credentials:');
-    console.log('- Email: test@example.com');
-    console.log('- Email: admin@warehouse.com');
-    console.log('- Password: password123');
+    logger.info('\n🔐 Test Credentials:');
+    logger.info('- Email: test@example.com');
+    logger.info('- Email: admin@warehouse.com');
+    logger.info('- Password: password123');
 
   } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    logger.error('❌ Error seeding database:', error);
     throw error;
   } finally {
     await prisma.$disconnect();
@@ -441,6 +442,6 @@ async function seedDatabase() {
 
 // Run seeding
 seedDatabase().catch((error) => {
-  console.error(error);
+  logger.error(error);
   process.exit(1);
 });

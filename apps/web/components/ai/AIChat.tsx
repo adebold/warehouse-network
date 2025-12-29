@@ -5,10 +5,10 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Loader2, X } from 'lucide-react';
-import { useSession } from 'next-auth/react';
 import { useState, useRef, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
+import log from '@/lib/logger';
 
 interface Message {
   id: string;
@@ -32,7 +32,6 @@ export function AIChat({
   onWarehouseSelect,
   embedded = false
 }: AIChatProps) {
-  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -122,7 +121,7 @@ export function AIChat({
       }
 
     } catch (error) {
-      console.error('Chat error:', error);
+      log.error('Chat error', error instanceof Error ? error : new Error(String(error)));
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -345,14 +344,14 @@ function formatMessage(content: string): React.ReactNode {
     if (line.includes('[') && line.includes('](')) {
       const match = line.match(/\[([^\]]+)\]\(([^)]+)\)/);
       if (match) {
-        const [full, text, href] = match;
+        const [_full, text, href] = match;
         return (
           <div key={i}>
-            {line.substring(0, line.indexOf(full))}
+            {line.substring(0, line.indexOf(match[0]))}
             <a href={href} className="underline hover:opacity-80">
               {text}
             </a>
-            {line.substring(line.indexOf(full) + full.length)}
+            {line.substring(line.indexOf(match[0]) + match[0].length)}
           </div>
         );
       }

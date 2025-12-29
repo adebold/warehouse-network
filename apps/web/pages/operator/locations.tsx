@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../lib/prisma';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface LocationsProps {
   locations: (Location & { warehouse: Warehouse })[];
@@ -52,11 +53,11 @@ const Locations: NextPage<LocationsProps> = ({ locations, warehouses }) => {
         router.replace(router.asPath);
       } else {
         const errorData = await response.json();
-        console.error('Failed to create location', errorData);
+        logger.error('Failed to create location', errorData);
         alert('Failed to create location');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the location.');
     }
   };

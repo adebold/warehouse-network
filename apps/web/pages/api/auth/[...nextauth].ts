@@ -5,6 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { securityConfig } from '../../../lib/config/security';
 import prisma from '../../../lib/prisma';
+import { logger } from './utils/logger';
 
 
 export const authOptions: NextAuthOptions = {
@@ -18,7 +19,7 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials, req) {
         try {
           if (!credentials?.email || !credentials?.password) {
-            console.error('Missing credentials');
+            logger.error('Missing credentials');
             return null;
           }
 
@@ -30,20 +31,20 @@ export const authOptions: NextAuthOptions = {
           });
 
           if (!user || !user.password) {
-            console.error('User not found:', credentials.email);
+            logger.error('User not found:', credentials.email);
             return null;
           }
 
           const isPasswordValid = await bcrypt.compare(credentials.password, user.password);
 
           if (!isPasswordValid) {
-            console.error('Invalid password for user:', credentials.email);
+            logger.error('Invalid password for user:', credentials.email);
             return null;
           }
 
           // Check if customer account is locked
           if (user.customer && user.customer.accountStatus === 'LOCKED') {
-            console.error('Account is locked:', credentials.email);
+            logger.error('Account is locked:', credentials.email);
             throw new Error(
               'Account is locked due to: ' + (user.customer.lockReason || 'Payment issues')
             );
@@ -57,7 +58,7 @@ export const authOptions: NextAuthOptions = {
             customerId: user.customerId,
           };
         } catch (error) {
-          console.error('Auth error:', error);
+          logger.error('Auth error:', error);
           return null;
         }
       },

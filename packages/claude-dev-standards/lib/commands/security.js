@@ -3,6 +3,7 @@ const chalk = require('chalk');
 const ora = require('ora');
 const inquirer = require('inquirer');
 const SecurityValidator = require('../validators/security');
+const { logger } = require('../../../../../../utils/logger');
 
 /**
  * Security setup and validation commands
@@ -81,17 +82,17 @@ class SecurityCommand {
       this.displayResults(results, options.format);
       
       if (results.score < 70) {
-        console.log(chalk.red('\n⚠️  Security score is below 70%. Consider running setup to improve security.'));
-        console.log(chalk.yellow('Run: claude-dev-standards security setup'));
+        logger.info(chalk.red('\n⚠️  Security score is below 70%. Consider running setup to improve security.'));
+        logger.info(chalk.yellow('Run: claude-dev-standards security setup'));
       } else if (results.score < 90) {
-        console.log(chalk.yellow('\n✨ Good security posture! Consider addressing warnings for better security.'));
+        logger.info(chalk.yellow('\n✨ Good security posture! Consider addressing warnings for better security.'));
       } else {
-        console.log(chalk.green('\n🔒 Excellent security posture!'));
+        logger.info(chalk.green('\n🔒 Excellent security posture!'));
       }
 
     } catch (error) {
       spinner.fail('Security validation failed');
-      console.error(chalk.red(error.message));
+      logger.error(chalk.red(error.message));
       process.exit(1);
     }
   }
@@ -100,7 +101,7 @@ class SecurityCommand {
    * Run security framework setup
    */
   async runSecuritySetup(options) {
-    console.log(chalk.blue('🔒 Claude Security Framework Setup\n'));
+    logger.info(chalk.blue('🔒 Claude Security Framework Setup\n'));
     
     let setupOptions = { ...options };
 
@@ -117,24 +118,24 @@ class SecurityCommand {
       const results = await security.setupSecurity(projectPath, setupOptions);
       spinner.stop();
 
-      console.log(chalk.green('\n✅ Security framework setup completed!\n'));
+      logger.info(chalk.green('\n✅ Security framework setup completed!\n'));
       
       results.forEach(result => {
-        console.log(chalk.green(`✓ ${result.component} - ${result.status}`));
+        logger.info(chalk.green(`✓ ${result.component} - ${result.status}`));
         if (result.path) {
-          console.log(chalk.gray(`  → ${result.path}`));
+          logger.info(chalk.gray(`  → ${result.path}`));
         }
       });
 
-      console.log(chalk.blue('\n📖 Next steps:'));
-      console.log('1. Review generated configuration files');
-      console.log('2. Update environment variables');
-      console.log('3. Run: claude-dev-standards security check');
-      console.log('4. Test your application with security features');
+      logger.info(chalk.blue('\n📖 Next steps:'));
+      logger.info('1. Review generated configuration files');
+      logger.info('2. Update environment variables');
+      logger.info('3. Run: claude-dev-standards security check');
+      logger.info('4. Test your application with security features');
 
     } catch (error) {
       spinner.fail('Security setup failed');
-      console.error(chalk.red(error.message));
+      logger.error(chalk.red(error.message));
       process.exit(1);
     }
   }
@@ -211,12 +212,12 @@ class SecurityCommand {
         spinner.succeed(`Security report generated: ${options.output}`);
       } else {
         spinner.stop();
-        console.log(report);
+        logger.info(report);
       }
 
     } catch (error) {
       spinner.fail('Report generation failed');
-      console.error(chalk.red(error.message));
+      logger.error(chalk.red(error.message));
       process.exit(1);
     }
   }
@@ -225,7 +226,7 @@ class SecurityCommand {
    * Run security scan
    */
   async runSecurityScan(options) {
-    console.log(chalk.blue('🔍 Running Security Scans\n'));
+    logger.info(chalk.blue('🔍 Running Security Scans\n'));
     
     const tasks = [];
     
@@ -243,9 +244,9 @@ class SecurityCommand {
 
     try {
       await Promise.all(tasks);
-      console.log(chalk.green('\n✅ Security scans completed!'));
+      logger.info(chalk.green('\n✅ Security scans completed!'));
     } catch (error) {
-      console.error(chalk.red('\n❌ Security scan failed:', error.message));
+      logger.error(chalk.red('\n❌ Security scan failed:', error.message));
       process.exit(1);
     }
   }
@@ -266,7 +267,7 @@ class SecurityCommand {
       } catch (error) {
         if (error.stdout && error.stdout.includes('vulnerabilities')) {
           spinner.warn('Dependencies scan: Vulnerabilities found');
-          console.log(chalk.yellow('\nRun: npm audit fix'));
+          logger.info(chalk.yellow('\nRun: npm audit fix'));
         } else {
           spinner.fail('Dependencies scan failed');
         }
@@ -297,7 +298,7 @@ class SecurityCommand {
       } else {
         spinner.warn(`Code scan: ${criticalIssues.length} critical issues found`);
         criticalIssues.forEach(issue => {
-          console.log(chalk.red(`  ${issue}`));
+          logger.info(chalk.red(`  ${issue}`));
         });
       }
 
@@ -331,7 +332,7 @@ class SecurityCommand {
         
       } catch (error) {
         spinner.warn('Container scan: Trivy not available');
-        console.log(chalk.yellow('Install Trivy for container vulnerability scanning'));
+        logger.info(chalk.yellow('Install Trivy for container vulnerability scanning'));
       }
 
     } catch (error) {
@@ -344,7 +345,7 @@ class SecurityCommand {
    */
   displayResults(results, format) {
     if (format === 'json') {
-      console.log(JSON.stringify(results, null, 2));
+      logger.info(JSON.stringify(results, null, 2));
       return;
     }
 
@@ -352,27 +353,27 @@ class SecurityCommand {
     
     // Security score
     const scoreColor = results.score >= 90 ? 'green' : results.score >= 70 ? 'yellow' : 'red';
-    console.log(chalk[scoreColor](`\n🔒 Security Score: ${results.score.toFixed(1)}/100\n`));
+    logger.info(chalk[scoreColor](`\n🔒 Security Score: ${results.score.toFixed(1)}/100\n`));
 
     // Passed checks
     if (results.passed.length > 0) {
-      console.log(chalk.green('✅ Passed Security Checks:'));
-      results.passed.forEach(check => console.log(`  ${check}`));
-      console.log();
+      logger.info(chalk.green('✅ Passed Security Checks:'));
+      results.passed.forEach(check => logger.info(`  ${check}`));
+      logger.info();
     }
 
     // Failed checks
     if (results.failed.length > 0) {
-      console.log(chalk.red('❌ Failed Security Checks:'));
-      results.failed.forEach(check => console.log(`  ${check}`));
-      console.log();
+      logger.info(chalk.red('❌ Failed Security Checks:'));
+      results.failed.forEach(check => logger.info(`  ${check}`));
+      logger.info();
     }
 
     // Warnings
     if (results.warnings.length > 0) {
-      console.log(chalk.yellow('⚠️  Security Warnings:'));
-      results.warnings.forEach(warning => console.log(`  ${warning}`));
-      console.log();
+      logger.info(chalk.yellow('⚠️  Security Warnings:'));
+      results.warnings.forEach(warning => logger.info(`  ${warning}`));
+      logger.info();
     }
 
     // Summary table
@@ -387,7 +388,7 @@ class SecurityCommand {
       [chalk.yellow('Warnings'), '⚠️ ', results.warnings.length]
     );
 
-    console.log(summaryTable.toString());
+    logger.info(summaryTable.toString());
   }
 
   /**

@@ -3,6 +3,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { logger } from './utils/logger';
 
 const GenerateReferral: NextPage = () => {
   const { data: session, status } = useSession();
@@ -34,11 +35,11 @@ const GenerateReferral: NextPage = () => {
         setReferralLink(data.referralLink);
       } else {
         const errorData = await response.json();
-        console.error('Failed to generate referral', errorData);
+        logger.error('Failed to generate referral', errorData);
         alert('Failed to generate referral');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while generating the referral.');
     }
   };

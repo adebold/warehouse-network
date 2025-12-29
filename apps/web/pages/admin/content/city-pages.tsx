@@ -17,6 +17,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { logger } from './utils/logger';
 
 
 interface CityPagesProps {
@@ -65,11 +66,11 @@ const CityPages: NextPage<CityPagesProps> = ({ cityPages }) => {
         router.replace(router.asPath);
       } else {
         const errorData = await response.json();
-        console.error('Failed to create city page', errorData);
+        logger.error('Failed to create city page', errorData);
         alert('Failed to create city page');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the city page.');
     }
   };

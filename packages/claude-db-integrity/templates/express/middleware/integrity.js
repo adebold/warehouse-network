@@ -1,4 +1,5 @@
 const { ClaudeMemoryManager } = require('claude-db-integrity');
+const { logger } = require('../../../../../../../utils/logger');
 
 /**
  * Claude DB Integrity Middleware for Express.js
@@ -53,7 +54,7 @@ class IntegrityMiddleware {
 
         next();
       } catch (error) {
-        console.error('Request tracking error:', error);
+        logger.error('Request tracking error:', error);
         // Don't block requests on tracking errors
         next();
       }
@@ -89,7 +90,7 @@ class IntegrityMiddleware {
         this.lastCheck = now;
         next();
       } catch (error) {
-        console.error('Integrity check middleware error:', error);
+        logger.error('Integrity check middleware error:', error);
         
         // Store error for debugging
         await this.memoryManager.store(`middleware-errors/${Date.now()}`, {
@@ -154,7 +155,7 @@ class IntegrityMiddleware {
           timestamp: new Date().toISOString()
         });
       } catch (memoryError) {
-        console.error('Error handler memory error:', memoryError);
+        logger.error('Error handler memory error:', memoryError);
         
         // Fallback error response
         res.status(500).json({
@@ -187,7 +188,7 @@ class IntegrityMiddleware {
             ttl: 3600
           });
         } catch (error) {
-          console.error('Response time tracking error:', error);
+          logger.error('Response time tracking error:', error);
         }
       });
       

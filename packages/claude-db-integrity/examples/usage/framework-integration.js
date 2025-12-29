@@ -16,11 +16,12 @@ const {
   createNextJSMiddleware,
   ValidationManager
 } = require('claude-db-integrity');
+import { logger } from '../../../../../../utils/logger';
 
 // Next.js Integration Example
 function nextjsIntegrationExample() {
-  console.log('🚀 Next.js Integration Example');
-  console.log('==============================\n');
+  logger.info('🚀 Next.js Integration Example');
+  logger.info('==============================\n');
 
   // 1. API Route Integration
   const apiRouteExample = `
@@ -132,19 +133,19 @@ export function useIntegrityValidation(schemaName) {
 //   );
 // }`;
 
-  console.log('📄 API Route Example:');
-  console.log(apiRouteExample);
-  console.log('\n📄 Middleware Example:');
-  console.log(middlewareExample);
-  console.log('\n📄 React Hook Example:');
-  console.log(reactHookExample);
-  console.log('\n');
+  logger.info('📄 API Route Example:');
+  logger.info(apiRouteExample);
+  logger.info('\n📄 Middleware Example:');
+  logger.info(middlewareExample);
+  logger.info('\n📄 React Hook Example:');
+  logger.info(reactHookExample);
+  logger.info('\n');
 }
 
 // Express.js Integration Example
 async function expressIntegrationExample() {
-  console.log('🚀 Express.js Integration Example');
-  console.log('==================================\n');
+  logger.info('🚀 Express.js Integration Example');
+  logger.info('==================================\n');
 
   // 1. Global Middleware Setup
   const globalMiddlewareExample = `
@@ -266,19 +267,19 @@ const errorHandler = async (err, req, res, next) => {
 
 module.exports = errorHandler;`;
 
-  console.log('📄 Global Middleware Example:');
-  console.log(globalMiddlewareExample);
-  console.log('\n📄 Route Validation Example:');
-  console.log(routeValidationExample);
-  console.log('\n📄 Error Handling Example:');
-  console.log(errorHandlingExample);
-  console.log('\n');
+  logger.info('📄 Global Middleware Example:');
+  logger.info(globalMiddlewareExample);
+  logger.info('\n📄 Route Validation Example:');
+  logger.info(routeValidationExample);
+  logger.info('\n📄 Error Handling Example:');
+  logger.info(errorHandlingExample);
+  logger.info('\n');
 }
 
 // NestJS Integration Example
 function nestjsIntegrationExample() {
-  console.log('🚀 NestJS Integration Example');
-  console.log('==============================\n');
+  logger.info('🚀 NestJS Integration Example');
+  logger.info('==============================\n');
 
   // 1. Module Setup
   const moduleExample = `
@@ -430,25 +431,25 @@ export class IntegrityGuard implements CanActivate {
   }
 }`;
 
-  console.log('📄 Module Example:');
-  console.log(moduleExample);
-  console.log('\n📄 Service Example:');
-  console.log(serviceExample);
-  console.log('\n📄 Decorator Example:');
-  console.log(decoratorExample);
-  console.log('\n📄 Guard Example:');
-  console.log(guardExample);
-  console.log('\n');
+  logger.info('📄 Module Example:');
+  logger.info(moduleExample);
+  logger.info('\n📄 Service Example:');
+  logger.info(serviceExample);
+  logger.info('\n📄 Decorator Example:');
+  logger.info(decoratorExample);
+  logger.info('\n📄 Guard Example:');
+  logger.info(guardExample);
+  logger.info('\n');
 }
 
 // Generic Node.js Integration Example
 async function genericNodejsIntegrationExample() {
-  console.log('🚀 Generic Node.js Integration Example');
-  console.log('=======================================\n');
+  logger.info('🚀 Generic Node.js Integration Example');
+  logger.info('=======================================\n');
 
   try {
     // 1. Basic setup
-    console.log('1. Basic Node.js application setup...');
+    logger.info('1. Basic Node.js application setup...');
     
     const engine = createIntegrityEngine({
       database: { type: 'memory' },
@@ -456,10 +457,10 @@ async function genericNodejsIntegrationExample() {
     });
 
     await engine.initialize();
-    console.log('   ✅ Integrity engine initialized\n');
+    logger.info('   ✅ Integrity engine initialized\n');
 
     // 2. Background integrity monitoring
-    console.log('2. Setting up background monitoring...');
+    logger.info('2. Setting up background monitoring...');
     
     const setupBackgroundMonitoring = () => {
       const monitoringInterval = setInterval(async () => {
@@ -467,7 +468,7 @@ async function genericNodejsIntegrationExample() {
           const report = await engine.runIntegrityChecks();
           
           if (report.summary.failed > 0) {
-            console.log(`⚠️  Integrity issues detected: ${report.summary.failed} failed checks`);
+            logger.info(`⚠️  Integrity issues detected: ${report.summary.failed} failed checks`);
           }
           
           // Store metrics
@@ -478,7 +479,7 @@ async function genericNodejsIntegrationExample() {
           }, { ttl: 3600 });
           
         } catch (error) {
-          console.error('Monitoring error:', error.message);
+          logger.error('Monitoring error:', error.message);
         }
       }, 60000); // Every minute
 
@@ -486,26 +487,26 @@ async function genericNodejsIntegrationExample() {
     };
 
     const monitoringInterval = setupBackgroundMonitoring();
-    console.log('   ✅ Background monitoring started\n');
+    logger.info('   ✅ Background monitoring started\n');
 
     // 3. Event-driven validation
-    console.log('3. Event-driven validation example...');
+    logger.info('3. Event-driven validation example...');
     
     const EventEmitter = require('events');
     const eventBus = new EventEmitter();
 
     // Set up event listeners
     eventBus.on('user:created', async (userData) => {
-      console.log('   Validating new user creation...');
+      logger.info('   Validating new user creation...');
       
       const validator = engine.getValidator();
       const result = await validator.validate('user', userData);
       
       if (result.isValid) {
-        console.log(`   ✅ User ${userData.id} validated successfully`);
+        logger.info(`   ✅ User ${userData.id} validated successfully`);
         eventBus.emit('user:validated', userData);
       } else {
-        console.log(`   ❌ User ${userData.id} validation failed`);
+        logger.info(`   ❌ User ${userData.id} validation failed`);
         eventBus.emit('user:validation-failed', userData, result.errors);
       }
     });
@@ -543,24 +544,24 @@ async function genericNodejsIntegrationExample() {
       name: 'X'
     });
 
-    console.log('   ✅ Event-driven validation demonstrated\n');
+    logger.info('   ✅ Event-driven validation demonstrated\n');
 
     // 4. Cleanup
     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait for events
     clearInterval(monitoringInterval);
     await engine.shutdown();
 
-    console.log('✅ Generic Node.js integration example completed!');
+    logger.info('✅ Generic Node.js integration example completed!');
 
   } catch (error) {
-    console.error('❌ Error in generic Node.js example:', error);
+    logger.error('❌ Error in generic Node.js example:', error);
   }
 }
 
 // Production deployment example
 function productionDeploymentExample() {
-  console.log('🚀 Production Deployment Example');
-  console.log('=================================\n');
+  logger.info('🚀 Production Deployment Example');
+  logger.info('=================================\n');
 
   const dockerExample = `
 # Dockerfile
@@ -674,13 +675,13 @@ jobs:
           name: integrity-results
           path: integrity-results.xml`;
 
-  console.log('📄 Docker Example:');
-  console.log(dockerExample);
-  console.log('\n📄 Kubernetes Example:');
-  console.log(k8sExample);
-  console.log('\n📄 CI/CD Example:');
-  console.log(cicdExample);
-  console.log('\n');
+  logger.info('📄 Docker Example:');
+  logger.info(dockerExample);
+  logger.info('\n📄 Kubernetes Example:');
+  logger.info(k8sExample);
+  logger.info('\n📄 CI/CD Example:');
+  logger.info(cicdExample);
+  logger.info('\n');
 }
 
 // Run all framework examples
@@ -691,18 +692,18 @@ async function runAllFrameworkExamples() {
   await genericNodejsIntegrationExample();
   productionDeploymentExample();
   
-  console.log('🎉 All framework integration examples completed!');
-  console.log('');
-  console.log('Choose the integration that best fits your framework:');
-  console.log('- Next.js: Built-in middleware and API route integration');
-  console.log('- Express: Flexible middleware with route-specific validation');
-  console.log('- NestJS: Decorator-based validation with dependency injection');
-  console.log('- Generic Node.js: Event-driven validation and monitoring');
-  console.log('');
-  console.log('For production deployment:');
-  console.log('- Use Docker health checks for container orchestration');
-  console.log('- Set up monitoring endpoints for Kubernetes probes');
-  console.log('- Integrate integrity checks into your CI/CD pipeline');
+  logger.info('🎉 All framework integration examples completed!');
+  logger.info('');
+  logger.info('Choose the integration that best fits your framework:');
+  logger.info('- Next.js: Built-in middleware and API route integration');
+  logger.info('- Express: Flexible middleware with route-specific validation');
+  logger.info('- NestJS: Decorator-based validation with dependency injection');
+  logger.info('- Generic Node.js: Event-driven validation and monitoring');
+  logger.info('');
+  logger.info('For production deployment:');
+  logger.info('- Use Docker health checks for container orchestration');
+  logger.info('- Set up monitoring endpoints for Kubernetes probes');
+  logger.info('- Integrate integrity checks into your CI/CD pipeline');
 }
 
 // Run if called directly

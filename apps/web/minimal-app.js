@@ -1,4 +1,5 @@
 const express = require('express');
+const { logger } = require('./utils/logger');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -15,5 +16,5 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  logger.info(`Server running on port ${PORT}`);
 });

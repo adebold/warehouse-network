@@ -1,4 +1,5 @@
 import { 
+import { logger } from './utils/logger';
   MapPin, 
   Bell, 
   Mail, 
@@ -167,10 +168,10 @@ export const PreferencesStep: React.FC<PreferencesStepProps> = ({
       if (response.ok) {
         onComplete();
       } else {
-        console.error('Failed to save preferences');
+        logger.error('Failed to save preferences');
       }
     } catch (error) {
-      console.error('Error saving preferences:', error);
+      logger.error('Error saving preferences:', error);
     } finally {
       setIsLoading(false);
     }

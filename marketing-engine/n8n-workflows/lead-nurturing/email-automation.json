@@ -1,0 +1,578 @@
+{
+  "name": "Lead Nurturing - Email Sequence Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-trigger",
+        "authentication": "headerAuth",
+        "headerAuth": {
+          "name": "X-API-Key",
+          "value": "={{ $credentials.apiKey }}"
+        },
+        "responseMode": "onReceived",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "id": "lead-webhook",
+      "name": "Lead Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [250, 300],
+      "webhookId": "lead-nurturing-webhook",
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "select",
+        "table": "leads",
+        "returnAll": true,
+        "where": {
+          "conditions": [
+            {
+              "column": "nurture_status",
+              "value": "active"
+            },
+            {
+              "column": "next_action_date",
+              "operator": "<=",
+              "value": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "id": "lead-queue",
+      "name": "Lead Queue",
+      "type": "n8n-nodes-base.postgres",
+      "position": [450, 300],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Lead Scoring Algorithm\nconst lead = $input.item.json;\nlet score = lead.current_score || 0;\n\n// Behavioral scoring\nif (lead.email_opens > 5) score += 10;\nif (lead.link_clicks > 3) score += 15;\nif (lead.content_downloads > 0) score += 20;\nif (lead.demo_requested) score += 30;\nif (lead.pricing_page_views > 2) score += 25;\n\n// Demographic scoring\nif (lead.job_title?.includes('Director') || lead.job_title?.includes('VP')) score += 15;\nif (lead.company_size > 500) score += 20;\nif (lead.industry_match) score += 10;\n\n// Engagement recency\nconst lastEngagement = new Date(lead.last_engagement);\nconst daysSinceEngagement = (Date.now() - lastEngagement) / (1000 * 60 * 60 * 24);\nif (daysSinceEngagement < 7) score += 10;\nelse if (daysSinceEngagement > 30) score -= 20;\n\n// Determine qualification\nlet qualification = 'cold';\nif (score >= 80) qualification = 'hot';\nelse if (score >= 50) qualification = 'warm';\n\nreturn {\n  ...lead,\n  lead_score: score,\n  qualification: qualification,\n  score_updated_at: new Date().toISOString()\n};"
+      },
+      "id": "lead-scoring",
+      "name": "Lead Scoring",
+      "type": "n8n-nodes-base.code",
+      "position": [650, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.qualification }}",
+              "operation": "equals",
+              "value2": "hot"
+            }
+          ]
+        }
+      },
+      "id": "qualification-router",
+      "name": "Qualification Router",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "create",
+        "additionalFields": {
+          "email": "={{ $json.email }}",
+          "firstName": "={{ $json.first_name }}",
+          "lastName": "={{ $json.last_name }}",
+          "phone": "={{ $json.phone }}",
+          "company": "={{ $json.company }}",
+          "jobTitle": "={{ $json.job_title }}",
+          "leadScore": "={{ $json.lead_score }}",
+          "customProperties": {
+            "property": [
+              {
+                "name": "lead_source",
+                "value": "={{ $json.source }}"
+              },
+              {
+                "name": "nurture_stage",
+                "value": "={{ $json.nurture_stage }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "salesforce-sync",
+      "name": "Salesforce Sync",
+      "type": "n8n-nodes-base.salesforce",
+      "position": [1050, 200],
+      "typeVersion": 1,
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "7",
+          "name": "Salesforce CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "contact",
+        "operation": "upsert",
+        "email": "={{ $json.email }}",
+        "additionalFields": {
+          "firstname": "={{ $json.first_name }}",
+          "lastname": "={{ $json.last_name }}",
+          "phone": "={{ $json.phone }}",
+          "company": "={{ $json.company }}",
+          "jobtitle": "={{ $json.job_title }}",
+          "lead_score": "={{ $json.lead_score }}",
+          "lifecycle_stage": "={{ $json.qualification }}"
+        }
+      },
+      "id": "hubspot-sync",
+      "name": "HubSpot Sync",
+      "type": "n8n-nodes-base.hubspot",
+      "position": [1050, 350],
+      "typeVersion": 2,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "8",
+          "name": "HubSpot Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// Email Sequence Selection\nconst lead = $input.item.json;\nconst sequences = {\n  'awareness': {\n    emails: ['welcome', 'value_prop', 'case_study', 'industry_insights'],\n    delays: [0, 3, 7, 14]\n  },\n  'consideration': {\n    emails: ['product_deep_dive', 'comparison_guide', 'roi_calculator', 'demo_offer'],\n    delays: [0, 2, 5, 7]\n  },\n  'decision': {\n    emails: ['final_offer', 'testimonials', 'limited_time', 'personal_consultation'],\n    delays: [0, 1, 3, 5]\n  },\n  're_engagement': {\n    emails: ['we_miss_you', 'whats_new', 'exclusive_content', 'feedback_request'],\n    delays: [0, 7, 14, 30]\n  }\n};\n\nconst stage = lead.nurture_stage || 'awareness';\nconst sequence = sequences[stage];\nconst emailIndex = lead.sequence_position || 0;\n\nif (emailIndex >= sequence.emails.length) {\n  return {\n    ...lead,\n    sequence_complete: true,\n    next_stage: getNextStage(stage)\n  };\n}\n\nreturn {\n  ...lead,\n  email_template: sequence.emails[emailIndex],\n  next_email_delay: sequence.delays[emailIndex + 1] || null,\n  sequence_position: emailIndex\n};\n\nfunction getNextStage(current) {\n  const stages = ['awareness', 'consideration', 'decision'];\n  const index = stages.indexOf(current);\n  return index < stages.length - 1 ? stages[index + 1] : 're_engagement';\n}"
+      },
+      "id": "sequence-selector",
+      "name": "Sequence Selector",
+      "type": "n8n-nodes-base.function",
+      "position": [850, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "fromEmail": "marketing@company.com",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $('email-templates').item.json.subject }}",
+        "html": "={{ $('email-templates').item.json.html_content }}",
+        "options": {
+          "replyToEmail": "support@company.com",
+          "trackOpens": true,
+          "trackClicks": true,
+          "personalizations": {
+            "substitutions": [
+              {
+                "key": "{{first_name}}",
+                "value": "={{ $json.first_name }}"
+              },
+              {
+                "key": "{{company}}",
+                "value": "={{ $json.company }}"
+              },
+              {
+                "key": "{{lead_score}}",
+                "value": "={{ $json.lead_score }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "send-email",
+      "name": "Send Email",
+      "type": "n8n-nodes-base.sendGrid",
+      "position": [1250, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "sendGridApi": {
+          "id": "9",
+          "name": "SendGrid Marketing"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "select",
+        "table": "email_templates",
+        "limit": 1,
+        "where": {
+          "conditions": [
+            {
+              "column": "template_name",
+              "value": "={{ $json.email_template }}"
+            },
+            {
+              "column": "active",
+              "value": true
+            }
+          ]
+        }
+      },
+      "id": "email-templates",
+      "name": "Get Email Template",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1050, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "task",
+        "operation": "create",
+        "subject": "Follow up with hot lead: {{ $json.first_name }} {{ $json.last_name }}",
+        "status": "Not Started",
+        "priority": "High",
+        "additionalFields": {
+          "whoId": "={{ $json.salesforce_contact_id }}",
+          "ownerId": "={{ $json.assigned_sales_rep }}",
+          "activityDate": "={{ $now.plus({days: 1}).toISO() }}",
+          "description": "Lead Score: {{ $json.lead_score }}\nCompany: {{ $json.company }}\nLast Engagement: {{ $json.last_engagement }}\n\nRecommended Actions:\n- Call within 24 hours\n- Send personalized demo offer\n- Check budget and timeline"
+        }
+      },
+      "id": "create-task",
+      "name": "Create Sales Task",
+      "type": "n8n-nodes-base.salesforce",
+      "position": [1250, 200],
+      "typeVersion": 1,
+      "credentials": {
+        "salesforceOAuth2Api": {
+          "id": "7",
+          "name": "Salesforce CRM"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "update",
+        "table": "leads",
+        "updateKey": "id",
+        "columns": "lead_score,qualification,nurture_stage,sequence_position,next_action_date,last_email_sent",
+        "values": "={{ $json.lead_score }},={{ $json.qualification }},={{ $json.nurture_stage }},={{ $json.sequence_position + 1 }},={{ $now.plus({days: $json.next_email_delay}).toISO() }},={{ $now }}"
+      },
+      "id": "update-lead",
+      "name": "Update Lead",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1450, 350],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "email_analytics",
+        "columns": "lead_id,email_template,sent_at,campaign_id,sequence_position",
+        "values": "={{ $json.id }},={{ $json.email_template }},={{ $now }},={{ $json.campaign_id }},={{ $json.sequence_position }}"
+      },
+      "id": "track-email",
+      "name": "Track Email",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1450, 500],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "channel": "lead-nurturing",
+        "key": "lead:{{ $json.id }}",
+        "value": "={{ JSON.stringify($json) }}",
+        "expire": true,
+        "ttl": 86400
+      },
+      "id": "cache-lead",
+      "name": "Cache Lead Data",
+      "type": "n8n-nodes-base.redis",
+      "position": [1650, 350],
+      "typeVersion": 1,
+      "credentials": {
+        "redis": {
+          "id": "10",
+          "name": "Marketing Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.error }}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "error-check",
+      "name": "Error Check",
+      "type": "n8n-nodes-base.if",
+      "position": [1650, 500],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "workflow_errors",
+        "columns": "workflow_name,error_message,error_data,lead_id,timestamp",
+        "values": "lead-nurturing,={{ $json.error.message }},={{ JSON.stringify($json.error) }},={{ $json.id }},={{ $now }}"
+      },
+      "id": "log-error",
+      "name": "Log Error",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1850, 600],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MONITORING_URL }}/metrics",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "metric_name",
+              "value": "lead_nurturing_execution"
+            },
+            {
+              "name": "lead_score",
+              "value": "={{ $json.lead_score }}"
+            },
+            {
+              "name": "qualification",
+              "value": "={{ $json.qualification }}"
+            },
+            {
+              "name": "email_sent",
+              "value": "={{ $json.email_template }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "id": "send-metrics",
+      "name": "Send Metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1850, 350],
+      "typeVersion": 3
+    }
+  ],
+  "connections": {
+    "Lead Webhook": {
+      "main": [
+        [
+          {
+            "node": "Lead Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Queue": {
+      "main": [
+        [
+          {
+            "node": "Lead Scoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lead Scoring": {
+      "main": [
+        [
+          {
+            "node": "Qualification Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qualification Router": {
+      "main": [
+        [
+          {
+            "node": "Salesforce Sync",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sequence Selector",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salesforce Sync": {
+      "main": [
+        [
+          {
+            "node": "Create Sales Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Sales Task": {
+      "main": [
+        [
+          {
+            "node": "HubSpot Sync",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HubSpot Sync": {
+      "main": [
+        [
+          {
+            "node": "Update Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sequence Selector": {
+      "main": [
+        [
+          {
+            "node": "Get Email Template",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Email Template": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Track Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Track Email": {
+      "main": [
+        [
+          {
+            "node": "Update Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Lead": {
+      "main": [
+        [
+          {
+            "node": "Cache Lead Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cache Lead Data": {
+      "main": [
+        [
+          {
+            "node": "Error Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Check": {
+      "main": [
+        [
+          {
+            "node": "Send Metrics",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 180,
+    "maxExecutionRetries": 3,
+    "executionRetryDelay": 10000,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true,
+    "errorWorkflow": "error-handling-workflow"
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 1
+}

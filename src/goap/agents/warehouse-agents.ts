@@ -3,8 +3,8 @@
  * Each agent has specific capabilities, behaviors, and default goals
  */
 
-import { Agent, AgentType, Goal, WorldState, StateKeys } from '../types';
 import { WarehouseActions } from '../actions/warehouse-actions';
+import { Agent, AgentType, Goal, WorldState, StateKeys } from '../types';
 
 export class WarehouseAgents {
 

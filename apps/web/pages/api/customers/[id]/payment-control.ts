@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 
 import {
+import { logger } from './utils/logger';
   lockCustomerAccount,
   unlockCustomerAccount,
 } from '@/lib/payment-control';
@@ -121,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           return res.status(200).json({ success: true, message: 'Payment information updated' });
         }
       } catch (error) {
-        console.error('Error updating payment control:', error);
+        logger.error('Error updating payment control:', error);
         return res.status(500).json({ error: 'Failed to update payment control' });
       }
       break;

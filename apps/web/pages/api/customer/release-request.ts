@@ -5,6 +5,7 @@ import { authOptions } from '../auth/[...nextauth]';
 
 import { withAccountLockCheck } from '@/lib/middleware/accountLock';
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -63,7 +64,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         releaseRequest,
       });
     } catch (error) {
-      console.error('Error creating release request:', error);
+      logger.error('Error creating release request:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   } else {

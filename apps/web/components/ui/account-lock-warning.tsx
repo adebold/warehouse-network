@@ -54,12 +54,12 @@ export function AccountLockWarning({
     let desc = '';
 
     if (customer.accountStatus === 'LOCKED') {
-      desc = `This customer's account is locked and cannot ${operation || 'perform this operation'}.`;
+      desc = `This customer&apos;s account is locked and cannot ${operation || 'perform this operation'}.`;
       if (customer.lockReason) {
         desc += ` Reason: ${customer.lockReason}`;
       }
     } else if (customer.accountStatus === 'SUSPENDED') {
-      desc = `This customer's account is suspended with limited operations.`;
+      desc = `This customer&apos;s account is suspended with limited operations.`;
     } else if (customer.paymentStatus === 'DELINQUENT') {
       desc = `This customer has delinquent payments. New inventory cannot be received.`;
     }

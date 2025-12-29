@@ -3,12 +3,13 @@
  * Orchestrates the complete Goal-Oriented Action Planning system for warehouse operations
  */
 
-import { GOAPPlanner } from './planner';
-import { GOAPExecutor } from './executor';
-import { StateManager } from './state-manager';
 import { WarehouseActions } from './actions/warehouse-actions';
 import { WarehouseAgents } from './agents/warehouse-agents';
-import { Agent, Goal, WorldState, Plan, AgentType, StateKeys } from './types';
+import { GOAPExecutor } from './executor';
+import { GOAPPlanner } from './planner';
+import { StateManager } from './state-manager';
+import { Agent, Goal, WorldState, Plan, StateKeys } from './types';
+import { logger } from '../utils/logger';
 
 export interface GOAPSystemConfig {
   maxPlanningDepth: number;
@@ -274,7 +275,7 @@ export class GOAPSystem {
     const availableAgents = Array.from(this.agents.values())
       .filter(agent => agent.isActive && !agent.currentPlan);
 
-    if (availableAgents.length === 0) return null;
+    if (availableAgents.length === 0) {return null;}
 
     // Score agents based on capabilities and priority
     const scoredAgents = availableAgents.map(agent => ({
@@ -298,20 +299,20 @@ export class GOAPSystem {
     
     switch (goalType) {
       case 'order_fulfillment':
-        if (agent.capabilities.includes('order_fulfillment')) score += 5;
-        if (agent.capabilities.includes('shipping')) score += 3;
+        if (agent.capabilities.includes('order_fulfillment')) {score += 5;}
+        if (agent.capabilities.includes('shipping')) {score += 3;}
         break;
       case 'inventory_optimization':
-        if (agent.capabilities.includes('inventory_management')) score += 5;
-        if (agent.capabilities.includes('receiving')) score += 3;
+        if (agent.capabilities.includes('inventory_management')) {score += 5;}
+        if (agent.capabilities.includes('receiving')) {score += 3;}
         break;
       case 'quality_assurance':
-        if (agent.capabilities.includes('quality_control')) score += 5;
-        if (agent.capabilities.includes('inspection')) score += 3;
+        if (agent.capabilities.includes('quality_control')) {score += 5;}
+        if (agent.capabilities.includes('inspection')) {score += 3;}
         break;
       case 'equipment_maintenance':
-        if (agent.capabilities.includes('maintenance')) score += 5;
-        if (agent.capabilities.includes('repair')) score += 3;
+        if (agent.capabilities.includes('maintenance')) {score += 5;}
+        if (agent.capabilities.includes('repair')) {score += 3;}
         break;
     }
     
@@ -390,7 +391,7 @@ export class GOAPSystem {
    */
   private log(message: string): void {
     if (this.config.enableLogging) {
-      console.log(`[GOAP] ${new Date().toISOString()} - ${message}`);
+      logger.info(`[GOAP] ${new Date().toISOString()} - ${message}`);
     }
   }
 }

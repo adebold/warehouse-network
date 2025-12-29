@@ -4,6 +4,7 @@ const { promisify } = require('util');
 const path = require('path');
 const fs = require('fs').promises;
 const crypto = require('crypto');
+import { logger } from '../../../../../../../utils/logger';
 
 const execAsync = promisify(exec);
 
@@ -38,10 +39,10 @@ class DatabaseIntegritySystem {
       `;
       
       if (!tableExists[0].exists) {
-        console.log('Memory bank tables not found. Please run migrations.');
+        logger.info('Memory bank tables not found. Please run migrations.');
       }
     } catch (error) {
-      console.error('Error checking memory bank tables:', error.message);
+      logger.error('Error checking memory bank tables:', error.message);
     }
   }
 
@@ -67,7 +68,7 @@ class DatabaseIntegritySystem {
         }
       });
     } catch (error) {
-      console.error('Failed to write to memory bank:', error.message);
+      logger.error('Failed to write to memory bank:', error.message);
     }
   }
 

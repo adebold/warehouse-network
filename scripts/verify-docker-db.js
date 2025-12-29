@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const { PrismaClient } = require('@prisma/client');
+const { logger } = require('./utils/logger');
 
 // Use Docker PostgreSQL connection
 const prisma = new PrismaClient({
@@ -12,12 +13,12 @@ const prisma = new PrismaClient({
 });
 
 async function verifyDatabase() {
-  console.log('🔍 Verifying Docker PostgreSQL connection and schema...\n');
+  logger.info('🔍 Verifying Docker PostgreSQL connection and schema...\n');
 
   try {
     // Test connection
     await prisma.$connect();
-    console.log('✅ Successfully connected to Docker PostgreSQL\n');
+    logger.info('✅ Successfully connected to Docker PostgreSQL\n');
 
     // Get all table counts
     const tables = [
@@ -35,16 +36,16 @@ async function verifyDatabase() {
       'AccountLockHistory'
     ];
 
-    console.log('📊 Table Record Counts:\n');
-    console.log('Table Name                    | Count');
-    console.log('------------------------------|-------');
+    logger.info('📊 Table Record Counts:\n');
+    logger.info('Table Name                    | Count');
+    logger.info('------------------------------|-------');
 
     for (const table of tables) {
       try {
         const count = await prisma[table.charAt(0).toLowerCase() + table.slice(1)].count();
-        console.log(`${table.padEnd(29)} | ${count}`);
+        logger.info(`${table.padEnd(29)} | ${count}`);
       } catch (error) {
-        console.log(`${table.padEnd(29)} | Error: ${error.message}`);
+        logger.info(`${table.padEnd(29)} | Error: ${error.message}`);
       }
     }
 
@@ -58,12 +59,12 @@ async function verifyDatabase() {
       ORDER BY tablename;
     `;
 
-    console.log('\n📈 Table Sizes:\n');
-    console.log('Table Name                    | Size');
-    console.log('------------------------------|-------');
+    logger.info('\n📈 Table Sizes:\n');
+    logger.info('Table Name                    | Size');
+    logger.info('------------------------------|-------');
     
     result.forEach(row => {
-      console.log(`${row.table_name.padEnd(29)} | ${row.size}`);
+      logger.info(`${row.table_name.padEnd(29)} | ${row.size}`);
     });
 
     // Test a simple query
@@ -71,16 +72,16 @@ async function verifyDatabase() {
     const operatorCount = await prisma.operator.count();
     const warehouseCount = await prisma.warehouse.count();
 
-    console.log('\n📌 Summary:');
-    console.log(`- Total Users: ${userCount}`);
-    console.log(`- Total Operators: ${operatorCount}`);
-    console.log(`- Total Warehouses: ${warehouseCount}`);
-    console.log(`- Total Tables: ${result.length}`);
+    logger.info('\n📌 Summary:');
+    logger.info(`- Total Users: ${userCount}`);
+    logger.info(`- Total Operators: ${operatorCount}`);
+    logger.info(`- Total Warehouses: ${warehouseCount}`);
+    logger.info(`- Total Tables: ${result.length}`);
 
-    console.log('\n✨ Database verification completed successfully!');
+    logger.info('\n✨ Database verification completed successfully!');
 
   } catch (error) {
-    console.error('❌ Error:', error);
+    logger.error('❌ Error:', error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

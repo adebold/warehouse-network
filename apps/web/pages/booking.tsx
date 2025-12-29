@@ -1,5 +1,6 @@
 import { format, differenceInDays, addDays } from 'date-fns';
 import {
+import { logger } from './utils/logger';
   MapPin,
   Package,
   DollarSign,
@@ -103,7 +104,7 @@ const BookingPage: NextPage<BookingPageProps> = ({ warehouse }) => {
           <CardHeader>
             <CardTitle>Warehouse Not Found</CardTitle>
             <CardDescription>
-              The warehouse you're looking for doesn't exist or is no longer available.
+              The warehouse you&apos;re looking for doesn&apos;t exist or is no longer available.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -473,7 +474,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   } catch (error) {
-    console.error('Error fetching warehouse:', error);
+    logger.error('Error fetching warehouse:', error);
     return {
       props: { warehouse: null },
     };

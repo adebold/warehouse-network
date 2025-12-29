@@ -3,6 +3,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getSession } from 'next-auth/react';
 
 import prisma from '../../../lib/prisma';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getSession({ req });
@@ -92,7 +93,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(201).json(booking);
     } catch (error) {
-      console.error('Error creating booking:', error);
+      logger.error('Error creating booking:', error);
       return res.status(500).json({ error: 'Failed to create booking' });
     }
   } else if (req.method === 'GET') {
@@ -121,7 +122,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json(bookings);
     } catch (error) {
-      console.error('Error fetching bookings:', error);
+      logger.error('Error fetching bookings:', error);
       return res.status(500).json({ error: 'Failed to fetch bookings' });
     }
   } else {

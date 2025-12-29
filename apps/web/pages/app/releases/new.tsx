@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface NewReleaseProps {
   skids: Skid[];
@@ -60,11 +61,11 @@ const NewRelease: NextPage<NewReleaseProps> = ({ skids }) => {
         router.push('/app/releases');
       } else {
         const errorData = await response.json();
-        console.error('Failed to create release request', errorData);
+        logger.error('Failed to create release request', errorData);
         alert('Failed to create release request');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the release request.');
     }
   };

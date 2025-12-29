@@ -2,6 +2,7 @@ import { execSync } from 'child_process';
 
 import { beforeAll, afterAll, beforeEach, afterEach } from '@jest/globals';
 import { PrismaClient } from '@prisma/client';
+import { logger } from './utils/logger';
 
 // Global test setup for integration tests
 const prisma = new PrismaClient({
@@ -17,11 +18,11 @@ const prisma = new PrismaClient({
 beforeAll(async () => {
   // Ensure test database is running and seeded
   try {
-    console.log('🔧 Setting up integration test environment...');
+    logger.info('🔧 Setting up integration test environment...');
 
     // Check if test DB is accessible
     await prisma.$connect();
-    console.log('✅ Connected to test database');
+    logger.info('✅ Connected to test database');
 
     // Verify we have test data
     const testUsersCount = await prisma.user.count({
@@ -29,13 +30,13 @@ beforeAll(async () => {
     });
 
     if (testUsersCount === 0) {
-      console.log('⚠️  No test data found, running seeder...');
+      logger.info('⚠️  No test data found, running seeder...');
       execSync('npm run seed:test', { stdio: 'inherit' });
     }
 
-    console.log(`📊 Found ${testUsersCount} test users`);
+    logger.info(`📊 Found ${testUsersCount} test users`);
   } catch (error) {
-    console.error('❌ Failed to set up test environment:', error);
+    logger.error('❌ Failed to set up test environment:', error);
     throw error;
   }
 }, 30000); // 30 second timeout

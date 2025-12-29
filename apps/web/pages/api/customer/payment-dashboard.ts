@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../auth/[...nextauth]';
 
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -75,7 +76,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         recentPayments,
       });
     } catch (error) {
-      console.error('Error fetching payment dashboard:', error);
+      logger.error('Error fetching payment dashboard:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   } else {

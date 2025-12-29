@@ -4,6 +4,7 @@
  */
 
 import { WorldState, Action, Goal, StateKeys } from './types';
+import { logger } from '../utils/logger';
 
 export class StateManager {
   
@@ -26,7 +27,7 @@ export class StateManager {
 
       return true;
     } catch (error) {
-      console.error(`Error checking action ${action.id}:`, error);
+      logger.error(`Error checking action ${action.id}:`, error);
       return false;
     }
   }
@@ -57,7 +58,7 @@ export class StateManager {
       }
       return true;
     } catch (error) {
-      console.error(`Error checking goal ${goal.id}:`, error);
+      logger.error(`Error checking goal ${goal.id}:`, error);
       return false;
     }
   }
@@ -245,7 +246,7 @@ export class StateManager {
         state[key] = (state[key] || 0) - (value || 1);
         break;
       case 'push':
-        if (!Array.isArray(state[key])) state[key] = [];
+        if (!Array.isArray(state[key])) {state[key] = [];}
         state[key].push(value);
         break;
       case 'remove':
@@ -294,9 +295,9 @@ export class StateManager {
     let distance = 0;
     
     for (const key of allKeys) {
-      if (!(key in current)) distance += 1;
-      else if (!(key in target)) distance += 1;
-      else if (current[key] !== target[key]) distance += 1;
+      if (!(key in current)) {distance += 1;}
+      else if (!(key in target)) {distance += 1;}
+      else if (current[key] !== target[key]) {distance += 1;}
     }
     
     return distance;

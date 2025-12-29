@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../lib/prisma';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface ManageUsersProps {
   users: OperatorUser[];
@@ -41,11 +42,11 @@ const ManageUsers: NextPage<ManageUsersProps> = ({ users, invitations }) => {
         router.replace(router.asPath); // Refresh the page
       } else {
         const errorData = await response.json();
-        console.error('Failed to send invitation', errorData);
+        logger.error('Failed to send invitation', errorData);
         alert('Failed to send invitation');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while sending the invitation.');
     }
   };

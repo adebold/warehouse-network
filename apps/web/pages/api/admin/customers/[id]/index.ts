@@ -5,6 +5,7 @@ import { getServerSession } from 'next-auth/next';
 import { authOptions } from '../../../auth/[...nextauth]';
 
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const session = await getServerSession(req, res, authOptions);
@@ -78,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json(customer);
     } catch (error) {
-      console.error('Error fetching customer:', error);
+      logger.error('Error fetching customer:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   } else if (req.method === 'PATCH') {
@@ -97,7 +98,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       return res.status(200).json(updatedCustomer);
     } catch (error) {
-      console.error('Error updating customer:', error);
+      logger.error('Error updating customer:', error);
       return res.status(500).json({ message: 'Internal server error' });
     }
   } else {

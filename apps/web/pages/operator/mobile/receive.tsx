@@ -2,6 +2,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { logger } from './utils/logger';
 
 const Receive: NextPage = () => {
   const { data: session, status } = useSession();
@@ -46,11 +47,11 @@ const Receive: NextPage = () => {
         router.push(`/operator/mobile/receiving-orders/${newOrder.id}`);
       } else {
         const errorData = await response.json();
-        console.error('Failed to create receiving order', errorData);
+        logger.error('Failed to create receiving order', errorData);
         alert('Failed to create receiving order');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the receiving order.');
     }
   };

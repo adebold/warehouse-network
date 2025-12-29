@@ -18,6 +18,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import log from '@/lib/logger';
 
 interface Agent {
   id: string;
@@ -34,7 +35,7 @@ interface Agent {
       description: string;
     };
     status: string;
-    actions: any[];
+    actions: unknown[];
     progress?: number;
   };
 }
@@ -52,7 +53,7 @@ interface Goal {
   name: string;
   description: string;
   priority: number;
-  targetState: any;
+  targetState: Record<string, { operator: string; value: number }>;
 }
 
 export const GOAPDashboard: React.FC = () => {
@@ -75,7 +76,7 @@ export const GOAPDashboard: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to fetch system status');
-      console.error('System status error:', err);
+      log.error('System status error', err as Error);
     }
   };
 
@@ -92,7 +93,7 @@ export const GOAPDashboard: React.FC = () => {
       }
     } catch (err) {
       setError('Failed to fetch agents');
-      console.error('Agents fetch error:', err);
+      log.error('Agents fetch error', err as Error);
     }
   };
 
@@ -109,7 +110,7 @@ export const GOAPDashboard: React.FC = () => {
         await fetchAgents();
       }
     } catch (err) {
-      console.error('Failed to create warehouse team:', err);
+      log.error('Failed to create warehouse team', err as Error);
     }
   };
 
@@ -139,7 +140,7 @@ export const GOAPDashboard: React.FC = () => {
         await fetchAgents();
       }
     } catch (err) {
-      console.error('Failed to assign goal:', err);
+      log.error('Failed to assign goal', err as Error);
     }
   };
 

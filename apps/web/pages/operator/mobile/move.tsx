@@ -3,6 +3,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { logger } from './utils/logger';
 
 type MoveState = 'SCAN_SKID' | 'SCAN_LOCATION' | 'CONFIRM';
 
@@ -55,11 +56,11 @@ const Move: NextPage = () => {
         setScannedLocation('');
       } else {
         const errorData = await response.json();
-        console.error('Failed to move skid', errorData);
+        logger.error('Failed to move skid', errorData);
         alert('Failed to move skid');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while moving the skid.');
     }
   };
@@ -78,7 +79,7 @@ const Move: NextPage = () => {
         if (detectedCodes && detectedCodes.length > 0) {
           handleScan(detectedCodes[0].rawValue);
         }
-      }} onError={error => console.log(error?.message)} />
+      }} onError={error => logger.info(error?.message)} />
 
       {moveState === 'CONFIRM' && (
         <div>

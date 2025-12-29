@@ -1,0 +1,450 @@
+{
+  "name": "Error Handling Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "errorTrigger": "workflowError"
+      },
+      "id": "error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "position": [250, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "jsCode": "// Categorize and enrich error data\nconst error = $input.item.json;\n\nconst errorCategory = categorizeError(error);\nconst severity = calculateSeverity(error, errorCategory);\nconst affectedSystems = identifyAffectedSystems(error);\n\nreturn {\n  error_id: generateErrorId(),\n  timestamp: new Date().toISOString(),\n  workflow_name: error.workflow?.name || 'Unknown',\n  workflow_id: error.workflow?.id || 'Unknown',\n  execution_id: error.execution?.id || 'Unknown',\n  node_name: error.node?.name || 'Unknown',\n  error_message: error.message || 'Unknown error',\n  error_stack: error.stack || '',\n  error_category: errorCategory,\n  severity: severity,\n  affected_systems: affectedSystems,\n  retry_count: error.retryCount || 0,\n  recovery_action: determineRecoveryAction(errorCategory, severity)\n};\n\nfunction categorizeError(error) {\n  const message = error.message?.toLowerCase() || '';\n  \n  if (message.includes('auth') || message.includes('token') || message.includes('credential')) {\n    return 'authentication';\n  } else if (message.includes('rate limit') || message.includes('429')) {\n    return 'rate_limit';\n  } else if (message.includes('timeout') || message.includes('timed out')) {\n    return 'timeout';\n  } else if (message.includes('connection') || message.includes('network')) {\n    return 'network';\n  } else if (message.includes('database') || message.includes('postgres') || message.includes('redis')) {\n    return 'database';\n  } else if (message.includes('api') || message.includes('endpoint')) {\n    return 'api';\n  } else if (message.includes('validation') || message.includes('invalid')) {\n    return 'validation';\n  } else {\n    return 'unknown';\n  }\n}\n\nfunction calculateSeverity(error, category) {\n  // Critical errors\n  if (category === 'authentication' || category === 'database') {\n    return 'critical';\n  }\n  // High severity\n  if (category === 'api' || error.retryCount > 2) {\n    return 'high';\n  }\n  // Medium severity\n  if (category === 'rate_limit' || category === 'timeout') {\n    return 'medium';\n  }\n  // Low severity\n  return 'low';\n}\n\nfunction identifyAffectedSystems(error) {\n  const systems = [];\n  const message = error.message?.toLowerCase() || '';\n  const nodeName = error.node?.name?.toLowerCase() || '';\n  \n  if (message.includes('facebook') || nodeName.includes('facebook')) systems.push('facebook');\n  if (message.includes('twitter') || nodeName.includes('twitter')) systems.push('twitter');\n  if (message.includes('linkedin') || nodeName.includes('linkedin')) systems.push('linkedin');\n  if (message.includes('google') || nodeName.includes('google')) systems.push('google');\n  if (message.includes('salesforce') || nodeName.includes('salesforce')) systems.push('salesforce');\n  if (message.includes('hubspot') || nodeName.includes('hubspot')) systems.push('hubspot');\n  if (message.includes('postgres') || nodeName.includes('postgres')) systems.push('database');\n  if (message.includes('redis') || nodeName.includes('redis')) systems.push('cache');\n  \n  return systems.length > 0 ? systems : ['unknown'];\n}\n\nfunction determineRecoveryAction(category, severity) {\n  const actions = {\n    authentication: 'refresh_tokens',\n    rate_limit: 'backoff_retry',\n    timeout: 'increase_timeout',\n    network: 'retry_with_backoff',\n    database: 'check_connection',\n    api: 'validate_endpoint',\n    validation: 'check_input_data',\n    unknown: 'manual_investigation'\n  };\n  \n  return actions[category] || 'manual_investigation';\n}\n\nfunction generateErrorId() {\n  return `ERR_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n}"
+      },
+      "id": "process-error",
+      "name": "Process Error",
+      "type": "n8n-nodes-base.code",
+      "position": [450, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "insert",
+        "table": "error_logs",
+        "columns": "error_id,timestamp,workflow_name,workflow_id,execution_id,node_name,error_message,error_stack,error_category,severity,affected_systems,retry_count,recovery_action",
+        "values": "={{ $json.error_id }},={{ $json.timestamp }},={{ $json.workflow_name }},={{ $json.workflow_id }},={{ $json.execution_id }},={{ $json.node_name }},={{ $json.error_message }},={{ $json.error_stack }},={{ $json.error_category }},={{ $json.severity }},={{ JSON.stringify($json.affected_systems) }},={{ $json.retry_count }},={{ $json.recovery_action }}"
+      },
+      "id": "log-to-database",
+      "name": "Log to Database",
+      "type": "n8n-nodes-base.postgres",
+      "position": [650, 300],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.severity }}",
+              "operation": "contains",
+              "value2": "critical,high"
+            }
+          ]
+        }
+      },
+      "id": "severity-check",
+      "name": "Severity Check",
+      "type": "n8n-nodes-base.if",
+      "position": [850, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "🚨 *{{ $json.severity === 'critical' ? 'CRITICAL' : 'HIGH' }} ERROR ALERT*\n\n*Error ID:* `{{ $json.error_id }}`\n*Workflow:* {{ $json.workflow_name }}\n*Node:* {{ $json.node_name }}\n*Category:* {{ $json.error_category }}\n*Affected Systems:* {{ $json.affected_systems.join(', ') }}\n\n*Error Message:*\n```\n{{ $json.error_message }}\n```\n\n*Recommended Action:* {{ $json.recovery_action.replace(/_/g, ' ') }}\n*Retry Count:* {{ $json.retry_count }}\n\n<{{ $env.DASHBOARD_URL }}/errors/{{ $json.error_id }}|View Details>",
+        "additionalFields": {
+          "channel": "#critical-alerts",
+          "username": "Error Monitor",
+          "icon_emoji": ":rotating_light:",
+          "attachments": [
+            {
+              "color": "{{ $json.severity === 'critical' ? '#E74C3C' : '#F39C12' }}",
+              "fields": [
+                {
+                  "title": "Workflow ID",
+                  "value": "{{ $json.workflow_id }}",
+                  "short": true
+                },
+                {
+                  "title": "Execution ID",
+                  "value": "{{ $json.execution_id }}",
+                  "short": true
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "id": "slack-critical",
+      "name": "Slack Critical Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [1050, 200],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.error_category }}",
+              "operation": "equals",
+              "value2": "rate_limit"
+            }
+          ]
+        }
+      },
+      "id": "recovery-router",
+      "name": "Recovery Router",
+      "type": "n8n-nodes-base.switch",
+      "position": [1050, 400],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Rate limit recovery with exponential backoff\nconst error = $input.item.json;\nconst baseDelay = 60000; // 1 minute\nconst maxDelay = 3600000; // 1 hour\n\n// Calculate backoff delay\nconst delay = Math.min(baseDelay * Math.pow(2, error.retry_count), maxDelay);\n\n// Store backoff information\nawait $redis.set(\n  `rate_limit:${error.affected_systems[0]}:${error.workflow_id}`,\n  JSON.stringify({\n    locked_until: new Date(Date.now() + delay).toISOString(),\n    retry_count: error.retry_count + 1,\n    last_error: error.error_id\n  }),\n  'EX',\n  Math.ceil(delay / 1000)\n);\n\nreturn {\n  ...error,\n  recovery_status: 'scheduled',\n  retry_after: new Date(Date.now() + delay).toISOString(),\n  backoff_delay_ms: delay\n};"
+      },
+      "id": "rate-limit-recovery",
+      "name": "Rate Limit Recovery",
+      "type": "n8n-nodes-base.function",
+      "position": [1250, 300],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Authentication recovery - refresh tokens\nconst error = $input.item.json;\nconst affectedSystem = error.affected_systems[0];\n\nconst tokenRefreshEndpoints = {\n  facebook: 'https://graph.facebook.com/v12.0/oauth/access_token',\n  google: 'https://oauth2.googleapis.com/token',\n  salesforce: `https://${process.env.SALESFORCE_DOMAIN}/services/oauth2/token`,\n  hubspot: 'https://api.hubapi.com/oauth/v1/token'\n};\n\nconst recoverySteps = {\n  action: 'refresh_token',\n  system: affectedSystem,\n  endpoint: tokenRefreshEndpoints[affectedSystem],\n  status: 'pending',\n  instructions: [\n    `1. Check ${affectedSystem} credential configuration`,\n    `2. Verify refresh token is valid`,\n    `3. If expired, re-authenticate through OAuth flow`,\n    `4. Update credential in n8n`,\n    `5. Restart affected workflow`\n  ]\n};\n\nreturn {\n  ...error,\n  recovery_steps: recoverySteps,\n  manual_intervention_required: true\n};"
+      },
+      "id": "auth-recovery",
+      "name": "Auth Recovery",
+      "type": "n8n-nodes-base.function",
+      "position": [1250, 450],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "functionCode": "// Database connection recovery\nconst error = $input.item.json;\n\nconst diagnostics = {\n  checks_performed: [\n    'connection_pool_status',\n    'active_connections',\n    'database_health',\n    'network_connectivity'\n  ],\n  recovery_actions: [\n    'reset_connection_pool',\n    'clear_stale_connections',\n    'verify_credentials',\n    'check_firewall_rules'\n  ],\n  automated_fixes: []\n};\n\n// Check if connection pool needs reset\nif (error.error_message.includes('connection pool')) {\n  diagnostics.automated_fixes.push('reset_connection_pool');\n}\n\n// Check for authentication issues\nif (error.error_message.includes('password authentication failed')) {\n  diagnostics.automated_fixes.push('verify_database_credentials');\n}\n\nreturn {\n  ...error,\n  diagnostics: diagnostics,\n  requires_database_admin: diagnostics.automated_fixes.length === 0\n};"
+      },
+      "id": "database-recovery",
+      "name": "Database Recovery",
+      "type": "n8n-nodes-base.function",
+      "position": [1250, 600],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "update",
+        "table": "error_logs",
+        "updateKey": "error_id",
+        "columns": "recovery_status,recovery_action_taken,resolved_at",
+        "values": "={{ $json.recovery_status || 'attempted' }},={{ JSON.stringify($json.recovery_steps || $json.diagnostics) }},={{ $json.recovery_status === 'resolved' ? $now : null }}"
+      },
+      "id": "update-error-status",
+      "name": "Update Error Status",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1450, 450],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.MONITORING_URL }}/api/errors",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "error_id",
+              "value": "={{ $json.error_id }}"
+            },
+            {
+              "name": "severity",
+              "value": "={{ $json.severity }}"
+            },
+            {
+              "name": "category",
+              "value": "={{ $json.error_category }}"
+            },
+            {
+              "name": "workflow",
+              "value": "={{ $json.workflow_name }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $json.timestamp }}"
+            },
+            {
+              "name": "recovery_action",
+              "value": "={{ $json.recovery_action }}"
+            }
+          ]
+        }
+      },
+      "id": "send-to-monitoring",
+      "name": "Send to Monitoring",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [1650, 450],
+      "typeVersion": 3
+    },
+    {
+      "parameters": {
+        "resource": "database",
+        "operation": "executeQuery",
+        "query": "-- Error analytics and patterns\nSELECT \n  error_category,\n  severity,\n  COUNT(*) as error_count,\n  COUNT(DISTINCT workflow_name) as affected_workflows,\n  array_agg(DISTINCT affected_systems) as systems,\n  MIN(timestamp) as first_occurrence,\n  MAX(timestamp) as last_occurrence\nFROM error_logs\nWHERE timestamp > NOW() - INTERVAL '24 hours'\nGROUP BY error_category, severity\nHAVING COUNT(*) > 5\nORDER BY error_count DESC"
+      },
+      "id": "error-patterns",
+      "name": "Analyze Error Patterns",
+      "type": "n8n-nodes-base.postgres",
+      "position": [1050, 700],
+      "typeVersion": 1,
+      "credentials": {
+        "postgres": {
+          "id": "1",
+          "name": "Marketing DB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.length }}",
+              "operation": "larger",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "id": "pattern-check",
+      "name": "Pattern Check",
+      "type": "n8n-nodes-base.if",
+      "position": [1250, 700],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "text": "📊 *Error Pattern Alert*\n\nRecurring error patterns detected in the last 24 hours:\n\n{{ $json.map(pattern => `*${pattern.error_category}* (${pattern.severity}):\n• Count: ${pattern.error_count}\n• Workflows: ${pattern.affected_workflows}\n• Systems: ${pattern.systems.join(', ')}`).join('\\n\\n') }}\n\nPlease investigate these systematic issues.",
+        "additionalFields": {
+          "channel": "#engineering-alerts",
+          "username": "Pattern Analyzer",
+          "icon_emoji": ":chart_with_downwards_trend:"
+        }
+      },
+      "id": "pattern-alert",
+      "name": "Pattern Alert",
+      "type": "n8n-nodes-base.slack",
+      "position": [1450, 800],
+      "typeVersion": 1,
+      "credentials": {
+        "slackApi": {
+          "id": "6",
+          "name": "Marketing Slack"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Process Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Error": {
+      "main": [
+        [
+          {
+            "node": "Log to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log to Database": {
+      "main": [
+        [
+          {
+            "node": "Severity Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Severity Check": {
+      "main": [
+        [
+          {
+            "node": "Slack Critical Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Recovery Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack Critical Alert": {
+      "main": [
+        [
+          {
+            "node": "Recovery Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recovery Router": {
+      "main": [
+        [
+          {
+            "node": "Rate Limit Recovery",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Auth Recovery",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Database Recovery",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rate Limit Recovery": {
+      "main": [
+        [
+          {
+            "node": "Update Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auth Recovery": {
+      "main": [
+        [
+          {
+            "node": "Update Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Database Recovery": {
+      "main": [
+        [
+          {
+            "node": "Update Error Status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Error Status": {
+      "main": [
+        [
+          {
+            "node": "Send to Monitoring",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send to Monitoring": {
+      "main": [
+        [
+          {
+            "node": "Analyze Error Patterns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze Error Patterns": {
+      "main": [
+        [
+          {
+            "node": "Pattern Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pattern Check": {
+      "main": [
+        [
+          {
+            "node": "Pattern Alert",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        []
+      ]
+    }
+  },
+  "settings": {
+    "executionTimeout": 120,
+    "maxExecutionRetries": 0,
+    "saveDataSuccessExecution": "all",
+    "saveDataErrorExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "pinData": {},
+  "versionId": "1.0.0",
+  "triggerCount": 1
+}

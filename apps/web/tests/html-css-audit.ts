@@ -1,4 +1,5 @@
 import { test, expect, Page } from '@playwright/test';
+import { logger } from './utils/logger';
 
 interface AuditResult {
   page: string;
@@ -422,6 +423,6 @@ test.describe('HTML/CSS Audit', () => {
     const report = auditor.generateReport();
     const fs = require('fs');
     fs.writeFileSync('audit-report.md', report);
-    console.log('Audit report generated: audit-report.md');
+    logger.info('Audit report generated: audit-report.md');
   });
 });

@@ -3,6 +3,7 @@
  */
 
 import { 
+import { logger } from '../../../../../../../../utils/logger';
   IntegrityLogCategory, 
   IntegrityLogLevel,
   IntegrityAlertType,
@@ -14,14 +15,14 @@ import {
 import { memoryBank } from '../memory-bank/memory-bank';
 
 async function demonstrateMemoryBank() {
-  console.log('🔍 Database Integrity Memory Bank Demo\n');
+  logger.info('🔍 Database Integrity Memory Bank Demo\n');
 
   // 1. Set a correlation ID for tracking related operations
   const correlationId = memoryBank.setCorrelationId();
-  console.log(`📌 Correlation ID: ${correlationId}\n`);
+  logger.info(`📌 Correlation ID: ${correlationId}\n`);
 
   // 2. Log various operations
-  console.log('📝 Logging operations...');
+  logger.info('📝 Logging operations...');
   
   // Log a successful validation
   await memoryBank.log({
@@ -66,10 +67,10 @@ async function demonstrateMemoryBank() {
     correlationId
   });
 
-  console.log('✅ Logs recorded\n');
+  logger.info('✅ Logs recorded\n');
 
   // 3. Create an alert
-  console.log('🚨 Creating alert...');
+  logger.info('🚨 Creating alert...');
   
   const alert = await memoryBank.createAlert({
     alertType: IntegrityAlertType.DRIFT_DETECTED,
@@ -85,10 +86,10 @@ async function demonstrateMemoryBank() {
     }
   });
   
-  console.log(`✅ Alert created: ${alert.id}\n`);
+  logger.info(`✅ Alert created: ${alert.id}\n`);
 
   // 4. Record metrics
-  console.log('📊 Recording metrics...');
+  logger.info('📊 Recording metrics...');
   
   await memoryBank.recordMetric({
     metricType: IntegrityMetricType.VALIDATION_TIME,
@@ -106,10 +107,10 @@ async function demonstrateMemoryBank() {
     unit: 'ratio'
   });
 
-  console.log('✅ Metrics recorded\n');
+  logger.info('✅ Metrics recorded\n');
 
   // 5. Create a snapshot
-  console.log('📸 Creating snapshot...');
+  logger.info('📸 Creating snapshot...');
   
   const snapshot = await memoryBank.createSnapshot(
     SnapshotType.ON_DEMAND,
@@ -134,10 +135,10 @@ async function demonstrateMemoryBank() {
     }
   );
 
-  console.log(`✅ Snapshot created: ${snapshot.id}\n`);
+  logger.info(`✅ Snapshot created: ${snapshot.id}\n`);
 
   // 6. Search logs
-  console.log('🔍 Searching logs...');
+  logger.info('🔍 Searching logs...');
   
   const searchResults = await memoryBank.searchLogs({
     category: IntegrityLogCategory.VALIDATION,
@@ -145,53 +146,53 @@ async function demonstrateMemoryBank() {
     limit: 5
   });
 
-  console.log(`Found ${searchResults.total} logs:`);
+  logger.info(`Found ${searchResults.total} logs:`);
   searchResults.logs.forEach(log => {
-    console.log(`  - [${log.level}] ${log.message} (${log.duration}ms)`);
+    logger.info(`  - [${log.level}] ${log.message} (${log.duration}ms)`);
   });
-  console.log();
+  logger.info();
 
   // 7. Get analytics
-  console.log('📈 Generating analytics...\n');
+  logger.info('📈 Generating analytics...\n');
   
   const analytics = await memoryBank.getAnalytics(7); // Last 7 days
   
-  console.log('Analytics Summary:');
-  console.log(`  Health Score: ${analytics.summary.healthScore}%`);
-  console.log(`  Total Logs: ${analytics.logs.totalLogs}`);
-  console.log(`  Error Rate: ${(analytics.logs.errorRate * 100).toFixed(2)}%`);
-  console.log(`  Average Duration: ${analytics.logs.avgDuration.toFixed(0)}ms`);
-  console.log(`  Active Alerts: ${analytics.alerts.activeAlerts}`);
+  logger.info('Analytics Summary:');
+  logger.info(`  Health Score: ${analytics.summary.healthScore}%`);
+  logger.info(`  Total Logs: ${analytics.logs.totalLogs}`);
+  logger.info(`  Error Rate: ${(analytics.logs.errorRate * 100).toFixed(2)}%`);
+  logger.info(`  Average Duration: ${analytics.logs.avgDuration.toFixed(0)}ms`);
+  logger.info(`  Active Alerts: ${analytics.alerts.activeAlerts}`);
   
   if (analytics.summary.recommendations.length > 0) {
-    console.log('\nRecommendations:');
+    logger.info('\nRecommendations:');
     analytics.summary.recommendations.forEach((rec, idx) => {
-      console.log(`  ${idx + 1}. ${rec}`);
+      logger.info(`  ${idx + 1}. ${rec}`);
     });
   }
-  console.log();
+  logger.info();
 
   // 8. Export logs
-  console.log('💾 Exporting logs...');
+  logger.info('💾 Exporting logs...');
   
   const exportedData = await memoryBank.exportLogs({
     format: 'json',
     category: IntegrityLogCategory.VALIDATION
   });
   
-  console.log(`✅ Exported ${exportedData.length} bytes of log data\n`);
+  logger.info(`✅ Exported ${exportedData.length} bytes of log data\n`);
 
   // 9. Demonstrate retention cleanup (dry run)
-  console.log('🧹 Retention policy info:');
+  logger.info('🧹 Retention policy info:');
   
   const retentionStats = await memoryBank.retentionManager.getRetentionStats();
-  console.log('Current retention statistics:');
-  console.log(`  Logs: ${retentionStats.logs.length} categories tracked`);
-  console.log(`  Snapshots: ${retentionStats.snapshots.length} types tracked`);
-  console.log(`  Alerts: ${retentionStats.alerts.length} statuses tracked`);
-  console.log();
+  logger.info('Current retention statistics:');
+  logger.info(`  Logs: ${retentionStats.logs.length} categories tracked`);
+  logger.info(`  Snapshots: ${retentionStats.snapshots.length} types tracked`);
+  logger.info(`  Alerts: ${retentionStats.alerts.length} statuses tracked`);
+  logger.info();
 
-  console.log('✨ Memory Bank demo completed!');
+  logger.info('✨ Memory Bank demo completed!');
 }
 
 // Run the demo

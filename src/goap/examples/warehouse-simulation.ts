@@ -4,11 +4,10 @@
  */
 
 import { 
+import { logger } from '../../utils/logger';
   GOAPSystem, 
   Goal, 
-  AgentType, 
-  StateKeys, 
-  WarehouseAgents,
+  StateKeys,
   WorldState 
 } from '../index';
 
@@ -36,57 +35,57 @@ export class WarehouseSimulation {
    */
   async runSimulation(): Promise<void> {
     try {
-      console.log('🏭 Starting Warehouse GOAP Simulation...\n');
+      logger.info('🏭 Starting Warehouse GOAP Simulation...\n');
       
       // Initialize the system
       await this.goapSystem.start();
       this.isRunning = true;
 
       // Phase 1: Setup warehouse team
-      console.log('📋 Phase 1: Setting up warehouse team...');
+      logger.info('📋 Phase 1: Setting up warehouse team...');
       await this.setupWarehouseTeam();
       await this.delay(2000);
 
       // Phase 2: Simulate incoming inventory
-      console.log('\n📦 Phase 2: Processing incoming shipments...');
+      logger.info('\n📦 Phase 2: Processing incoming shipments...');
       await this.simulateIncomingShipment();
       await this.delay(3000);
 
       // Phase 3: Process customer orders
-      console.log('\n🛒 Phase 3: Processing customer orders...');
+      logger.info('\n🛒 Phase 3: Processing customer orders...');
       await this.simulateCustomerOrders();
       await this.delay(5000);
 
       // Phase 4: Quality inspection scenario
-      console.log('\n🔍 Phase 4: Quality inspection workflow...');
+      logger.info('\n🔍 Phase 4: Quality inspection workflow...');
       await this.simulateQualityInspection();
       await this.delay(3000);
 
       // Phase 5: Equipment maintenance
-      console.log('\n🔧 Phase 5: Equipment maintenance scenario...');
+      logger.info('\n🔧 Phase 5: Equipment maintenance scenario...');
       await this.simulateMaintenanceScenario();
       await this.delay(4000);
 
       // Phase 6: Shipping optimization
-      console.log('\n🚚 Phase 6: Shipping and logistics optimization...');
+      logger.info('\n🚚 Phase 6: Shipping and logistics optimization...');
       await this.simulateShippingOptimization();
       await this.delay(3000);
 
       // Phase 7: Emergency response
-      console.log('\n🚨 Phase 7: Emergency response scenario...');
+      logger.info('\n🚨 Phase 7: Emergency response scenario...');
       await this.simulateEmergencyScenario();
       await this.delay(5000);
 
       // Final status report
-      console.log('\n📊 Simulation Summary:');
+      logger.info('\n📊 Simulation Summary:');
       await this.generateSimulationReport();
 
     } catch (error) {
-      console.error('💥 Simulation error:', error);
+      logger.error('💥 Simulation error:', error);
     } finally {
       await this.goapSystem.stop();
       this.isRunning = false;
-      console.log('\n✅ Warehouse simulation completed');
+      logger.info('\n✅ Warehouse simulation completed');
     }
   }
 
@@ -97,9 +96,9 @@ export class WarehouseSimulation {
     // Create Suntown warehouse team
     const team = this.goapSystem.createWarehouseTeam('suntown-001');
     
-    console.log(`   👥 Created team of ${team.length} agents:`);
+    logger.info(`   👥 Created team of ${team.length} agents:`);
     team.forEach(agent => {
-      console.log(`      • ${agent.name} (${agent.type}) - ${agent.capabilities.length} capabilities`);
+      logger.info(`      • ${agent.name} (${agent.type}) - ${agent.capabilities.length} capabilities`);
     });
 
     // Set initial warehouse state
@@ -122,7 +121,7 @@ export class WarehouseSimulation {
     };
 
     this.goapSystem.updateWorldState(initialState);
-    console.log(`   📦 Initial inventory: ${Object.keys(initialState[StateKeys.ITEM_QUANTITY]).length} item types`);
+    logger.info(`   📦 Initial inventory: ${Object.keys(initialState[StateKeys.ITEM_QUANTITY]).length} item types`);
   }
 
   /**
@@ -150,13 +149,13 @@ export class WarehouseSimulation {
     const assignment = await this.goapSystem.assignGoal(receivingGoal);
     
     if (assignment) {
-      console.log(`   🚛 Assigned receiving goal to ${assignment.agent.name}`);
+      logger.info(`   🚛 Assigned receiving goal to ${assignment.agent.name}`);
       if (assignment.plan) {
-        console.log(`   📋 Plan created with ${assignment.plan.actions.length} actions`);
-        console.log(`   ⏱️ Estimated duration: ${assignment.plan.estimatedDuration} seconds`);
+        logger.info(`   📋 Plan created with ${assignment.plan.actions.length} actions`);
+        logger.info(`   ⏱️ Estimated duration: ${assignment.plan.estimatedDuration} seconds`);
       }
     } else {
-      console.log('   ❌ Failed to assign receiving goal');
+      logger.info('   ❌ Failed to assign receiving goal');
     }
   }
 
@@ -194,10 +193,10 @@ export class WarehouseSimulation {
     const assignment = await this.goapSystem.assignGoal(orderGoal);
     
     if (assignment) {
-      console.log(`   📦 Assigned order fulfillment to ${assignment.agent.name}`);
+      logger.info(`   📦 Assigned order fulfillment to ${assignment.agent.name}`);
       if (assignment.plan) {
-        console.log(`   🎯 Goal: Process ${newOrders.length} orders`);
-        console.log(`   📋 Action plan: ${assignment.plan.actions.map(a => a.name).join(' → ')}`);
+        logger.info(`   🎯 Goal: Process ${newOrders.length} orders`);
+        logger.info(`   📋 Action plan: ${assignment.plan.actions.map(a => a.name).join(' → ')}`);
       }
     }
   }
@@ -225,8 +224,8 @@ export class WarehouseSimulation {
     const assignment = await this.goapSystem.assignGoal(qualityGoal);
     
     if (assignment) {
-      console.log(`   🔍 Assigned quality inspection to ${assignment.agent.name}`);
-      console.log(`   📊 Items to inspect: 3 batches`);
+      logger.info(`   🔍 Assigned quality inspection to ${assignment.agent.name}`);
+      logger.info(`   📊 Items to inspect: 3 batches`);
     }
   }
 
@@ -255,8 +254,8 @@ export class WarehouseSimulation {
     const assignment = await this.goapSystem.assignGoal(maintenanceGoal);
     
     if (assignment) {
-      console.log(`   🔧 Assigned maintenance to ${assignment.agent.name}`);
-      console.log(`   ⚙️ Equipment to service: 3 units`);
+      logger.info(`   🔧 Assigned maintenance to ${assignment.agent.name}`);
+      logger.info(`   ⚙️ Equipment to service: 3 units`);
     }
   }
 
@@ -285,8 +284,8 @@ export class WarehouseSimulation {
     const assignment = await this.goapSystem.assignGoal(shippingGoal);
     
     if (assignment) {
-      console.log(`   🚚 Assigned shipping optimization to ${assignment.agent.name}`);
-      console.log(`   📍 Routes to optimize: 3 shipments`);
+      logger.info(`   🚚 Assigned shipping optimization to ${assignment.agent.name}`);
+      logger.info(`   📍 Routes to optimize: 3 shipments`);
     }
   }
 
@@ -320,8 +319,8 @@ export class WarehouseSimulation {
     const assignment = await this.goapSystem.assignGoal(emergencyGoal);
     
     if (assignment) {
-      console.log(`   🚨 Emergency assigned to ${assignment.agent.name}`);
-      console.log(`   ⏰ Critical response required within 30 minutes`);
+      logger.info(`   🚨 Emergency assigned to ${assignment.agent.name}`);
+      logger.info(`   ⏰ Critical response required within 30 minutes`);
     }
   }
 
@@ -334,7 +333,7 @@ export class WarehouseSimulation {
     const agents = this.goapSystem.getAgents();
     const plans = this.goapSystem.getActivePlans();
 
-    console.log(`
+    logger.info(`
 📊 SIMULATION REPORT
 ${'='.repeat(50)}
 🏭 System Status:

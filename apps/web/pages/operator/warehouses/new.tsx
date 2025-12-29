@@ -2,6 +2,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
+import { logger } from './utils/logger';
 
 const NewWarehouse: NextPage = () => {
   const { data: session, status } = useSession();
@@ -45,11 +46,11 @@ const NewWarehouse: NextPage = () => {
         router.push('/operator/warehouses');
       } else {
         const errorData = await response.json();
-        console.error('Failed to create warehouse', errorData);
+        logger.error('Failed to create warehouse', errorData);
         alert('Failed to create warehouse');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the warehouse.');
     }
   };

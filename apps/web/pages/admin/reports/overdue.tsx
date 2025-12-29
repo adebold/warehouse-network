@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   ArrowLeft,
   Download,
   DollarSign,
@@ -85,7 +86,7 @@ export default function OverdueReportPage() {
         setStats(data.stats);
       }
     } catch (error) {
-      console.error('Error fetching overdue report:', error);
+      logger.error('Error fetching overdue report:', error);
     } finally {
       setLoading(false);
     }
@@ -138,7 +139,7 @@ export default function OverdueReportPage() {
         alert('Payment reminders sent successfully');
       }
     } catch (error) {
-      console.error('Error sending reminders:', error);
+      logger.error('Error sending reminders:', error);
     } finally {
       setSendingReminders(false);
     }

@@ -11,6 +11,7 @@ import { authOptions } from '../auth/[...nextauth]';
 
 import { warehouseAssistant } from '@/lib/ai/warehouse-assistant';
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 // Request validation
 const chatRequestSchema = z.object({
@@ -75,7 +76,7 @@ export default async function handler(
     });
     
   } catch (error) {
-    console.error('AI Chat Error:', error);
+    logger.error('AI Chat Error:', error);
     res.status(500).json({ 
       error: 'Something went wrong. Please try again.' 
     });
@@ -116,7 +117,7 @@ async function logInteraction(
       }
     });
   } catch (error) {
-    console.error('Failed to log AI interaction:', error);
+    logger.error('Failed to log AI interaction:', error);
     // Don't fail the request if logging fails
   }
 }

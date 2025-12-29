@@ -4,6 +4,7 @@ import type { Stripe } from 'stripe';
 
 import prisma from '../../../lib/prisma';
 import { stripe } from '../../../lib/stripe';
+import { logger } from './utils/logger';
 
 export const config = {
   api: {
@@ -31,7 +32,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       //   where: { stripeAccountId: account.id },
       //   data: { stripeOnboardingComplete: true },
       // })
-      console.log('Stripe account updated:', account.id);
+      logger.info('Stripe account updated:', account.id);
     }
   } else if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session;
@@ -43,7 +44,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     if (!quote) {
-      console.error(`Quote with ID ${quoteId} not found for completed checkout session.`);
+      logger.error(`Quote with ID ${quoteId} not found for completed checkout session.`);
       return res.status(400).send('Quote not found.');
     }
 
@@ -58,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //     status: session.payment_status,
     //   },
     // })
-    console.log('Checkout session completed:', session.id);
+    logger.info('Checkout session completed:', session.id);
 
     // Update quote status to DEPOSIT_PAID
     await prisma.quote.update({

@@ -1,24 +1,25 @@
 const chalk = require('chalk');
 const Table = require('cli-table3');
+const { logger } = require('../../../../../../utils/logger');
 
 function displayResults(results) {
-  console.log('\n' + chalk.bold('Claude Dev Standards Validation Report'));
-  console.log('=' .repeat(50) + '\n');
+  logger.info('\n' + chalk.bold('Claude Dev Standards Validation Report'));
+  logger.info('=' .repeat(50) + '\n');
   
   // Summary
   const status = results.passed ? chalk.green('PASSED') : chalk.red('FAILED');
-  console.log(`Status: ${status}`);
-  console.log(`Errors: ${results.errors.length > 0 ? chalk.red(results.errors.length) : chalk.green('0')}`);
-  console.log(`Warnings: ${results.warnings.length > 0 ? chalk.yellow(results.warnings.length) : chalk.green('0')}`);
-  console.log(`Info: ${chalk.blue(results.info.length)}`);
+  logger.info(`Status: ${status}`);
+  logger.info(`Errors: ${results.errors.length > 0 ? chalk.red(results.errors.length) : chalk.green('0')}`);
+  logger.info(`Warnings: ${results.warnings.length > 0 ? chalk.yellow(results.warnings.length) : chalk.green('0')}`);
+  logger.info(`Info: ${chalk.blue(results.info.length)}`);
   
   if (results.fixable && results.fixable.length > 0) {
-    console.log(`Auto-fixable: ${chalk.cyan(results.fixable.length)}`);
+    logger.info(`Auto-fixable: ${chalk.cyan(results.fixable.length)}`);
   }
   
   // Check summary table
   if (results.summary && Object.keys(results.summary).length > 0) {
-    console.log('\n' + chalk.bold('Check Summary:'));
+    logger.info('\n' + chalk.bold('Check Summary:'));
     
     const table = new Table({
       head: ['Check', 'Status', 'Errors', 'Warnings'],
@@ -34,37 +35,37 @@ function displayResults(results) {
       ]);
     });
     
-    console.log(table.toString());
+    logger.info(table.toString());
   }
   
   // Errors
   if (results.errors.length > 0) {
-    console.log('\n' + chalk.red.bold('Errors:'));
+    logger.info('\n' + chalk.red.bold('Errors:'));
     results.errors.forEach((error, index) => {
-      console.log(`${chalk.red(`${index + 1}.`)} ${error}`);
+      logger.info(`${chalk.red(`${index + 1}.`)} ${error}`);
     });
   }
   
   // Warnings
   if (results.warnings.length > 0) {
-    console.log('\n' + chalk.yellow.bold('Warnings:'));
+    logger.info('\n' + chalk.yellow.bold('Warnings:'));
     results.warnings.forEach((warning, index) => {
-      console.log(`${chalk.yellow(`${index + 1}.`)} ${warning}`);
+      logger.info(`${chalk.yellow(`${index + 1}.`)} ${warning}`);
     });
   }
   
   // Info
   if (results.info.length > 0) {
-    console.log('\n' + chalk.blue.bold('Information:'));
+    logger.info('\n' + chalk.blue.bold('Information:'));
     results.info.forEach((info) => {
-      console.log(`${chalk.blue('•')} ${info}`);
+      logger.info(`${chalk.blue('•')} ${info}`);
     });
   }
   
   // Auto-fixable issues
   if (results.fixable && results.fixable.length > 0) {
-    console.log('\n' + chalk.cyan.bold('Auto-fixable Issues:'));
-    console.log('Run ' + chalk.cyan('npx cds fix') + ' to automatically fix these issues:');
+    logger.info('\n' + chalk.cyan.bold('Auto-fixable Issues:'));
+    logger.info('Run ' + chalk.cyan('npx cds fix') + ' to automatically fix these issues:');
     
     const fixableByType = {};
     results.fixable.forEach(issue => {
@@ -75,11 +76,11 @@ function displayResults(results) {
     });
     
     Object.entries(fixableByType).forEach(([type, count]) => {
-      console.log(`${chalk.cyan('•')} ${type}: ${count} issue(s)`);
+      logger.info(`${chalk.cyan('•')} ${type}: ${count} issue(s)`);
     });
   }
   
-  console.log('\n' + '='.repeat(50));
+  logger.info('\n' + '='.repeat(50));
 }
 
 module.exports = {

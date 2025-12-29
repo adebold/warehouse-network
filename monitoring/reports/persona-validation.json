@@ -1,0 +1,106 @@
+{
+  "timestamp": "2025-12-28T22:51:07.028Z",
+  "baseUrl": "http://localhost:3000",
+  "summary": {
+    "totalPersonas": 3,
+    "totalJourneys": 11,
+    "workingJourneys": 6,
+    "failedJourneys": 5
+  },
+  "personas": {
+    "visitor": [
+      {
+        "path": "/",
+        "description": "Homepage browsing",
+        "status": 200,
+        "responseTime": 155,
+        "working": true,
+        "timestamp": "2025-12-28T22:51:04.211Z"
+      },
+      {
+        "path": "/search",
+        "description": "Search warehouses",
+        "status": 200,
+        "responseTime": 1408,
+        "working": true,
+        "timestamp": "2025-12-28T22:51:05.621Z"
+      },
+      {
+        "path": "/listings",
+        "description": "Browse listings",
+        "status": 404,
+        "responseTime": 25,
+        "working": false,
+        "timestamp": "2025-12-28T22:51:05.646Z"
+      }
+    ],
+    "business": [
+      {
+        "path": "/login",
+        "description": "Business login",
+        "status": 200,
+        "responseTime": 738,
+        "working": true,
+        "timestamp": "2025-12-28T22:51:06.384Z"
+      },
+      {
+        "path": "/dashboard",
+        "description": "Business dashboard",
+        "status": 404,
+        "responseTime": 40,
+        "working": false,
+        "timestamp": "2025-12-28T22:51:06.424Z"
+      },
+      {
+        "path": "/search",
+        "description": "Find warehouse space",
+        "status": 200,
+        "responseTime": 36,
+        "working": true,
+        "timestamp": "2025-12-28T22:51:06.461Z"
+      },
+      {
+        "path": "/booking",
+        "description": "Book warehouse",
+        "status": 404,
+        "responseTime": 20,
+        "working": false,
+        "timestamp": "2025-12-28T22:51:06.481Z"
+      }
+    ],
+    "property": [
+      {
+        "path": "/login",
+        "description": "Property owner login",
+        "status": 200,
+        "responseTime": 31,
+        "working": true,
+        "timestamp": "2025-12-28T22:51:06.513Z"
+      },
+      {
+        "path": "/admin/dashboard",
+        "description": "Property management",
+        "status": 200,
+        "responseTime": 455,
+        "working": true,
+        "timestamp": "2025-12-28T22:51:06.969Z"
+      },
+      {
+        "path": "/admin/listings",
+        "description": "Manage listings",
+        "status": 404,
+        "responseTime": 40,
+        "working": false,
+        "timestamp": "2025-12-28T22:51:07.010Z"
+      },
+      {
+        "path": "/admin/bookings",
+        "description": "View bookings",
+        "status": 404,
+        "responseTime": 18,
+        "working": false,
+        "timestamp": "2025-12-28T22:51:07.028Z"
+      }
+    ]
+  }
+}

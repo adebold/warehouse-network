@@ -1,6 +1,7 @@
 import { ChargeCategory, SkidStatus } from '@prisma/client';
 
 import prisma from '../../db/src/client';
+import { logger } from '../../../../../../utils/logger';
 
 export async function runDailyAccrual() {
   const jobRun = await prisma.jobRun.create({
@@ -29,7 +30,7 @@ export async function runDailyAccrual() {
     const chargeLines = [];
     for (const skid of activeSkids) {
       if (!skid.warehouse || skid.warehouse.pricingRules.length === 0) {
-        console.warn(`Skid ${skid.id} has no warehouse or no storage pricing rule. Skipping.`);
+        logger.warn(`Skid ${skid.id} has no warehouse or no storage pricing rule. Skipping.`);
         continue;
       }
 
@@ -59,7 +60,7 @@ export async function runDailyAccrual() {
       },
     });
 
-    console.log(
+    logger.info(
       `Daily accrual completed. Processed ${activeSkids.length} skids, created ${chargeLines.length} charge lines.`
     );
   } catch (error: any) {
@@ -67,7 +68,7 @@ export async function runDailyAccrual() {
       where: { id: jobRun.id },
       data: { status: 'FAILED', finishedAt: new Date(), details: { error: error.message } },
     });
-    console.error('Daily accrual failed:', error);
+    logger.error('Daily accrual failed:', error);
     throw error;
   }
 }

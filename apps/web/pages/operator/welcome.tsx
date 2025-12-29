@@ -2,6 +2,7 @@
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
+import { logger } from './utils/logger';
 
 const WelcomeOperator: NextPage = () => {
   const { data: session, status } = useSession();
@@ -22,11 +23,11 @@ const WelcomeOperator: NextPage = () => {
       if (response.ok) {
         router.push('/operator/dashboard');
       } else {
-        console.error('Failed to accept terms');
+        logger.error('Failed to accept terms');
         alert('Failed to accept terms');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while accepting the terms.');
     }
   };

@@ -1,4 +1,5 @@
 const { chromium } = require('@playwright/test');
+const { logger } = require('./utils/logger');
 
 (async () => {
   const browser = await chromium.launch();
@@ -19,7 +20,7 @@ const { chromium } = require('@playwright/test');
   await page.waitForTimeout(2000);
   await page.screenshot({ path: 'login-page.png', fullPage: true });
 
-  console.log('Screenshots saved: homepage.png, search-page.png, login-page.png');
+  logger.info('Screenshots saved: homepage.png, search-page.png, login-page.png');
 
   await browser.close();
 })();

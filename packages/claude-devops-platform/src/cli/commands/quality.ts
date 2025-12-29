@@ -59,9 +59,9 @@ export function createQualityCommand(): Command {
         // Output results
         if (options.output) {
           await fs.writeFile(options.output, output);
-          console.log(chalk.green(`✓ Report saved to ${options.output}`));
+          logger.info(chalk.green(`✓ Report saved to ${options.output}`));
         } else {
-          console.log(output);
+          logger.info(output);
         }
         
         // Exit with appropriate code
@@ -69,7 +69,7 @@ export function createQualityCommand(): Command {
       } catch (error) {
         spinner.fail('Quality analysis failed');
         logger.error('Quality analysis error:', error instanceof Error ? error : new Error(String(error)));
-        console.error(chalk.red(error instanceof Error ? error.message : String(error)));
+        logger.error(chalk.red(error instanceof Error ? error.message : String(error)));
         process.exit(1);
       }
     });
@@ -120,12 +120,12 @@ export function createQualityCommand(): Command {
         
         qualityService.configureQualityGate(options.projectId, config);
         
-        console.log(chalk.green(`✓ Quality gate configured for project ${options.projectId}`));
-        console.log('\nConfiguration:');
-        console.log(JSON.stringify(config, null, 2));
+        logger.info(chalk.green(`✓ Quality gate configured for project ${options.projectId}`));
+        logger.info('\nConfiguration:');
+        logger.info(JSON.stringify(config, null, 2));
       } catch (error) {
         logger.error('Failed to configure quality gate:', error instanceof Error ? error : new Error(String(error)));
-        console.error(chalk.red(error instanceof Error ? error.message : String(error)));
+        logger.error(chalk.red(error instanceof Error ? error.message : String(error)));
         process.exit(1);
       }
     });
@@ -155,21 +155,21 @@ export function createQualityCommand(): Command {
         if (result.allowed) {
           spinner.succeed('Deployment allowed');
           if (result.check) {
-            console.log(chalk.green(`\nQuality Score: ${result.check.score.overall.toFixed(1)}/10`));
+            logger.info(chalk.green(`\nQuality Score: ${result.check.score.overall.toFixed(1)}/10`));
           }
         } else {
           spinner.fail('Deployment blocked');
-          console.error(chalk.red(`\n${result.reason}`));
+          logger.error(chalk.red(`\n${result.reason}`));
           
           if (result.check?.blockers && result.check.blockers.length > 0) {
-            console.log('\nBlockers:');
+            logger.info('\nBlockers:');
             result.check.blockers.forEach((blocker, index) => {
               const icon = blocker.severity === 'critical' ? '🚨' :
                           blocker.severity === 'high' ? '⚠️' :
                           blocker.severity === 'medium' ? '📋' : 'ℹ️';
-              console.log(`${icon}  ${index + 1}. [${blocker.severity.toUpperCase()}] ${blocker.description}`);
+              logger.info(`${icon}  ${index + 1}. [${blocker.severity.toUpperCase()}] ${blocker.description}`);
               if (blocker.recommendation) {
-                console.log(`    → ${blocker.recommendation}`);
+                logger.info(`    → ${blocker.recommendation}`);
               }
             });
           }
@@ -179,7 +179,7 @@ export function createQualityCommand(): Command {
       } catch (error) {
         spinner.fail('Deployment check failed');
         logger.error('Deployment check error:', error instanceof Error ? error : new Error(String(error)));
-        console.error(chalk.red(error instanceof Error ? error.message : String(error)));
+        logger.error(chalk.red(error instanceof Error ? error.message : String(error)));
         process.exit(1);
       }
     });
@@ -207,35 +207,35 @@ export function createQualityCommand(): Command {
           options.period === 'week' ? 168 : 720
         );
         
-        console.log(chalk.bold(`\nQuality Trends - ${options.projectId}`));
-        console.log(chalk.gray(`Period: Last ${options.period}`));
-        console.log('─'.repeat(50));
+        logger.info(chalk.bold(`\nQuality Trends - ${options.projectId}`));
+        logger.info(chalk.gray(`Period: Last ${options.period}`));
+        logger.info('─'.repeat(50));
         
         if (trends.metrics.length > 0) {
-          console.log('\nScore Trends:');
+          logger.info('\nScore Trends:');
           trends.metrics.forEach(metric => {
             const date = new Date(metric.date).toLocaleDateString();
             const scoreBar = '█'.repeat(Math.round(metric.qualityScore));
             const scoreColor = metric.qualityScore >= 8 ? chalk.green :
                               metric.qualityScore >= 6 ? chalk.yellow : chalk.red;
-            console.log(`${date}: ${scoreColor(scoreBar)} ${metric.qualityScore.toFixed(1)}`);
+            logger.info(`${date}: ${scoreColor(scoreBar)} ${metric.qualityScore.toFixed(1)}`);
           });
         }
         
-        console.log('\nSummary:');
-        console.log(`Average Score: ${projectTrends.averageScore.toFixed(1)}/10`);
-        console.log(`Pass Rate: ${projectTrends.passRate.toFixed(1)}%`);
-        console.log(`Total Checks: ${projectTrends.totalChecks}`);
+        logger.info('\nSummary:');
+        logger.info(`Average Score: ${projectTrends.averageScore.toFixed(1)}/10`);
+        logger.info(`Pass Rate: ${projectTrends.passRate.toFixed(1)}%`);
+        logger.info(`Total Checks: ${projectTrends.totalChecks}`);
         
         if (Object.keys(projectTrends.commonIssues).length > 0) {
-          console.log('\nCommon Issues:');
+          logger.info('\nCommon Issues:');
           Object.entries(projectTrends.commonIssues).forEach(([issue, count]) => {
-            console.log(`- ${issue}: ${count} occurrences`);
+            logger.info(`- ${issue}: ${count} occurrences`);
           });
         }
       } catch (error) {
         logger.error('Failed to get quality trends:', error instanceof Error ? error : new Error(String(error)));
-        console.error(chalk.red(error instanceof Error ? error.message : String(error)));
+        logger.error(chalk.red(error instanceof Error ? error.message : String(error)));
         process.exit(1);
       }
     });
@@ -252,52 +252,52 @@ export function createQualityCommand(): Command {
         const insights = metricsCollector.getPerformanceInsights();
         const alerts = metricsCollector.getQualityAlerts();
         
-        console.log(chalk.bold('\n📊 Quality Metrics Dashboard'));
-        console.log(chalk.gray(`Last ${options.hours} hours`));
-        console.log('═'.repeat(50));
+        logger.info(chalk.bold('\n📊 Quality Metrics Dashboard'));
+        logger.info(chalk.gray(`Last ${options.hours} hours`));
+        logger.info('═'.repeat(50));
         
-        console.log('\n📈 Overall Statistics:');
-        console.log(`Total Checks: ${metrics.totalChecks}`);
-        console.log(`Projects Analyzed: ${metrics.projectCount}`);
-        console.log(`Average Score: ${metrics.averageScore.toFixed(1)}/10`);
-        console.log(`Pass Rate: ${metrics.passRate.toFixed(1)}%`);
-        console.log(`Average Duration: ${(metrics.averageDuration / 1000).toFixed(1)}s`);
+        logger.info('\n📈 Overall Statistics:');
+        logger.info(`Total Checks: ${metrics.totalChecks}`);
+        logger.info(`Projects Analyzed: ${metrics.projectCount}`);
+        logger.info(`Average Score: ${metrics.averageScore.toFixed(1)}/10`);
+        logger.info(`Pass Rate: ${metrics.passRate.toFixed(1)}%`);
+        logger.info(`Average Duration: ${(metrics.averageDuration / 1000).toFixed(1)}s`);
         
         if (metrics.scoreDistribution && Object.keys(metrics.scoreDistribution).length > 0) {
-          console.log('\n📊 Score Distribution:');
+          logger.info('\n📊 Score Distribution:');
           Object.entries(metrics.scoreDistribution).forEach(([category, count]) => {
             const percentage = metrics.totalChecks > 0 
               ? ((count as number) / metrics.totalChecks * 100).toFixed(1) 
               : '0.0';
             const bar = '█'.repeat(Math.round(parseFloat(percentage) / 2));
-            console.log(`${category.padEnd(10)} ${bar} ${percentage}%`);
+            logger.info(`${category.padEnd(10)} ${bar} ${percentage}%`);
           });
         }
         
         if (insights.slowestProjects.length > 0) {
-          console.log('\n⏱️  Slowest Projects:');
+          logger.info('\n⏱️  Slowest Projects:');
           insights.slowestProjects.forEach((project, index) => {
-            console.log(`${index + 1}. ${project.projectId}: ${(project.avgDuration / 1000).toFixed(1)}s`);
+            logger.info(`${index + 1}. ${project.projectId}: ${(project.avgDuration / 1000).toFixed(1)}s`);
           });
         }
         
         if (insights.lowestScores.length > 0) {
-          console.log('\n📉 Projects Needing Attention:');
+          logger.info('\n📉 Projects Needing Attention:');
           insights.lowestScores.forEach((project, index) => {
             const scoreColor = project.avgScore >= 7 ? chalk.yellow : chalk.red;
-            console.log(`${index + 1}. ${project.projectId}: ${scoreColor(project.avgScore.toFixed(1) + '/10')}`);
+            logger.info(`${index + 1}. ${project.projectId}: ${scoreColor(project.avgScore.toFixed(1) + '/10')}`);
           });
         }
         
         if (alerts.length > 0) {
-          console.log(chalk.red('\n⚠️  Quality Degradation Alerts:'));
+          logger.info(chalk.red('\n⚠️  Quality Degradation Alerts:'));
           alerts.forEach(alert => {
-            console.log(`- ${alert.projectId}: Score dropped from ${alert.previousScore.toFixed(1)} to ${alert.currentScore.toFixed(1)} (-${alert.drop.toFixed(1)})`);
+            logger.info(`- ${alert.projectId}: Score dropped from ${alert.previousScore.toFixed(1)} to ${alert.currentScore.toFixed(1)} (-${alert.drop.toFixed(1)})`);
           });
         }
       } catch (error) {
         logger.error('Failed to get quality metrics:', error instanceof Error ? error : new Error(String(error)));
-        console.error(chalk.red(error instanceof Error ? error.message : String(error)));
+        logger.error(chalk.red(error instanceof Error ? error.message : String(error)));
         process.exit(1);
       }
     });

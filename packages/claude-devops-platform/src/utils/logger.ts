@@ -2,6 +2,7 @@
 import chalk from 'chalk';
 import fs from 'fs-extra';
 import path from 'path';
+import { logger } from '../../../../../utils/logger';
 
 export enum LogLevel {
   DEBUG = 0,
@@ -58,7 +59,7 @@ class Logger {
     try {
       await fs.ensureDir(this.logDir);
     } catch (error) {
-      console.error('Failed to create log directory:', error);
+      logger.error('Failed to create log directory:', error);
     }
   }
 
@@ -109,7 +110,7 @@ class Logger {
 
       await fs.appendFile(logPath, logLine);
     } catch (error) {
-      console.error('Failed to write to log file:', error);
+      logger.error('Failed to write to log file:', error);
     }
   }
 
@@ -121,19 +122,19 @@ class Logger {
 
     switch (level) {
       case 'DEBUG':
-        console.log(chalk.gray(prefix), chalk.gray(message), ...args);
+        logger.info(chalk.gray(prefix), chalk.gray(message), ...args);
         break;
       case 'INFO':
-        console.log(chalk.blue(prefix), message, ...args);
+        logger.info(chalk.blue(prefix), message, ...args);
         break;
       case 'WARN':
-        console.warn(chalk.yellow(prefix), chalk.yellow(message), ...args);
+        logger.warn(chalk.yellow(prefix), chalk.yellow(message), ...args);
         break;
       case 'ERROR':
-        console.error(chalk.red(prefix), chalk.red(message), ...args);
+        logger.error(chalk.red(prefix), chalk.red(message), ...args);
         break;
       default:
-        console.log(prefix, message, ...args);
+        logger.info(prefix, message, ...args);
     }
   }
 
@@ -193,12 +194,12 @@ class Logger {
   }
 
   success(message: string, context?: LogContext): void {
-    console.log(chalk.green('✓'), message, context);
+    logger.info(chalk.green('✓'), message, context);
     this.info(`SUCCESS: ${message}`, context);
   }
 
   fail(message: string, context?: LogContext): void {
-    console.log(chalk.red('✗'), message, context);
+    logger.info(chalk.red('✗'), message, context);
     this.error(`FAILURE: ${message}`, context);
   }
 

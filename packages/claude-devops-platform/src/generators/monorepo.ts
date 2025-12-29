@@ -442,25 +442,25 @@ export class Logger {
 
   debug(...args: any[]): void {
     if (this.level <= LogLevel.DEBUG) {
-      console.debug(\`[\${this.name}] [DEBUG]\`, ...args);
+      logger.debug(\`[\${this.name}] [DEBUG]\`, ...args);
     }
   }
 
   info(...args: any[]): void {
     if (this.level <= LogLevel.INFO) {
-      console.info(\`[\${this.name}] [INFO]\`, ...args);
+      logger.info(\`[\${this.name}] [INFO]\`, ...args);
     }
   }
 
   warn(...args: any[]): void {
     if (this.level <= LogLevel.WARN) {
-      console.warn(\`[\${this.name}] [WARN]\`, ...args);
+      logger.warn(\`[\${this.name}] [WARN]\`, ...args);
     }
   }
 
   error(...args: any[]): void {
     if (this.level <= LogLevel.ERROR) {
-      console.error(\`[\${this.name}] [ERROR]\`, ...args);
+      logger.error(\`[\${this.name}] [ERROR]\`, ...args);
     }
   }
 

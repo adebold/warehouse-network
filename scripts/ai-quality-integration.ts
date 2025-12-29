@@ -3,6 +3,7 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { glob } from 'glob';
+import { logger } from './utils/logger';
 
 interface CodeQualityResult {
   project: string;
@@ -60,7 +61,7 @@ class AICodeQualityAnalyzer {
   }
 
   async analyze(): Promise<CodeQualityResult> {
-    console.log('🔍 Starting AI-powered code quality analysis...');
+    logger.info('🔍 Starting AI-powered code quality analysis...');
     
     await this.analyzeTypeScript();
     await this.analyzeESLint();
@@ -73,7 +74,7 @@ class AICodeQualityAnalyzer {
   }
 
   private async analyzeTypeScript() {
-    console.log('📘 Analyzing TypeScript...');
+    logger.info('📘 Analyzing TypeScript...');
     try {
       // Count TypeScript files
       const tsFiles = await glob('**/*.{ts,tsx}', {
@@ -101,12 +102,12 @@ class AICodeQualityAnalyzer {
         this.results.metrics.typeScriptCoverage = Math.max(0, 100 - (errorCount * 5));
       }
     } catch (error) {
-      console.error('TypeScript analysis failed:', error);
+      logger.error('TypeScript analysis failed:', error);
     }
   }
 
   private async analyzeESLint() {
-    console.log('🔧 Analyzing ESLint issues...');
+    logger.info('🔧 Analyzing ESLint issues...');
     try {
       const output = execSync('npm run lint -- --format json', {
         cwd: this.projectRoot,
@@ -134,12 +135,12 @@ class AICodeQualityAnalyzer {
       
       this.results.metrics.eslintIssues = totalIssues;
     } catch (error) {
-      console.error('ESLint analysis failed:', error);
+      logger.error('ESLint analysis failed:', error);
     }
   }
 
   private async analyzeSecurity() {
-    console.log('🔐 Analyzing security issues...');
+    logger.info('🔐 Analyzing security issues...');
     try {
       execSync('npm audit --json > security-audit.json', {
         cwd: this.projectRoot,
@@ -155,12 +156,12 @@ class AICodeQualityAnalyzer {
       
       fs.unlinkSync(path.join(this.projectRoot, 'security-audit.json'));
     } catch (error) {
-      console.error('Security analysis failed:', error);
+      logger.error('Security analysis failed:', error);
     }
   }
 
   private async analyzeComplexity() {
-    console.log('📊 Analyzing code complexity...');
+    logger.info('📊 Analyzing code complexity...');
     // Basic complexity calculation based on file size and function count
     const files = await glob('**/*.{ts,tsx,js,jsx}', {
       cwd: this.projectRoot,
@@ -185,7 +186,7 @@ class AICodeQualityAnalyzer {
   }
 
   private async analyzeDependencies() {
-    console.log('📦 Analyzing dependencies...');
+    logger.info('📦 Analyzing dependencies...');
     try {
       const packageJson = JSON.parse(
         fs.readFileSync(path.join(this.projectRoot, 'package.json'), 'utf-8')
@@ -211,12 +212,12 @@ class AICodeQualityAnalyzer {
         // npm outdated exits with code 1 if packages are outdated
       }
     } catch (error) {
-      console.error('Dependency analysis failed:', error);
+      logger.error('Dependency analysis failed:', error);
     }
   }
 
   private async analyzeTestCoverage() {
-    console.log('✅ Analyzing test coverage...');
+    logger.info('✅ Analyzing test coverage...');
     try {
       // Run tests with coverage
       execSync('npm test -- --coverage --coverageReporters=json-summary --watchAll=false', {
@@ -230,7 +231,7 @@ class AICodeQualityAnalyzer {
         this.results.metrics.testCoverage = coverage.total?.lines?.pct || 0;
       }
     } catch (error) {
-      console.error('Test coverage analysis failed:', error);
+      logger.error('Test coverage analysis failed:', error);
     }
   }
 
@@ -352,17 +353,17 @@ async function main() {
   const results = await analyzer.analyze();
   
   if (outputFormat === 'json') {
-    console.log(JSON.stringify(results, null, 2));
+    logger.info(JSON.stringify(results, null, 2));
   } else {
     const report = analyzer.generateReport();
-    console.log(report);
+    logger.info(report);
     
     // Save report to file
     fs.writeFileSync(
       path.join(projectRoot, 'ai-quality-report.md'),
       report
     );
-    console.log('\n📄 Report saved to ai-quality-report.md');
+    logger.info('\n📄 Report saved to ai-quality-report.md');
   }
 }
 

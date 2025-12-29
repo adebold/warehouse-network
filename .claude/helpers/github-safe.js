@@ -14,11 +14,12 @@ import { writeFileSync, unlinkSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
+import { logger } from './utils/logger';
 
 const args = process.argv.slice(2);
 
 if (args.length < 2) {
-  console.log(`
+  logger.info(`
 Safe GitHub CLI Helper
 
 Usage:
@@ -79,14 +80,14 @@ if (
 
       // Execute safely
       const ghCommand = `gh ${command} ${subcommand} ${newArgs.join(' ')}`;
-      console.log(`Executing: ${ghCommand}`);
+      logger.info(`Executing: ${ghCommand}`);
 
       const result = execSync(ghCommand, {
         stdio: 'inherit',
         timeout: 30000, // 30 second timeout
       });
     } catch (error) {
-      console.error('Error:', error.message);
+      logger.error('Error:', error.message);
       process.exit(1);
     } finally {
       // Clean up

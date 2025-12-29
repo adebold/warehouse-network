@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 
 import prisma from '../../lib/prisma';
 import { authOptions } from '../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface OperatorReleasesProps {
   releaseRequests: ReleaseRequest[];
@@ -36,11 +37,11 @@ const OperatorReleases: NextPage<OperatorReleasesProps> = ({ releaseRequests }) 
         router.replace(router.asPath);
       } else {
         const errorData = await response.json();
-        console.error('Failed to update release request status', errorData);
+        logger.error('Failed to update release request status', errorData);
         alert('Failed to update release request status');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while updating the release request status.');
     }
   };

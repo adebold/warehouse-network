@@ -2,6 +2,7 @@ import { OperatorLedgerEntryType, PayoutStatus } from '@prisma/client';
 
 import prisma from '../../db/src/client';
 import { stripe } from '../../integrations/src/stripe';
+import { logger } from '../../../../../../utils/logger';
 
 const PLATFORM_TAKE_RATE = 0.1; // 10%
 
@@ -98,7 +99,7 @@ export async function processPayouts() {
               },
             });
           } catch (stripeError: any) {
-            console.error(`Stripe payout failed for operator ${operator.id}:`, stripeError);
+            logger.error(`Stripe payout failed for operator ${operator.id}:`, stripeError);
             await prisma.payout.update({
               where: { id: payout.id },
               data: { status: PayoutStatus.FAILED, processedAt: new Date() },
@@ -118,7 +119,7 @@ export async function processPayouts() {
       },
     });
 
-    console.log(
+    logger.info(
       `Payout processing completed. Processed ${operators.length} operators, created ${payouts.length} payouts.`
     );
   } catch (error: any) {
@@ -126,7 +127,7 @@ export async function processPayouts() {
       where: { id: jobRun.id },
       data: { status: 'FAILED', finishedAt: new Date(), details: { error: error.message } },
     });
-    console.error('Payout processing failed:', error);
+    logger.error('Payout processing failed:', error);
     throw error;
   }
 }

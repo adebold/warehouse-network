@@ -1,4 +1,5 @@
 import {
+import { logger } from './utils/logger';
   Search,
   MoreVertical,
   Lock,
@@ -82,7 +83,7 @@ export default function CustomersPage() {
         setCustomers(data);
       }
     } catch (error) {
-      console.error('Error fetching customers:', error);
+      logger.error('Error fetching customers:', error);
     } finally {
       setLoading(false);
     }
@@ -104,7 +105,7 @@ export default function CustomersPage() {
         fetchCustomers();
       }
     } catch (error) {
-      console.error('Error updating account lock:', error);
+      logger.error('Error updating account lock:', error);
     }
   };
 
@@ -130,7 +131,7 @@ export default function CustomersPage() {
         fetchCustomers();
       }
     } catch (error) {
-      console.error('Error performing bulk operation:', error);
+      logger.error('Error performing bulk operation:', error);
       alert('Failed to perform bulk operation');
     } finally {
       setBulkProcessing(false);

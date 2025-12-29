@@ -1,5 +1,6 @@
 import { useSession } from 'next-auth/react';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { logger } from './utils/logger';
 
 export interface OnboardingStep {
   id: string;
@@ -253,7 +254,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         setIsOnboardingActive(state.isOnboardingActive || false);
       }
     } catch (error) {
-      console.error('Failed to load onboarding state:', error);
+      logger.error('Failed to load onboarding state:', error);
     }
   };
 
@@ -273,7 +274,7 @@ export const OnboardingProvider: React.FC<OnboardingProviderProps> = ({ children
         body: JSON.stringify(newState)
       });
     } catch (error) {
-      console.error('Failed to save onboarding state:', error);
+      logger.error('Failed to save onboarding state:', error);
     }
   };
 

@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface NewRFQProps {
   warehouses: Warehouse[];
@@ -66,11 +67,11 @@ const NewRFQ: NextPage<NewRFQProps> = ({ warehouses }) => {
         router.push('/app/quotes');
       } else {
         const errorData = await response.json();
-        console.error('Failed to create RFQ', errorData);
+        logger.error('Failed to create RFQ', errorData);
         alert('Failed to create RFQ');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while creating the RFQ.');
     }
   };

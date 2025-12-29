@@ -3,8 +3,9 @@
  * Handles real-time execution with error recovery and monitoring
  */
 
-import { Plan, ExecutionContext, Action, Agent, WorldState, ActionResult } from './types';
 import { StateManager } from './state-manager';
+import { Plan, ExecutionContext, Action, Agent, WorldState, ActionResult } from './types';
+import { logger } from '../utils/logger';
 
 export interface ExecutionResult {
   success: boolean;
@@ -78,8 +79,8 @@ export class GOAPExecutor {
       // Update plan status
       plan.status = 'executing';
       
-      console.log(`🤖 Agent ${agent.name} starting plan execution: ${plan.goal.name}`);
-      console.log(`📋 Plan contains ${plan.actions.length} actions`);
+      logger.info(`🤖 Agent ${agent.name} starting plan execution: ${plan.goal.name}`);
+      logger.info(`📋 Plan contains ${plan.actions.length} actions`);
 
       // Execute each action in sequence
       for (let i = 0; i < plan.actions.length; i++) {
@@ -90,7 +91,7 @@ export class GOAPExecutor {
         const action = plan.actions[i];
         context.currentActionIndex = i;
         
-        console.log(`⚡ Executing action ${i + 1}/${plan.actions.length}: ${action.name}`);
+        logger.info(`⚡ Executing action ${i + 1}/${plan.actions.length}: ${action.name}`);
         
         // Call pre-action hook
         config.onActionStart?.(action, context);
@@ -99,7 +100,7 @@ export class GOAPExecutor {
         if (!this.stateManager.canExecuteAction(worldState, action)) {
           const error = `Action ${action.name} preconditions not met`;
           errors.push(error);
-          console.error(`❌ ${error}`);
+          logger.error(`❌ ${error}`);
           
           if (!config.continueOnError) {
             break;
@@ -114,14 +115,14 @@ export class GOAPExecutor {
         while (retryCount <= config.maxRetries && !actionResult?.success) {
           try {
             if (retryCount > 0) {
-              console.log(`🔄 Retrying action ${action.name} (attempt ${retryCount + 1})`);
+              logger.info(`🔄 Retrying action ${action.name} (attempt ${retryCount + 1})`);
               await this.delay(1000 * retryCount); // Exponential backoff
             }
 
             actionResult = await this.executeActionSafely(action, worldState, agent);
             
           } catch (error) {
-            console.error(`❌ Action execution error:`, error);
+            logger.error(`❌ Action execution error:`, error);
             actionResult = {
               success: false,
               newWorldState: worldState,
@@ -140,11 +141,11 @@ export class GOAPExecutor {
         if (actionResult.success) {
           worldState = actionResult.newWorldState;
           executedActions.push(action);
-          console.log(`✅ Action completed: ${actionResult.message}`);
+          logger.info(`✅ Action completed: ${actionResult.message}`);
         } else {
           const error = `Action ${action.name} failed: ${actionResult.error}`;
           errors.push(error);
-          console.error(`❌ ${error}`);
+          logger.error(`❌ ${error}`);
           
           if (!config.continueOnError) {
             break;
@@ -178,7 +179,7 @@ export class GOAPExecutor {
         errors: hasErrors ? errors : undefined
       };
 
-      console.log(`🏁 Plan execution ${success ? 'completed' : 'failed'}: ${result.message}`);
+      logger.info(`🏁 Plan execution ${success ? 'completed' : 'failed'}: ${result.message}`);
 
       // Call completion hook
       config.onPlanComplete?.(result);
@@ -188,7 +189,7 @@ export class GOAPExecutor {
     } catch (error) {
       plan.status = 'failed';
       const errorMessage = `Plan execution error: ${error}`;
-      console.error(`💥 ${errorMessage}`);
+      logger.error(`💥 ${errorMessage}`);
 
       return {
         success: false,
@@ -239,7 +240,7 @@ export class GOAPExecutor {
       if (result.success && result.newWorldState) {
         const newStateValidation = this.stateManager.validateState(result.newWorldState);
         if (!newStateValidation.valid) {
-          console.warn('Action produced invalid world state:', newStateValidation.errors);
+          logger.warn('Action produced invalid world state:', newStateValidation.errors);
           // Continue but log warning
         }
       }
@@ -247,7 +248,7 @@ export class GOAPExecutor {
       return result;
 
     } catch (error) {
-      console.error(`Action ${action.name} execution error:`, error);
+      logger.error(`Action ${action.name} execution error:`, error);
       return {
         success: false,
         newWorldState: worldState,
@@ -272,7 +273,7 @@ export class GOAPExecutor {
    */
   pause(): void {
     if (this.currentExecution) {
-      console.log('⏸️ Plan execution paused');
+      logger.info('⏸️ Plan execution paused');
       // Implementation would set a pause flag checked in execution loop
     }
   }
@@ -284,7 +285,7 @@ export class GOAPExecutor {
     if (this.currentExecution) {
       this.currentExecution.plan.status = 'cancelled';
       this.isExecuting = false;
-      console.log('🛑 Plan execution cancelled');
+      logger.info('🛑 Plan execution cancelled');
     }
   }
 

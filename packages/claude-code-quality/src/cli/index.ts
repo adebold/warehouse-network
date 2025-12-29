@@ -15,6 +15,7 @@ import { ReportGenerator } from '../core/reporter';
 import { createAnalyzer } from '../index';
 import { CodeQualityConfig } from '../types';
 import { Logger } from '../utils/logger';
+import { logger } from '../../../../../../utils/logger';
 
 const program = new Command();
 const logger = new Logger('CLI');
@@ -65,7 +66,7 @@ program
       
       if (options.output) {
         await reporter.save(result, options.output);
-        console.log(chalk.green(`Report saved to: ${options.output}`));
+        logger.info(chalk.green(`Report saved to: ${options.output}`));
       } else {
         // Display in terminal
         reporter.displayTerminal(result);
@@ -132,7 +133,7 @@ program
         JSON.stringify(defaultConfig, null, 2)
       );
       
-      console.log(chalk.green(`Configuration file created: ${configPath}`));
+      logger.info(chalk.green(`Configuration file created: ${configPath}`));
     } catch (error: any) {
       logger.error(`Failed to create config: ${error.message}`);
       process.exit(1);
@@ -145,14 +146,14 @@ program
   .option('-d, --data <path>', 'Training data path')
   .option('-m, --model <type>', 'Model type to train')
   .action(async (options) => {
-    console.log(chalk.yellow('Training functionality coming soon...'));
+    logger.info(chalk.yellow('Training functionality coming soon...'));
   });
 
 program
   .command('benchmark')
   .description('Run performance benchmarks')
   .action(async () => {
-    console.log(chalk.yellow('Benchmark functionality coming soon...'));
+    logger.info(chalk.yellow('Benchmark functionality coming soon...'));
   });
 
 /**

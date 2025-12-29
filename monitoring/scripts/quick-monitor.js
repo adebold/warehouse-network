@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 const https = require('https');
+const { logger } = require('./utils/logger');
 
 function checkDeployment() {
   const url = 'https://warehouse-frontend-467296114824.us-central1.run.app/';
-  console.log(new Date().toISOString(), '- Checking deployment status...');
+  logger.info(new Date().toISOString(), '- Checking deployment status...');
   
   https.get(url, (res) => {
     let data = '';
@@ -14,21 +15,21 @@ function checkDeployment() {
                        data.includes('_next/static');
       const hasStatic = data.includes('Warehouse Network') && !hasNextJs;
       
-      console.log('Status:', res.statusCode, '| Type:', 
+      logger.info('Status:', res.statusCode, '| Type:', 
         hasNextJs ? 'NEXT.JS DEPLOYED! 🎉' : 
         hasStatic ? 'Static HTML' : 
         'Unknown');
         
       if (hasNextJs) {
-        console.log('🚨 ALERT: BEAUTIFUL WAREHOUSE PLATFORM IS LIVE! 🚨');
-        console.log('✅ Beautiful Next.js application successfully deployed');
-        console.log('🏭 Find Your Perfect Warehouse Space is now operational');
-        console.log('🔗 URL: ' + url);
+        logger.info('🚨 ALERT: BEAUTIFUL WAREHOUSE PLATFORM IS LIVE! 🚨');
+        logger.info('✅ Beautiful Next.js application successfully deployed');
+        logger.info('🏭 Find Your Perfect Warehouse Space is now operational');
+        logger.info('🔗 URL: ' + url);
         process.exit(0);
       }
     });
   }).on('error', err => {
-    console.error('Error:', err.message);
+    logger.error('Error:', err.message);
   });
 }
 
@@ -36,7 +37,7 @@ function checkDeployment() {
 checkDeployment();
 const interval = setInterval(checkDeployment, 15000);
 setTimeout(() => {
-  console.log('⏰ Monitoring period completed - deployment still in progress');
+  logger.info('⏰ Monitoring period completed - deployment still in progress');
   clearInterval(interval);
   process.exit(1);
 }, 300000); // 5 minutes

@@ -1,0 +1,297 @@
+{
+  "server": {
+    "port": 3000,
+    "host": "0.0.0.0",
+    "cors": {
+      "origin": ["https://app.varai.com", "https://admin.varai.com"],
+      "credentials": true
+    },
+    "rateLimit": {
+      "windowMs": 60000,
+      "max": 100,
+      "skipSuccessfulRequests": false
+    },
+    "security": {
+      "helmet": true,
+      "compression": true,
+      "trustProxy": true
+    }
+  },
+  "database": {
+    "postgres": {
+      "host": "${POSTGRES_HOST}",
+      "port": 5432,
+      "database": "varai_marketing",
+      "username": "${POSTGRES_USER}",
+      "password": "${POSTGRES_PASSWORD}",
+      "ssl": {
+        "rejectUnauthorized": true,
+        "ca": "${POSTGRES_CA_CERT}"
+      },
+      "pool": {
+        "min": 10,
+        "max": 100,
+        "idleTimeoutMillis": 30000,
+        "connectionTimeoutMillis": 5000,
+        "statementTimeout": 30000
+      },
+      "migrations": {
+        "directory": "./database/migrations",
+        "tableName": "schema_migrations"
+      }
+    },
+    "redis": {
+      "host": "${REDIS_HOST}",
+      "port": 6379,
+      "password": "${REDIS_PASSWORD}",
+      "db": 0,
+      "tls": {
+        "enabled": true
+      },
+      "retryStrategy": {
+        "times": 5,
+        "delay": 2000
+      },
+      "maxRetriesPerRequest": 3,
+      "enableReadyCheck": true,
+      "enableOfflineQueue": true
+    }
+  },
+  "ecommerce": {
+    "shopify": {
+      "apiVersion": "2024-01",
+      "apiKey": "${SHOPIFY_API_KEY}",
+      "apiSecret": "${SHOPIFY_API_SECRET}",
+      "scopes": [
+        "read_products",
+        "write_products",
+        "read_customers",
+        "write_customers",
+        "read_orders",
+        "read_inventory"
+      ],
+      "webhooks": {
+        "orders/create": "/webhooks/shopify/order-created",
+        "orders/updated": "/webhooks/shopify/order-updated",
+        "customers/create": "/webhooks/shopify/customer-created",
+        "products/update": "/webhooks/shopify/product-updated",
+        "inventory_levels/update": "/webhooks/shopify/inventory-updated"
+      },
+      "rateLimit": {
+        "bucketSize": 40,
+        "restoreRate": 2
+      }
+    }
+  },
+  "messaging": {
+    "sendgrid": {
+      "apiKey": "${SENDGRID_API_KEY}",
+      "fromEmail": "marketing@varai.com",
+      "fromName": "VarAI Commerce",
+      "sandboxMode": false,
+      "ipPoolName": "marketing",
+      "webhookUrl": "/webhooks/sendgrid/events",
+      "trackingSettings": {
+        "clickTracking": true,
+        "openTracking": true,
+        "subscriptionTracking": true,
+        "googleAnalytics": {
+          "enabled": true,
+          "utmSource": "sendgrid",
+          "utmMedium": "email"
+        }
+      }
+    },
+    "twilio": {
+      "accountSid": "${TWILIO_ACCOUNT_SID}",
+      "authToken": "${TWILIO_AUTH_TOKEN}",
+      "messagingServiceSid": "${TWILIO_MESSAGING_SERVICE_SID}",
+      "statusCallbackUrl": "/webhooks/twilio/status"
+    }
+  },
+  "advertising": {
+    "facebook": {
+      "appId": "${FACEBOOK_APP_ID}",
+      "appSecret": "${FACEBOOK_APP_SECRET}",
+      "accessToken": "${FACEBOOK_ACCESS_TOKEN}",
+      "pixelId": "${FACEBOOK_PIXEL_ID}",
+      "apiVersion": "v18.0",
+      "businessId": "${FACEBOOK_BUSINESS_ID}"
+    },
+    "google": {
+      "clientId": "${GOOGLE_CLIENT_ID}",
+      "clientSecret": "${GOOGLE_CLIENT_SECRET}",
+      "refreshToken": "${GOOGLE_REFRESH_TOKEN}",
+      "developerToken": "${GOOGLE_DEVELOPER_TOKEN}",
+      "customerId": "${GOOGLE_CUSTOMER_ID}",
+      "conversionTracking": {
+        "conversionId": "${GOOGLE_CONVERSION_ID}",
+        "conversionLabel": "${GOOGLE_CONVERSION_LABEL}"
+      }
+    }
+  },
+  "analytics": {
+    "segment": {
+      "writeKey": "${SEGMENT_WRITE_KEY}",
+      "flushAt": 20,
+      "flushInterval": 10000,
+      "enableBatching": true
+    },
+    "googleAnalytics": {
+      "measurementId": "${GA_MEASUREMENT_ID}",
+      "apiSecret": "${GA_API_SECRET}"
+    },
+    "mixpanel": {
+      "projectToken": "${MIXPANEL_PROJECT_TOKEN}",
+      "apiSecret": "${MIXPANEL_API_SECRET}"
+    }
+  },
+  "attribution": {
+    "models": {
+      "default": "data_driven",
+      "lookbackWindow": 30,
+      "touchpointExpiry": 90
+    },
+    "channels": {
+      "direct": {
+        "weight": 1.0,
+        "minContribution": 0.1
+      },
+      "organic": {
+        "weight": 0.8,
+        "minContribution": 0.05
+      },
+      "paid": {
+        "weight": 1.2,
+        "minContribution": 0.15
+      },
+      "email": {
+        "weight": 1.0,
+        "minContribution": 0.1
+      },
+      "social": {
+        "weight": 0.9,
+        "minContribution": 0.05
+      }
+    }
+  },
+  "ml": {
+    "churnPrediction": {
+      "modelEndpoint": "${ML_CHURN_ENDPOINT}",
+      "apiKey": "${ML_API_KEY}",
+      "batchSize": 1000,
+      "updateFrequency": "daily"
+    },
+    "recommendationEngine": {
+      "endpoint": "${ML_RECOMMENDATION_ENDPOINT}",
+      "apiKey": "${ML_API_KEY}",
+      "algorithms": ["collaborative", "content_based", "hybrid"],
+      "maxRecommendations": 10
+    },
+    "ltv": {
+      "endpoint": "${ML_LTV_ENDPOINT}",
+      "apiKey": "${ML_API_KEY}",
+      "recalculateFrequency": "weekly"
+    }
+  },
+  "queues": {
+    "bullmq": {
+      "defaultJobOptions": {
+        "removeOnComplete": {
+          "age": 86400,
+          "count": 1000
+        },
+        "removeOnFail": {
+          "age": 604800,
+          "count": 5000
+        },
+        "attempts": 3,
+        "backoff": {
+          "type": "exponential",
+          "delay": 2000
+        }
+      },
+      "queues": {
+        "campaigns": {
+          "concurrency": 50,
+          "limiter": {
+            "max": 1000,
+            "duration": 60000
+          }
+        },
+        "attribution": {
+          "concurrency": 20,
+          "limiter": {
+            "max": 500,
+            "duration": 60000
+          }
+        },
+        "analytics": {
+          "concurrency": 30,
+          "limiter": {
+            "max": 2000,
+            "duration": 60000
+          }
+        }
+      }
+    }
+  },
+  "monitoring": {
+    "sentry": {
+      "dsn": "${SENTRY_DSN}",
+      "environment": "production",
+      "tracesSampleRate": 0.1,
+      "profilesSampleRate": 0.1
+    },
+    "datadog": {
+      "apiKey": "${DATADOG_API_KEY}",
+      "appKey": "${DATADOG_APP_KEY}",
+      "service": "varai-marketing",
+      "env": "production",
+      "version": "${APP_VERSION}"
+    },
+    "healthCheck": {
+      "interval": 30000,
+      "timeout": 10000,
+      "endpoints": {
+        "readiness": "/health/ready",
+        "liveness": "/health/live",
+        "metrics": "/metrics"
+      }
+    }
+  },
+  "features": {
+    "abTesting": {
+      "enabled": true,
+      "provider": "optimizely",
+      "sdkKey": "${OPTIMIZELY_SDK_KEY}"
+    },
+    "personalization": {
+      "enabled": true,
+      "aiProvider": "openai",
+      "apiKey": "${OPENAI_API_KEY}",
+      "model": "gpt-4",
+      "maxTokens": 500
+    },
+    "dynamicPricing": {
+      "enabled": true,
+      "strategies": ["competitor", "demand", "inventory", "segment"],
+      "updateFrequency": 3600000
+    }
+  },
+  "compliance": {
+    "gdpr": {
+      "enabled": true,
+      "dataRetention": {
+        "events": 730,
+        "personalData": 1095,
+        "analyticsData": 540
+      },
+      "consentRequired": ["email", "sms", "personalization"]
+    },
+    "ccpa": {
+      "enabled": true,
+      "optOutMechanism": true
+    }
+  }
+}

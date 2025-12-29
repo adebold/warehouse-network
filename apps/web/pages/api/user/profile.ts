@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { authOptions } from '../auth/[...nextauth]';
 
 import { prisma } from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 const ProfileUpdateSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
@@ -164,14 +165,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
 
         // Track profile completion for analytics
-        console.log(`User ${session.user.id} completed profile setup`);
+        logger.info(`User ${session.user.id} completed profile setup`);
 
         // Send welcome email with next steps
         try {
           // You could implement email sending here
           // await sendWelcomeEmail(session.user.email, validatedData.companyName);
         } catch (emailError) {
-          console.error('Failed to send welcome email:', emailError);
+          logger.error('Failed to send welcome email:', emailError);
           // Don't fail the request if email fails
         }
 
@@ -202,7 +203,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method not allowed' });
     }
   } catch (error) {
-    console.error('Profile API error:', error);
+    logger.error('Profile API error:', error);
     
     if (error instanceof z.ZodError) {
       return res.status(400).json({ 

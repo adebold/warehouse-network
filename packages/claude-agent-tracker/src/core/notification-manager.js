@@ -2,6 +2,7 @@
 import { Database } from '../utils/database.js';
 import { logger } from '../utils/logger.js';
 import { v4 as uuid } from 'uuid';
+import { logger } from '../../../../../../utils/logger';
 
 export class NotificationManager {
   constructor() {
@@ -434,11 +435,11 @@ export class NotificationManager {
     const priority = eventData.priority || 'medium';
     const color = this.getConsoleColor(priority);
     
-    console.log(`\n🔔 ${color}${subject}\x1b[0m`);
-    console.log(`📝 ${message}`);
-    console.log(`🤖 Agent: ${eventData.agentId || 'N/A'}`);
-    console.log(`📁 Project: ${eventData.projectPath || 'N/A'}`);
-    console.log(`⏰ Time: ${eventData.timestamp}\n`);
+    logger.info(`\n🔔 ${color}${subject}\x1b[0m`);
+    logger.info(`📝 ${message}`);
+    logger.info(`🤖 Agent: ${eventData.agentId || 'N/A'}`);
+    logger.info(`📁 Project: ${eventData.projectPath || 'N/A'}`);
+    logger.info(`⏰ Time: ${eventData.timestamp}\n`);
     
     return {
       status: 'sent',

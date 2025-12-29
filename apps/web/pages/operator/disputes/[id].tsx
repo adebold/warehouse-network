@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
+import { logger } from './utils/logger';
 
 interface OperatorDisputeDetailsProps {
   dispute: Dispute & { skids: { skid: Skid }[] };
@@ -40,11 +41,11 @@ const OperatorDisputeDetails: NextPage<OperatorDisputeDetailsProps> = ({ dispute
         router.replace(router.asPath);
       } else {
         const errorData = await response.json();
-        console.error('Failed to update dispute', errorData);
+        logger.error('Failed to update dispute', errorData);
         alert('Failed to update dispute');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while updating the dispute.');
     }
   };

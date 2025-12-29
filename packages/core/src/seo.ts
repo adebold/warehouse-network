@@ -1,6 +1,7 @@
 import { UserRole } from '@prisma/client';
 
 import prisma from '../../db/src/client';
+import { logger } from '../../../../../../utils/logger';
 
 const SYSTEM_USER_ID = 'clsys00000000000000000000'; // A fixed ID for the system user
 
@@ -36,7 +37,7 @@ export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
   });
 
   if (!warehouse) {
-    console.error(`Warehouse with ID ${warehouseId} not found.`);
+    logger.error(`Warehouse with ID ${warehouseId} not found.`);
     return;
   }
 
@@ -46,7 +47,7 @@ export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
   const region = addressParts[addressParts.length - 1]; // Assuming region is last
 
   if (!city) {
-    console.warn(`Could not extract city from warehouse address: ${warehouse.address}`);
+    logger.warn(`Could not extract city from warehouse address: ${warehouse.address}`);
     return;
   }
 
@@ -80,5 +81,5 @@ export async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
   }
 
   // Ensure the warehouse is listed on the page (logic to be implemented client-side)
-  console.log(`City page ${cityPage.slug} processed for warehouse ${warehouse.name}.`);
+  logger.info(`City page ${cityPage.slug} processed for warehouse ${warehouse.name}.`);
 }

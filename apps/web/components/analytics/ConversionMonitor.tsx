@@ -45,7 +45,7 @@ export const ConversionMonitor: React.FC = () => {
     ],
   });
 
-  const [engagementData, setEngagementData] = useState<EngagementData>({
+  const [engagementData] = useState<EngagementData>({
     avgTimeOnPage: 234, // seconds
     avgScrollDepth: 65, // percentage
     bounceRate: 32, // percentage

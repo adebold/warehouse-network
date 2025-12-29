@@ -1,5 +1,6 @@
 import { IntegrityEngine } from 'claude-db-integrity';
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { logger } from '../../../../../../../../../utils/logger';
 
 type Data = {
   success: boolean;
@@ -49,7 +50,7 @@ export default async function handler(
 
     await engine.shutdown();
   } catch (error) {
-    console.error('Integrity check API error:', error);
+    logger.error('Integrity check API error:', error);
     
     res.status(500).json({
       success: false,

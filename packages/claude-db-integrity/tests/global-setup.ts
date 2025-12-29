@@ -1,12 +1,13 @@
 import fs from 'fs/promises';
 import path from 'path';
+import { logger } from '../../../../../utils/logger';
 
 /**
  * Global Jest setup
  * Runs once before all test suites
  */
 export default async () => {
-  console.log('🚀 Setting up Claude DB Integrity test environment...');
+  logger.info('🚀 Setting up Claude DB Integrity test environment...');
   
   // Create test directories
   const testDirs = [
@@ -19,7 +20,7 @@ export default async () => {
     try {
       await fs.mkdir(dir, { recursive: true });
     } catch (error) {
-      console.warn(`Failed to create test directory ${dir}:`, error);
+      logger.warn(`Failed to create test directory ${dir}:`, error);
     }
   }
   
@@ -29,7 +30,7 @@ export default async () => {
   // Set up test database (if needed)
   await setupTestDatabase();
   
-  console.log('✅ Test environment setup completed');
+  logger.info('✅ Test environment setup completed');
 };
 
 async function createTestFixtures() {

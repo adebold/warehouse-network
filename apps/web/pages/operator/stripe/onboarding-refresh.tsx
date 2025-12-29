@@ -1,5 +1,6 @@
 
 import { useRouter } from 'next/router';
+import { logger } from './utils/logger';
 
 const OnboardingRefresh: NextPage = () => {
   const router = useRouter();
@@ -12,7 +13,7 @@ const OnboardingRefresh: NextPage = () => {
       const { url } = await response.json();
       router.push(url);
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while connecting to Stripe.');
     }
   };

@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next';
 import prisma from '../../../../../lib/prisma';
 import { generateSkidsSchema } from '../../../../../lib/schemas';
 import { authOptions } from '../../../auth/[...nextauth]';
+import { logger } from './utils/logger';
 // Generate unique skid code
 function generateSkidCode(reference?: string, sequence?: number): string {
   const timestamp = Date.now().toString(36).toUpperCase();
@@ -58,7 +59,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(201).json(skids);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {

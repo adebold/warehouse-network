@@ -1,5 +1,7 @@
 
 // Welcome email for new customers
+import { logger } from './utils/logger';
+
 export const CustomerWelcomeEmailTemplate = {
   subject: 'Welcome to SkidSpace - Your Warehouse Journey Begins!',
   html: `
@@ -594,7 +596,7 @@ export const EmailService = {
     // Implementation would depend on your email service
     // This could be SendGrid, AWS SES, Mailgun, etc.
     
-    console.log('Sending email:', {
+    logger.info('Sending email:', {
       to: options.to,
       subject: options.subject
       // Don't log the full content in production
@@ -605,7 +607,7 @@ export const EmailService = {
     
     // For development, just log
     if (process.env.NODE_ENV === 'development') {
-      console.log('Email content (dev mode):', options);
+      logger.info('Email content (dev mode):', options);
     }
 
     return { success: true, messageId: 'dev-' + Date.now() };

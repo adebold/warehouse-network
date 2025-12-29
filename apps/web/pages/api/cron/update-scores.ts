@@ -1,18 +1,19 @@
 
 import prisma from '../../../lib/prisma';
+import { logger } from './utils/logger';
 
 // Scoring logic - simplified implementation
 async function calculateOperatorTrustScore(operatorId: string): Promise<number> {
   // TODO: Implement trust score calculation based on operator performance
   // This would consider factors like on-time performance, dispute resolution, etc.
-  console.log(`Calculating trust score for operator ${operatorId}`);
+  logger.info(`Calculating trust score for operator ${operatorId}`);
   return 85.0; // Placeholder score
 }
 
 async function calculateWarehouseQualityScore(warehouseId: string): Promise<number> {
   // TODO: Implement quality score calculation based on warehouse metrics
   // This would consider factors like damage rates, accuracy, customer feedback, etc.
-  console.log(`Calculating quality score for warehouse ${warehouseId}`);
+  logger.info(`Calculating quality score for warehouse ${warehouseId}`);
   return 92.5; // Placeholder score
 }
 
@@ -37,7 +38,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json({ message: 'Scores updated successfully.' });
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred during score update.' });
     }
   } else {

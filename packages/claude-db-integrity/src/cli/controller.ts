@@ -9,6 +9,7 @@ import { IntegrityEngine } from '../core/IntegrityEngine';
 import { PersonaManager } from '../personas/PersonaManager';
 import { BrowserAutomation } from '../testing/BrowserAutomation';
 import type { 
+import { logger } from '../../../../../../utils/logger';
   CLIOptions, 
   IntegrityReport, 
   SchemaDrift, 
@@ -59,7 +60,7 @@ export class CLIController {
       detectedTemplate = await this.interactiveSetup();
     }
 
-    console.log(chalk.blue(`Initializing with template: ${detectedTemplate}`));
+    logger.info(chalk.blue(`Initializing with template: ${detectedTemplate}`));
 
     // Generate configuration
     const configString = generateConfigTemplate({ name: detectedTemplate });
@@ -88,7 +89,7 @@ export class CLIController {
     // Initialize Claude Flow integration
     await this.initializeClaudeFlow();
 
-    console.log(chalk.green('✅ Initialization complete!'));
+    logger.info(chalk.green('✅ Initialization complete!'));
   }
 
   async check(options: CLIOptions): Promise<{ passed: number; failed: number }> {
@@ -145,27 +146,27 @@ export class CLIController {
     const silent = options.silent || false;
 
     if (!silent) {
-      console.log(chalk.blue(`🔍 Starting monitoring (interval: ${interval}s)`));
-      console.log(chalk.gray('Press Ctrl+C to stop'));
+      logger.info(chalk.blue(`🔍 Starting monitoring (interval: ${interval}s)`));
+      logger.info(chalk.gray('Press Ctrl+C to stop'));
     }
 
     // Setup event handlers
     engine.on('monitoring:cycle', (event) => {
       if (!silent) {
         const status = event.severity === 'info' ? '✅' : '⚠️';
-        console.log(`${status} ${new Date().toISOString()} - ${event.message}`);
+        logger.info(`${status} ${new Date().toISOString()} - ${event.message}`);
       }
     });
 
     engine.on('monitoring:error', (event) => {
-      console.error(chalk.red(`❌ ${event.timestamp} - ${event.message}`));
+      logger.error(chalk.red(`❌ ${event.timestamp} - ${event.message}`));
     });
 
     await engine.startMonitoring(interval);
 
     // Keep process alive
     process.on('SIGINT', async () => {
-      console.log(chalk.yellow('\n🛑 Stopping monitoring...'));
+      logger.info(chalk.yellow('\n🛑 Stopping monitoring...'));
       await engine.stopMonitoring();
       process.exit(0);
     });
@@ -214,15 +215,15 @@ export class CLIController {
     await this.ensureInitialized();
     
     // This would typically integrate with Prisma/TypeORM migrations
-    console.log(chalk.blue('🚀 Running database migrations...'));
+    logger.info(chalk.blue('🚀 Running database migrations...'));
     
     if (options.dryRun) {
-      console.log(chalk.yellow('📋 Dry run mode - no changes will be applied'));
+      logger.info(chalk.yellow('📋 Dry run mode - no changes will be applied'));
       return { applied: 0 };
     }
 
     // Placeholder implementation
-    console.log(chalk.green('✅ Migrations completed'));
+    logger.info(chalk.green('✅ Migrations completed'));
     return { applied: 0 };
   }
 
@@ -234,13 +235,13 @@ export class CLIController {
 
     if (options.clear) {
       await memoryManager.clear();
-      console.log(chalk.green('✅ Memory cache cleared'));
+      logger.info(chalk.green('✅ Memory cache cleared'));
       return {};
     }
 
     if (options.export) {
       const data = await memoryManager.export({ includeMetadata: true });
-      console.log(JSON.stringify(data, null, 2));
+      logger.info(JSON.stringify(data, null, 2));
       return data;
     }
 
@@ -254,7 +255,7 @@ export class CLIController {
   async config(options: CLIOptions): Promise<void> {
     if (options.show) {
       const config = this.configManager.getConfig();
-      console.log(JSON.stringify(config, null, 2));
+      logger.info(JSON.stringify(config, null, 2));
       return;
     }
 
@@ -268,7 +269,7 @@ export class CLIController {
       
       if (confirm) {
         await this.configManager.resetConfig();
-        console.log(chalk.green('✅ Configuration reset to defaults'));
+        logger.info(chalk.green('✅ Configuration reset to defaults'));
       }
       return;
     }
@@ -345,7 +346,7 @@ export class CLIController {
       spinner.succeed('Dependencies installed');
     } catch (error) {
       spinner.fail('Failed to install dependencies');
-      console.log(chalk.yellow('💡 Install manually: npm install'));
+      logger.info(chalk.yellow('💡 Install manually: npm install'));
     }
   }
 
@@ -376,51 +377,51 @@ export class CLIController {
 
   private async displayReport(report: IntegrityReport, format: string): Promise<void> {
     if (format === 'json') {
-      console.log(JSON.stringify(report, null, 2));
+      logger.info(JSON.stringify(report, null, 2));
       return;
     }
 
-    console.log(chalk.blue.bold('\n📊 Integrity Report'));
-    console.log(`Report ID: ${report.id}`);
-    console.log(`Timestamp: ${report.timestamp.toISOString()}`);
-    console.log(`Database: ${report.metadata.database}`);
+    logger.info(chalk.blue.bold('\n📊 Integrity Report'));
+    logger.info(`Report ID: ${report.id}`);
+    logger.info(`Timestamp: ${report.timestamp.toISOString()}`);
+    logger.info(`Database: ${report.metadata.database}`);
     
-    console.log(chalk.blue('\n📈 Summary:'));
-    console.log(`Total checks: ${report.summary.total}`);
-    console.log(`✅ Passed: ${chalk.green(report.summary.passed)}`);
-    console.log(`❌ Failed: ${chalk.red(report.summary.failed)}`);
-    console.log(`⏭️ Skipped: ${chalk.yellow(report.summary.skipped)}`);
+    logger.info(chalk.blue('\n📈 Summary:'));
+    logger.info(`Total checks: ${report.summary.total}`);
+    logger.info(`✅ Passed: ${chalk.green(report.summary.passed)}`);
+    logger.info(`❌ Failed: ${chalk.red(report.summary.failed)}`);
+    logger.info(`⏭️ Skipped: ${chalk.yellow(report.summary.skipped)}`);
 
     if (report.checks.some(c => c.status === 'failed')) {
-      console.log(chalk.red.bold('\n🚨 Failed Checks:'));
+      logger.info(chalk.red.bold('\n🚨 Failed Checks:'));
       report.checks
         .filter(c => c.status === 'failed')
         .forEach(check => {
-          console.log(`❌ ${check.name}: ${check.message}`);
+          logger.info(`❌ ${check.name}: ${check.message}`);
         });
     }
   }
 
   private async displayDrift(drift: SchemaDrift, format: string): Promise<void> {
     if (format === 'json') {
-      console.log(JSON.stringify(drift, null, 2));
+      logger.info(JSON.stringify(drift, null, 2));
       return;
     }
 
     if (!drift.hasDrift) {
-      console.log(chalk.green('✅ No schema drift detected'));
+      logger.info(chalk.green('✅ No schema drift detected'));
       return;
     }
 
-    console.log(chalk.yellow.bold('\n⚠️ Schema Drift Detected'));
-    console.log(`Changes: ${drift.changes.length}`);
-    console.log(`Baseline: ${drift.baseline.timestamp.toISOString()}`);
-    console.log(`Current: ${drift.current.timestamp.toISOString()}`);
+    logger.info(chalk.yellow.bold('\n⚠️ Schema Drift Detected'));
+    logger.info(`Changes: ${drift.changes.length}`);
+    logger.info(`Baseline: ${drift.baseline.timestamp.toISOString()}`);
+    logger.info(`Current: ${drift.current.timestamp.toISOString()}`);
 
-    console.log(chalk.yellow('\n📋 Changes:'));
+    logger.info(chalk.yellow('\n📋 Changes:'));
     drift.changes.forEach(change => {
       const icon = change.impact === 'breaking' ? '🔴' : change.impact === 'non-breaking' ? '🟡' : '🟢';
-      console.log(`${icon} ${change.type}: ${change.table}${change.column ? `.${change.column}` : ''}`);
+      logger.info(`${icon} ${change.type}: ${change.table}${change.column ? `.${change.column}` : ''}`);
     });
   }
 
@@ -428,16 +429,16 @@ export class CLIController {
     const valid = results.filter(r => r.valid);
     const invalid = results.filter(r => !r.valid);
 
-    console.log(chalk.blue.bold('\n🔍 Validation Results'));
-    console.log(`✅ Valid: ${chalk.green(valid.length)}`);
-    console.log(`❌ Invalid: ${chalk.red(invalid.length)}`);
+    logger.info(chalk.blue.bold('\n🔍 Validation Results'));
+    logger.info(`✅ Valid: ${chalk.green(valid.length)}`);
+    logger.info(`❌ Invalid: ${chalk.red(invalid.length)}`);
 
     if (invalid.length > 0) {
-      console.log(chalk.red.bold('\n🚨 Validation Errors:'));
+      logger.info(chalk.red.bold('\n🚨 Validation Errors:'));
       invalid.forEach(result => {
-        console.log(`❌ ${result.file} (${result.type})`);
+        logger.info(`❌ ${result.file} (${result.type})`);
         result.errors.forEach(error => {
-          console.log(`   ${error.severity === 'error' ? '🔴' : '🟡'} ${error.message} (${error.path})`);
+          logger.info(`   ${error.severity === 'error' ? '🔴' : '🟡'} ${error.message} (${error.path})`);
         });
       });
     }
@@ -461,7 +462,7 @@ export class CLIController {
 
     switch (action) {
       case 'view':
-        console.log(JSON.stringify(config, null, 2));
+        logger.info(JSON.stringify(config, null, 2));
         break;
       case 'database':
         await this.updateDatabaseConfig(config);
@@ -479,22 +480,22 @@ export class CLIController {
   }
 
   private async updateDatabaseConfig(config: any): Promise<void> {
-    console.log(chalk.blue('🗄️ Database Configuration'));
+    logger.info(chalk.blue('🗄️ Database Configuration'));
     // Implementation for updating database config
   }
 
   private async updateValidationConfig(config: any): Promise<void> {
-    console.log(chalk.blue('🔍 Validation Configuration'));
+    logger.info(chalk.blue('🔍 Validation Configuration'));
     // Implementation for updating validation config
   }
 
   private async updateMonitoringConfig(config: any): Promise<void> {
-    console.log(chalk.blue('📊 Monitoring Configuration'));
+    logger.info(chalk.blue('📊 Monitoring Configuration'));
     // Implementation for updating monitoring config
   }
 
   private async updateMemoryConfig(config: any): Promise<void> {
-    console.log(chalk.blue('🧠 Claude Memory Configuration'));
+    logger.info(chalk.blue('🧠 Claude Memory Configuration'));
     // Implementation for updating memory config
   }
 
@@ -511,7 +512,7 @@ export class CLIController {
     await this.ensurePersonaManager();
 
     if (options.list) {
-      console.log(chalk.blue.bold('📋 Registered Personas:'));
+      logger.info(chalk.blue.bold('📋 Registered Personas:'));
       // Implementation to list personas
       return;
     }
@@ -519,13 +520,13 @@ export class CLIController {
     if (options.create) {
       const personaData = JSON.parse(await fs.readFile(options.create, 'utf8'));
       await this.personaManager!.registerPersona(personaData);
-      console.log(chalk.green(`✅ Persona created: ${personaData.name}`));
+      logger.info(chalk.green(`✅ Persona created: ${personaData.name}`));
       return;
     }
 
     if (options.delete) {
       // Implementation to delete persona
-      console.log(chalk.green(`✅ Persona deleted: ${options.delete}`));
+      logger.info(chalk.green(`✅ Persona deleted: ${options.delete}`));
       return;
     }
 
@@ -537,7 +538,7 @@ export class CLIController {
     await this.ensurePersonaManager();
 
     if (options.list) {
-      console.log(chalk.blue.bold('📋 User Journeys:'));
+      logger.info(chalk.blue.bold('📋 User Journeys:'));
       // Implementation to list journeys
       return;
     }
@@ -545,7 +546,7 @@ export class CLIController {
     if (options.create) {
       const journeyData = JSON.parse(await fs.readFile(options.create, 'utf8'));
       await this.personaManager!.createUserJourney(journeyData);
-      console.log(chalk.green(`✅ Journey created: ${journeyData.name}`));
+      logger.info(chalk.green(`✅ Journey created: ${journeyData.name}`));
       return;
     }
 
@@ -553,7 +554,7 @@ export class CLIController {
       const story = options.generate;
       const epic = options.epic || 'general';
       const journeys = await this.personaManager!.generateTestsFromStories([story], epic);
-      console.log(chalk.green(`✅ Generated ${journeys.length} journeys from story`));
+      logger.info(chalk.green(`✅ Generated ${journeys.length} journeys from story`));
       return;
     }
 
@@ -597,14 +598,14 @@ export class CLIController {
         testData
       );
 
-      console.log(chalk.blue.bold(`📋 Form Validation Results for ${options.form}:`));
-      console.log(`Status: ${result.status === 'passed' ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
-      console.log(`Duration: ${result.duration}ms`);
+      logger.info(chalk.blue.bold(`📋 Form Validation Results for ${options.form}:`));
+      logger.info(`Status: ${result.status === 'passed' ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
+      logger.info(`Duration: ${result.duration}ms`);
 
       if (result.violations && result.violations.length > 0) {
-        console.log(chalk.red.bold('\n🚨 Violations Found:'));
+        logger.info(chalk.red.bold('\n🚨 Violations Found:'));
         result.violations.forEach(violation => {
-          console.log(`❌ ${violation.message} (${violation.severity})`);
+          logger.info(`❌ ${violation.message} (${violation.severity})`);
         });
       }
 
@@ -615,7 +616,7 @@ export class CLIController {
     }
 
     // Validate all forms for all personas
-    console.log(chalk.blue('🔍 Running form validation for all personas...'));
+    logger.info(chalk.blue('🔍 Running form validation for all personas...'));
     return { valid: 0, invalid: 0 };
   }
 
@@ -659,41 +660,41 @@ export class CLIController {
   }
 
   private async displayPersonaTestResults(results: PersonaValidationResult): Promise<void> {
-    console.log(chalk.blue.bold('\n📊 Persona Test Results'));
-    console.log(`Test ID: ${results.id}`);
-    console.log(`Persona: ${results.personaId}`);
-    console.log(`Epic: ${results.epic}`);
-    console.log(`Environment: ${results.environment}`);
-    console.log(`Status: ${results.status === 'passed' ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
-    console.log(`Duration: ${results.duration}ms`);
+    logger.info(chalk.blue.bold('\n📊 Persona Test Results'));
+    logger.info(`Test ID: ${results.id}`);
+    logger.info(`Persona: ${results.personaId}`);
+    logger.info(`Epic: ${results.epic}`);
+    logger.info(`Environment: ${results.environment}`);
+    logger.info(`Status: ${results.status === 'passed' ? chalk.green('✅ PASSED') : chalk.red('❌ FAILED')}`);
+    logger.info(`Duration: ${results.duration}ms`);
 
     if (results.summary) {
-      console.log(chalk.blue('\n📈 Summary:'));
-      console.log(`Total scenarios: ${results.summary.total}`);
-      console.log(`✅ Passed: ${chalk.green(results.summary.passed)}`);
-      console.log(`❌ Failed: ${chalk.red(results.summary.failed)}`);
-      console.log(`⏭️ Skipped: ${chalk.yellow(results.summary.skipped)}`);
-      console.log(`📊 Coverage: ${results.summary.coverage}%`);
+      logger.info(chalk.blue('\n📈 Summary:'));
+      logger.info(`Total scenarios: ${results.summary.total}`);
+      logger.info(`✅ Passed: ${chalk.green(results.summary.passed)}`);
+      logger.info(`❌ Failed: ${chalk.red(results.summary.failed)}`);
+      logger.info(`⏭️ Skipped: ${chalk.yellow(results.summary.skipped)}`);
+      logger.info(`📊 Coverage: ${results.summary.coverage}%`);
     }
 
     if (results.performance) {
-      console.log(chalk.blue('\n⚡ Performance:'));
-      console.log(`Average response time: ${results.performance.avgResponseTime}ms`);
+      logger.info(chalk.blue('\n⚡ Performance:'));
+      logger.info(`Average response time: ${results.performance.avgResponseTime}ms`);
       if (results.performance.slowestScenario) {
-        console.log(`Slowest scenario: ${results.performance.slowestScenario.name || results.performance.slowestScenario.id}`);
+        logger.info(`Slowest scenario: ${results.performance.slowestScenario.name || results.performance.slowestScenario.id}`);
       }
     }
 
     if (results.violations && results.violations.length > 0) {
-      console.log(chalk.red.bold('\n🚨 Violations Found:'));
+      logger.info(chalk.red.bold('\n🚨 Violations Found:'));
       results.violations.forEach(violation => {
         const icon = violation.severity === 'error' ? '🔴' : violation.severity === 'warning' ? '🟡' : '🔵';
-        console.log(`${icon} ${violation.message}`);
+        logger.info(`${icon} ${violation.message}`);
         if (violation.scenario) {
-          console.log(`   Scenario: ${violation.scenario}`);
+          logger.info(`   Scenario: ${violation.scenario}`);
         }
         if (violation.step) {
-          console.log(`   Step: ${violation.step}`);
+          logger.info(`   Step: ${violation.step}`);
         }
       });
     }

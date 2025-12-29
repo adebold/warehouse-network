@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole, WarehouseStatus, SkidStatus, PayoutStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { logger } from './utils/logger';
 
 const prisma = new PrismaClient();
 
@@ -42,7 +43,7 @@ const features = [
 ];
 
 async function main() {
-  console.log('🌱 Starting comprehensive demo seed...');
+  logger.info('🌱 Starting comprehensive demo seed...');
 
   // Create platform
   let platform = await prisma.platform.findFirst({
@@ -348,11 +349,11 @@ async function main() {
     });
   }
 
-  console.log('✅ Demo seed completed successfully!');
-  console.log('\n📧 Demo Login Credentials:');
-  console.log('  Admin: admin@warehouse-network.com / demo123');
-  console.log('  Operator: ops@premiumstorage.com / demo123');
-  console.log('  Customer: ops@mapleleaf-ecom.com / demo123');
+  logger.info('✅ Demo seed completed successfully!');
+  logger.info('\n📧 Demo Login Credentials:');
+  logger.info('  Admin: admin@warehouse-network.com / demo123');
+  logger.info('  Operator: ops@premiumstorage.com / demo123');
+  logger.info('  Customer: ops@mapleleaf-ecom.com / demo123');
 }
 
 // Helper functions
@@ -385,7 +386,7 @@ main()
     await prisma.$disconnect();
   })
   .catch(async e => {
-    console.error(e);
+    logger.error(e);
     await prisma.$disconnect();
     process.exit(1);
   });

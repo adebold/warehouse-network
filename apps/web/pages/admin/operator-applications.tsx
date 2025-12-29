@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BRAND_ASSETS } from '@/lib/asset-urls';
+import { logger } from './utils/logger';
 
 
 
@@ -43,11 +44,11 @@ const AdminOperatorApplications: NextPage<AdminOperatorApplicationsProps> = ({ a
         // Refresh the page to show the updated status
         window.location.reload();
       } else {
-        console.error('Failed to update status');
+        logger.error('Failed to update status');
         alert('Failed to update status');
       }
     } catch (error) {
-      console.error('An error occurred:', error);
+      logger.error('An error occurred:', error);
       alert('An error occurred while updating the status.');
     }
   };

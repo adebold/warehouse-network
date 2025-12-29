@@ -5,6 +5,7 @@ import { securityConfig, validatePassword } from '@/lib/config/security';
 import { withCSRFProtection } from '@/lib/middleware/csrf';
 import { withAuthSecurity } from '@/lib/middleware/security';
 import prisma from '@/lib/prisma';
+import { logger } from './utils/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
@@ -57,7 +58,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       user: userWithoutPassword,
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    logger.error('Registration error:', error);
     return res.status(500).json({ message: 'Failed to create account' });
   }
 }

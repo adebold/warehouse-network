@@ -7,6 +7,7 @@
 const https = require('https');
 const fs = require('fs');
 const path = require('path');
+const { logger } = require('./utils/logger');
 
 const TARGET_URL = 'https://warehouse-frontend-467296114824.us-central1.run.app/';
 const MONITORING_DURATION = 10 * 60 * 1000; // 10 minutes
@@ -45,7 +46,7 @@ class WarehouseMonitor {
   log(message, level = 'INFO') {
     const timestamp = new Date().toISOString();
     const logEntry = `[${timestamp}] [${level}] ${message}\n`;
-    console.log(`🤖 HIVEMIND: ${message}`);
+    logger.info(`🤖 HIVEMIND: ${message}`);
     fs.appendFileSync(this.logFile, logEntry);
   }
 
@@ -198,13 +199,13 @@ class WarehouseMonitor {
     // Generate immediate alert
     this.generateReport(true);
     
-    console.log('\n🎊 ===== HIVEMIND ALERT ===== 🎊');
-    console.log('🏭 WAREHOUSE PLATFORM IS LIVE!');
-    console.log('✅ Beautiful Next.js application deployed');
-    console.log('🔗 URL: ' + TARGET_URL);
-    console.log('📱 Ready for persona testing');
-    console.log('⚡ All systems operational');
-    console.log('🎊 ========================== 🎊\n');
+    logger.info('\n🎊 ===== HIVEMIND ALERT ===== 🎊');
+    logger.info('🏭 WAREHOUSE PLATFORM IS LIVE!');
+    logger.info('✅ Beautiful Next.js application deployed');
+    logger.info('🔗 URL: ' + TARGET_URL);
+    logger.info('📱 Ready for persona testing');
+    logger.info('⚡ All systems operational');
+    logger.info('🎊 ========================== 🎊\n');
   }
 
   generateReport(isFinal = false) {

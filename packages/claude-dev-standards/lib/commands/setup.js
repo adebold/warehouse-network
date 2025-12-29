@@ -3,6 +3,7 @@ const ora = require('ora');
 const inquirer = require('inquirer');
 const templateManager = require('../utils/templateManager');
 const projectDetector = require('../utils/projectDetector');
+const { logger } = require('../../../../../../utils/logger');
 
 const components = {
   docker: {
@@ -107,8 +108,8 @@ async function setup(component) {
   const componentConfig = components[component];
   
   if (!componentConfig) {
-    console.error(chalk.red(`Unknown component: ${component}`));
-    console.log('Available components:', Object.keys(components).join(', '));
+    logger.error(chalk.red(`Unknown component: ${component}`));
+    logger.info('Available components:', Object.keys(components).join(', '));
     process.exit(1);
   }
   
@@ -137,43 +138,43 @@ async function setup(component) {
     spinner.succeed(`${componentConfig.name} setup completed!`);
     
     // Show next steps
-    console.log('\n' + chalk.bold('Next steps:'));
+    logger.info('\n' + chalk.bold('Next steps:'));
     
     switch (component) {
       case 'docker':
-        console.log('1. Review and customize the Dockerfile');
-        console.log('2. Update docker-compose.yml with your services');
-        console.log('3. Run ' + chalk.cyan('docker-compose up') + ' to test');
+        logger.info('1. Review and customize the Dockerfile');
+        logger.info('2. Update docker-compose.yml with your services');
+        logger.info('3. Run ' + chalk.cyan('docker-compose up') + ' to test');
         break;
         
       case 'ci':
-        console.log('1. Commit the workflow files');
-        console.log('2. Push to GitHub to activate workflows');
-        console.log('3. Configure secrets in repository settings');
+        logger.info('1. Commit the workflow files');
+        logger.info('2. Push to GitHub to activate workflows');
+        logger.info('3. Configure secrets in repository settings');
         break;
         
       case 'testing':
-        console.log('1. Install testing dependencies: ' + chalk.cyan(`npm install -D ${answers.framework}`));
-        console.log('2. Write your first test');
-        console.log('3. Run ' + chalk.cyan('npm test') + ' to execute tests');
+        logger.info('1. Install testing dependencies: ' + chalk.cyan(`npm install -D ${answers.framework}`));
+        logger.info('2. Write your first test');
+        logger.info('3. Run ' + chalk.cyan('npm test') + ' to execute tests');
         break;
         
       case 'database':
-        console.log('1. Install database dependencies');
-        console.log('2. Configure database connection');
-        console.log('3. Run migrations: ' + chalk.cyan('npm run migrate'));
+        logger.info('1. Install database dependencies');
+        logger.info('2. Configure database connection');
+        logger.info('3. Run migrations: ' + chalk.cyan('npm run migrate'));
         break;
         
       case 'monitoring':
-        console.log('1. Install monitoring dependencies');
-        console.log('2. Configure monitoring endpoints');
-        console.log('3. Test with ' + chalk.cyan('curl http://localhost:3000/metrics'));
+        logger.info('1. Install monitoring dependencies');
+        logger.info('2. Configure monitoring endpoints');
+        logger.info('3. Test with ' + chalk.cyan('curl http://localhost:3000/metrics'));
         break;
     }
     
   } catch (error) {
     spinner.fail(`Setup failed: ${error.message}`);
-    console.error(chalk.red(error.stack));
+    logger.error(chalk.red(error.stack));
     process.exit(1);
   }
 }

@@ -1,4 +1,5 @@
 const express = require('express');
+const { logger } = require('./utils/logger');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
@@ -189,5 +190,5 @@ app.get('/api/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(\`AI Industries Warehouse Network running on port \${PORT}\`);
+  logger.info(\`AI Industries Warehouse Network running on port \${PORT}\`);
 });

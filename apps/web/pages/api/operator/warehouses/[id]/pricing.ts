@@ -3,9 +3,10 @@ import { getServerSession } from 'next-auth/next';
 import prisma from '../../../../../lib/prisma';
 import { pricingRulesSchema } from '../../../../../lib/schemas';
 import { authOptions } from '../../../auth/[...nextauth]';
+import { logger } from './utils/logger';
 // TODO: Implement SEO city page creation when core package is available
 async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
-  console.log(`SEO: Creating city page for warehouse ${warehouseId}`);
+  logger.info(`SEO: Creating city page for warehouse ${warehouseId}`);
   // Placeholder for SEO functionality
 }
 
@@ -66,7 +67,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       res.status(200).json(newPricingRules);
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       res.status(500).json({ message: 'An unexpected error occurred.' });
     }
   } else {
