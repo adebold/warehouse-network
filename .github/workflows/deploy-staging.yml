@@ -188,7 +188,7 @@ jobs:
             --output performance-results.json
 
       - name: Upload performance results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: staging-performance-results
           path: performance-results.json
