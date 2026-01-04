@@ -130,7 +130,7 @@ jobs:
 
       - name: Comment PR with Staging URL
         if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const url = '${{ steps.staging-url.outputs.url }}';
