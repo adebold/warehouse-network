@@ -1,0 +1,58 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'marketing-engine'
+    environment: 'production'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+rule_files:
+  - "alerts.yml"
+
+scrape_configs:
+  # API Gateway metrics
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['api-gateway:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Event Bus metrics
+  - job_name: 'event-bus'
+    static_configs:
+      - targets: ['event-bus:3001']
+    metrics_path: '/metrics'
+
+  # PostgreSQL exporter
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+
+  # Redis exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+
+  # Kafka exporter
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+
+  # Node exporter for system metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+
+  # OpenTelemetry collector
+  - job_name: 'otel-collector'
+    static_configs:
+      - targets: ['otel-collector:8888']
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Bell,
   Search,
+  Megaphone,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -48,6 +49,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { name: 'RFQs', href: '/admin/rfqs', icon: FileText },
     { name: 'Quotes', href: '/admin/quotes', icon: ClipboardList },
     { name: 'City Pages', href: '/admin/content/city-pages', icon: MapPin },
+    { name: 'Marketing', href: '/admin/marketing', icon: Megaphone },
     { name: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
     // { name: 'GOAP System', href: '/dashboard/goap', icon: Brain }, // Temporarily disabled for production
     { name: 'Users', href: '/admin/users', icon: Users },

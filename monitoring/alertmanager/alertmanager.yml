@@ -1,0 +1,134 @@
+global:
+  resolve_timeout: 5m
+  smtp_from: 'alerts@warehouse-network.com'
+  smtp_smarthost: '${SMTP_HOST:-localhost:25}'
+  smtp_auth_username: '${SMTP_USERNAME}'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: false
+
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: critical-receiver
+      group_wait: 0s
+      repeat_interval: 1h
+      
+    # Database alerts
+    - match:
+        service: postgresql
+      receiver: database-team
+      group_by: ['alertname', 'service']
+      
+    - match:
+        service: redis
+      receiver: database-team
+      group_by: ['alertname', 'service']
+      
+    # Business/Operations alerts
+    - match:
+        team: business
+      receiver: business-team
+      
+    - match:
+        team: operations
+      receiver: operations-team
+      
+    # Platform/Infrastructure alerts
+    - match:
+        team: platform
+      receiver: platform-team
+      group_interval: 5m
+
+receivers:
+  - name: 'default-receiver'
+    webhook_configs:
+      - url: '${WEBHOOK_URL:-http://localhost:5001/webhook}'
+        send_resolved: true
+
+  - name: 'critical-receiver'
+    email_configs:
+      - to: '${CRITICAL_EMAIL:-critical@warehouse-network.com}'
+        headers:
+          Subject: '[CRITICAL] {{ .GroupLabels.alertname }} - Warehouse Network'
+        html: |
+          <h2>Critical Alert: {{ .GroupLabels.alertname }}</h2>
+          <p><b>Severity:</b> {{ .CommonLabels.severity }}</p>
+          <p><b>Service:</b> {{ .CommonLabels.service }}</p>
+          <p><b>Instance:</b> {{ .CommonLabels.instance }}</p>
+          {{ range .Alerts }}
+          <hr>
+          <p><b>Summary:</b> {{ .Annotations.summary }}</p>
+          <p><b>Description:</b> {{ .Annotations.description }}</p>
+          <p><b>Started:</b> {{ .StartsAt.Format "2006-01-02 15:04:05 MST" }}</p>
+          {{ end }}
+    webhook_configs:
+      - url: '${CRITICAL_WEBHOOK_URL:-http://localhost:5001/critical}'
+    pagerduty_configs:
+      - service_key: '${PAGERDUTY_SERVICE_KEY}'
+        severity: 'critical'
+
+  - name: 'database-team'
+    email_configs:
+      - to: '${DATABASE_TEAM_EMAIL:-database@warehouse-network.com}'
+        headers:
+          Subject: '[Database] {{ .GroupLabels.alertname }} - {{ .CommonLabels.service }}'
+    slack_configs:
+      - api_url: '${SLACK_DATABASE_WEBHOOK}'
+        channel: '#database-alerts'
+        title: 'Database Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  - name: 'business-team'
+    email_configs:
+      - to: '${BUSINESS_TEAM_EMAIL:-business@warehouse-network.com}'
+        headers:
+          Subject: '[Business KPI] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_BUSINESS_WEBHOOK}'
+        channel: '#business-metrics'
+        title: 'Business Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  - name: 'operations-team'
+    email_configs:
+      - to: '${OPERATIONS_TEAM_EMAIL:-operations@warehouse-network.com}'
+        headers:
+          Subject: '[Operations] {{ .GroupLabels.alertname }}'
+    slack_configs:
+      - api_url: '${SLACK_OPERATIONS_WEBHOOK}'
+        channel: '#operations'
+        title: 'Operations Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+
+  - name: 'platform-team'
+    slack_configs:
+      - api_url: '${SLACK_PLATFORM_WEBHOOK}'
+        channel: '#platform-alerts'
+        title: 'Platform Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing for same service
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'cluster', 'service']
+    
+  # Inhibit info alerts if warning or critical is firing
+  - source_match_re:
+      severity: 'warning|critical'
+    target_match:
+      severity: 'info'
+    equal: ['alertname', 'cluster', 'service']
+
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'

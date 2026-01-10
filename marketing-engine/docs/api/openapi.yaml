@@ -1,0 +1,821 @@
+openapi: 3.0.0
+info:
+  title: Marketing Engine API
+  version: 1.0.0
+  description: Production-ready API for multi-channel content marketing orchestration
+  contact:
+    email: api@marketingengine.io
+  license:
+    name: Proprietary
+    
+servers:
+  - url: https://api.marketingengine.io/v1
+    description: Production server
+  - url: https://staging-api.marketingengine.io/v1
+    description: Staging server
+    
+security:
+  - bearerAuth: []
+  - apiKey: []
+
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate user
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  format: password
+                mfaToken:
+                  type: string
+                  description: Required if MFA is enabled
+      responses:
+        200:
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresIn:
+                    type: integer
+                  user:
+                    $ref: '#/components/schemas/User'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        429:
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/refresh:
+    post:
+      summary: Refresh access token
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refreshToken
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        200:
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  expiresIn:
+                    type: integer
+
+  /content:
+    post:
+      summary: Publish content to multiple channels
+      tags:
+        - Content
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContentRequest'
+      responses:
+        201:
+          description: Content published successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublishResult'
+        400:
+          $ref: '#/components/responses/BadRequest'
+        429:
+          $ref: '#/components/responses/RateLimited'
+          
+    get:
+      summary: List published content
+      tags:
+        - Content
+      parameters:
+        - in: query
+          name: channel
+          schema:
+            type: string
+            enum: [linkedin, google, twitter, blog, email]
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        200:
+          description: Content list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Content'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /content/{id}:
+    get:
+      summary: Get content details
+      tags:
+        - Content
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        200:
+          description: Content details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContentDetail'
+        404:
+          $ref: '#/components/responses/NotFound'
+
+  /kpis:
+    get:
+      summary: Get marketing KPIs
+      tags:
+        - Analytics
+      parameters:
+        - in: query
+          name: period
+          schema:
+            type: string
+            enum: [today, yesterday, last-7-days, last-30-days, last-90-days, custom]
+        - in: query
+          name: startDate
+          schema:
+            type: string
+            format: date
+          description: Required if period is 'custom'
+        - in: query
+          name: endDate
+          schema:
+            type: string
+            format: date
+          description: Required if period is 'custom'
+        - in: query
+          name: channels
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
+        - in: query
+          name: metrics
+          schema:
+            type: array
+            items:
+              type: string
+              enum: [cpl, cac, roas, ltv, conversions, spend]
+          style: form
+          explode: false
+      responses:
+        200:
+          description: KPI data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KPIDashboard'
+
+  /attribution/paths:
+    get:
+      summary: Get conversion attribution paths
+      tags:
+        - Analytics
+      parameters:
+        - in: query
+          name: model
+          schema:
+            type: string
+            enum: [lastTouch, firstTouch, linear, timeDecay, position]
+            default: multiTouch
+        - in: query
+          name: period
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Attribution paths
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  model:
+                    type: string
+                  paths:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AttributionPath'
+                  summary:
+                    type: object
+                    properties:
+                      totalConversions:
+                        type: integer
+                      avgTimeToConvert:
+                        type: number
+                      topChannels:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            channel:
+                              type: string
+                            conversions:
+                              type: integer
+                            percentage:
+                              type: number
+
+  /channels:
+    get:
+      summary: List configured channels
+      tags:
+        - Channels
+      responses:
+        200:
+          description: Channel list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Channel'
+                  
+    post:
+      summary: Configure a new channel
+      tags:
+        - Channels
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelConfig'
+      responses:
+        201:
+          description: Channel configured
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+
+  /channels/{channel}/test:
+    post:
+      summary: Test channel connectivity
+      tags:
+        - Channels
+      parameters:
+        - in: path
+          name: channel
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Connection test result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  connected:
+                    type: boolean
+                  message:
+                    type: string
+                  capabilities:
+                    type: array
+                    items:
+                      type: string
+
+  /campaigns:
+    post:
+      summary: Create advertising campaign
+      tags:
+        - Campaigns
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignRequest'
+      responses:
+        201:
+          description: Campaign created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+
+  /webhooks:
+    post:
+      summary: Register webhook endpoint
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - url
+                - events
+              properties:
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                    enum: [content.published, lead.created, conversion.tracked, campaign.completed]
+                secret:
+                  type: string
+                  description: HMAC secret for webhook signatures
+                active:
+                  type: boolean
+                  default: true
+      responses:
+        201:
+          description: Webhook registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        name:
+          type: string
+        role:
+          type: string
+          enum: [admin, manager, analyst, viewer]
+        company:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ContentRequest:
+      type: object
+      required:
+        - title
+        - body
+        - targetChannels
+      properties:
+        title:
+          type: string
+          maxLength: 200
+        body:
+          type: string
+          maxLength: 10000
+        targetChannels:
+          type: array
+          items:
+            type: string
+            enum: [linkedin, google, twitter, blog, email]
+          minItems: 1
+        scheduledFor:
+          type: string
+          format: date-time
+          description: ISO 8601 datetime for scheduled publishing
+        utmParams:
+          type: object
+          properties:
+            source:
+              type: string
+            medium:
+              type: string
+            campaign:
+              type: string
+            term:
+              type: string
+            content:
+              type: string
+        metadata:
+          type: object
+          additionalProperties: true
+
+    PublishResult:
+      type: object
+      properties:
+        contentId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [published, scheduled, failed, partial]
+        channels:
+          type: array
+          items:
+            type: object
+            properties:
+              channel:
+                type: string
+              status:
+                type: string
+                enum: [success, failed, pending]
+              publishedUrl:
+                type: string
+                format: uri
+              error:
+                type: string
+              publishedAt:
+                type: string
+                format: date-time
+
+    Content:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        status:
+          type: string
+        channels:
+          type: array
+          items:
+            type: string
+        metrics:
+          type: object
+          properties:
+            views:
+              type: integer
+            engagement:
+              type: number
+            leads:
+              type: integer
+            conversions:
+              type: integer
+        createdAt:
+          type: string
+          format: date-time
+
+    ContentDetail:
+      allOf:
+        - $ref: '#/components/schemas/Content'
+        - type: object
+          properties:
+            body:
+              type: string
+            utmParams:
+              type: object
+            channelDetails:
+              type: array
+              items:
+                type: object
+                properties:
+                  channel:
+                    type: string
+                  publishedUrl:
+                    type: string
+                  metrics:
+                    type: object
+                    additionalProperties: true
+
+    KPIDashboard:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            start:
+              type: string
+              format: date
+            end:
+              type: string
+              format: date
+        overall:
+          type: object
+          properties:
+            totalSpend:
+              type: number
+            totalLeads:
+              type: integer
+            totalCustomers:
+              type: integer
+            blendedCPL:
+              type: number
+            blendedCAC:
+              type: number
+            revenue:
+              type: number
+            ltv:
+              type: number
+            ltvCacRatio:
+              type: number
+        byChannel:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              spend:
+                type: number
+              leads:
+                type: integer
+              customers:
+                type: integer
+              cpl:
+                type: number
+              cac:
+                type: number
+              roi:
+                type: number
+              efficiency:
+                type: string
+                enum: [high, medium, low]
+
+    AttributionPath:
+      type: object
+      properties:
+        path:
+          type: array
+          items:
+            type: string
+        conversions:
+          type: integer
+        revenue:
+          type: number
+        avgTimeToConvert:
+          type: number
+          description: Average time to convert in days
+
+    Channel:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [linkedin, google, twitter, blog, email]
+        name:
+          type: string
+        status:
+          type: string
+          enum: [active, paused, error]
+        config:
+          type: object
+          additionalProperties: true
+        lastSync:
+          type: string
+          format: date-time
+
+    ChannelConfig:
+      type: object
+      required:
+        - type
+        - name
+        - credentials
+      properties:
+        type:
+          type: string
+          enum: [linkedin, google, twitter, blog, email]
+        name:
+          type: string
+        credentials:
+          type: object
+          description: Channel-specific credentials
+        settings:
+          type: object
+          description: Channel-specific settings
+
+    CampaignRequest:
+      type: object
+      required:
+        - name
+        - channel
+        - budget
+        - targeting
+      properties:
+        name:
+          type: string
+        channel:
+          type: string
+          enum: [linkedin, google]
+        budget:
+          type: object
+          properties:
+            daily:
+              type: number
+            total:
+              type: number
+        targeting:
+          type: object
+          additionalProperties: true
+        creative:
+          type: object
+          additionalProperties: true
+
+    Campaign:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        channel:
+          type: string
+        status:
+          type: string
+          enum: [draft, active, paused, completed]
+        budget:
+          type: object
+        performance:
+          type: object
+          properties:
+            impressions:
+              type: integer
+            clicks:
+              type: integer
+            ctr:
+              type: number
+            spend:
+              type: number
+            conversions:
+              type: integer
+            cpa:
+              type: number
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        events:
+          type: array
+          items:
+            type: string
+        secret:
+          type: string
+        active:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+        lastDelivery:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        limit:
+          type: integer
+        total:
+          type: integer
+        pages:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+              message:
+                type: string
+              details:
+                type: array
+                items:
+                  type: object
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                default: unauthorized
+              message:
+                type: string
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                default: not_found
+              message:
+                type: string
+
+    RateLimited:
+      description: Rate limit exceeded
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                default: rate_limited
+              message:
+                type: string
+              retryAfter:
+                type: integer

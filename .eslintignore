@@ -39,3 +39,9 @@ scripts/
 *.config.js
 *.config.cjs
 *.config.ts
+
+# Template files (these use framework-specific imports)
+**/templates/**/*.tsx
+**/templates/**/*.ts
+**/templates/**/*.jsx
+**/templates/**/*.js

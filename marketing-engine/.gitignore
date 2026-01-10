@@ -1,0 +1,118 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production
+dist/
+build/
+out/
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+
+# Caches
+.turbo/
+.next/
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+*.tsbuildinfo
+
+# Env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.swp
+*.swo
+*~
+
+# Security
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+secrets/
+credentials/
+
+# Docker
+.docker/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# Generated files
+generated/
+types/generated/
+
+# Monitoring
+prometheus_data/
+grafana_data/
+elasticsearch_data/
+
+# Backups
+backups/
+*.backup
+*.bak
+
+# Archives
+*.zip
+*.tar.gz
+*.tgz
+*.rar
+
+# macOS
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk

@@ -1,0 +1,160 @@
+groups:
+  - name: api_alerts
+    interval: 30s
+    rules:
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: High error rate on API Gateway
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      - alert: APIHighResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: High API response time
+          description: "95th percentile response time is {{ $value }}s"
+
+      - alert: APIRateLimitExceeded
+        expr: rate(rate_limit_exceeded_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: Rate limiting triggered frequently
+          description: "Rate limit exceeded {{ $value }} times per second"
+
+  - name: database_alerts
+    rules:
+      - alert: DatabaseConnectionPoolExhausted
+        expr: pg_pool_free_connections / pg_pool_total_connections < 0.1
+        for: 5m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: Database connection pool nearly exhausted
+          description: "Only {{ $value | humanizePercentage }} of connections available"
+
+      - alert: DatabaseHighQueryTime
+        expr: pg_query_duration_seconds{quantile="0.95"} > 5
+        for: 10m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: Database queries running slow
+          description: "95th percentile query time is {{ $value }}s"
+
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag_seconds > 10
+        for: 5m
+        labels:
+          severity: critical
+          service: database
+        annotations:
+          summary: Database replication lag high
+          description: "Replication lag is {{ $value }}s"
+
+  - name: redis_alerts
+    rules:
+      - alert: RedisHighMemoryUsage
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: Redis memory usage high
+          description: "Redis using {{ $value | humanizePercentage }} of max memory"
+
+      - alert: RedisHighConnections
+        expr: redis_connected_clients > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: redis
+        annotations:
+          summary: High number of Redis connections
+          description: "{{ $value }} clients connected to Redis"
+
+  - name: kafka_alerts
+    rules:
+      - alert: KafkaConsumerLag
+        expr: kafka_consumer_lag > 1000
+        for: 5m
+        labels:
+          severity: warning
+          service: kafka
+        annotations:
+          summary: Kafka consumer lag detected
+          description: "Consumer lag is {{ $value }} for {{ $labels.topic }}"
+
+      - alert: KafkaBrokerDown
+        expr: up{job="kafka"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: kafka
+        annotations:
+          summary: Kafka broker down
+          description: "Kafka broker {{ $labels.instance }} is down"
+
+  - name: system_alerts
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: High CPU usage detected
+          description: "CPU usage is {{ $value | humanize }}% on {{ $labels.instance }}"
+
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: High memory usage detected
+          description: "Memory usage is {{ $value | humanize }}% on {{ $labels.instance }}"
+
+      - alert: DiskSpaceLow
+        expr: (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"}) * 100 < 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: Low disk space
+          description: "Only {{ $value | humanize }}% disk space left on {{ $labels.instance }}"
+
+  - name: business_alerts
+    rules:
+      - alert: LowCampaignSuccessRate
+        expr: rate(campaign_success_total[1h]) / rate(campaign_total[1h]) < 0.5
+        for: 30m
+        labels:
+          severity: warning
+          service: marketing
+        annotations:
+          summary: Low campaign success rate
+          description: "Campaign success rate is {{ $value | humanizePercentage }}"
+
+      - alert: HighBounceRate
+        expr: rate(email_bounced_total[1h]) / rate(email_sent_total[1h]) > 0.05
+        for: 30m
+        labels:
+          severity: warning
+          service: email
+        annotations:
+          summary: High email bounce rate
+          description: "Email bounce rate is {{ $value | humanizePercentage }}"

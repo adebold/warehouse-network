@@ -1,0 +1,246 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  prepare:
+    name: Prepare Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      environment: ${{ steps.env.outputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Determine version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            VERSION=${GITHUB_REF#refs/tags/}
+          else
+            VERSION=sha-${GITHUB_SHA::8}
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+      
+      - name: Determine environment
+        id: env
+        run: |
+          if [[ "${{ github.event.inputs.environment }}" != "" ]]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [[ $GITHUB_REF == refs/tags/* ]]; then
+            ENV="production"
+          else
+            ENV="staging"
+          fi
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    if: needs.prepare.outputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.marketing-engine.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-get-login@v2
+      
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster marketing-staging \
+            --service marketing-engine \
+            --force-new-deployment \
+            --desired-count 2
+      
+      - name: Wait for deployment
+        run: |
+          aws ecs wait services-stable \
+            --cluster marketing-staging \
+            --services marketing-engine
+      
+      - name: Run smoke tests
+        run: |
+          npm ci
+          npm run test:smoke -- --env=staging
+        env:
+          API_URL: https://staging-api.marketing-engine.com
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    if: needs.prepare.outputs.environment == 'production'
+    environment:
+      name: production
+      url: https://marketing-engine.com
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.PROD_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-get-login@v2
+      
+      - name: Create deployment record
+        run: |
+          DEPLOYMENT_ID=$(aws deploy create-deployment \
+            --application-name marketing-engine \
+            --deployment-group-name production \
+            --revision "{\"revisionType\":\"AppSpecContent\",\"appSpecContent\":{\"content\":\"{\\\"version\\\":\\\"0.0\\\",\\\"Resources\\\":[{\\\"TargetService\\\":{\\\"Type\\\":\\\"AWS::ECS::Service\\\",\\\"Properties\\\":{\\\"TaskDefinition\\\":\\\"marketing-engine:${{ needs.prepare.outputs.version }}\\\",\\\"LoadBalancerInfo\\\":{\\\"ContainerName\\\":\\\"api-gateway\\\",\\\"ContainerPort\\\":3000}}}}]}\"}}" \
+            --query 'deploymentId' \
+            --output text)
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+      
+      - name: Wait for deployment
+        run: |
+          aws deploy wait deployment-successful \
+            --deployment-id ${{ env.DEPLOYMENT_ID }}
+      
+      - name: Run health checks
+        run: |
+          npm ci
+          npm run test:health -- --env=production
+        env:
+          API_URL: https://api.marketing-engine.com
+      
+      - name: Create release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-staging, deploy-production]
+    if: failure()
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Trigger rollback
+        run: |
+          ENVIRONMENT="${{ needs.prepare.outputs.environment }}"
+          CLUSTER="marketing-${ENVIRONMENT}"
+          
+          # Get previous task definition
+          PREVIOUS_TASK_DEF=$(aws ecs describe-services \
+            --cluster $CLUSTER \
+            --services marketing-engine \
+            --query 'services[0].deployments[1].taskDefinition' \
+            --output text)
+          
+          # Update service with previous version
+          aws ecs update-service \
+            --cluster $CLUSTER \
+            --service marketing-engine \
+            --task-definition $PREVIOUS_TASK_DEF \
+            --force-new-deployment
+      
+      - name: Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "⚠️ Deployment Rollback",
+              attachments: [{
+                color: 'warning',
+                fields: [
+                  { title: 'Environment', value: '${{ needs.prepare.outputs.environment }}', short: true },
+                  { title: 'Version', value: '${{ needs.prepare.outputs.version }}', short: true },
+                  { title: 'Status', value: 'Rolled back due to failure', short: false }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  notify:
+    name: Notify Deployment
+    runs-on: ubuntu-latest
+    needs: [prepare, deploy-staging, deploy-production]
+    if: always()
+    steps:
+      - name: Notify success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "✅ Deployment Successful",
+              attachments: [{
+                color: 'good',
+                fields: [
+                  { title: 'Environment', value: '${{ needs.prepare.outputs.environment }}', short: true },
+                  { title: 'Version', value: '${{ needs.prepare.outputs.version }}', short: true },
+                  { title: 'Deployed by', value: '${{ github.actor }}', short: true },
+                  { title: 'Branch', value: '${{ github.ref_name }}', short: true }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+      
+      - name: Notify failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "❌ Deployment Failed",
+              attachments: [{
+                color: 'danger',
+                fields: [
+                  { title: 'Environment', value: '${{ needs.prepare.outputs.environment }}', short: true },
+                  { title: 'Version', value: '${{ needs.prepare.outputs.version }}', short: true },
+                  { title: 'Failed by', value: '${{ github.actor }}', short: true },
+                  { title: 'Branch', value: '${{ github.ref_name }}', short: true }
+                ]
+              }]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

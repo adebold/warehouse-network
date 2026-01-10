@@ -35,6 +35,12 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+
+# Cookies and temporary auth files
+cookies.txt
+test-cookies.txt
+*.cookies
 
 # Database
 *.sqlite

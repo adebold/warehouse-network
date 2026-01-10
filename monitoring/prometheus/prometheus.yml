@@ -1,0 +1,176 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'warehouse-network'
+    environment: '${ENVIRONMENT:-development}'
+    region: '${REGION:-us-east-1}'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      scheme: http
+      timeout: 10s
+
+# Load rules once and periodically evaluate them
+rule_files:
+  - '/etc/prometheus/rules/*.yml'
+
+# Scrape configurations
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 10s
+
+  # Node Exporter - System Metrics
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'warehouse-host'
+
+  # PostgreSQL Exporter
+  - job_name: 'postgresql'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+        replacement: 'warehouse-postgres'
+      - target_label: __address__
+        replacement: postgres-exporter:9187
+
+  # Redis Exporter
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    metrics_path: /metrics
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'warehouse-redis'
+
+  # Warehouse Application Metrics
+  - job_name: 'warehouse-app'
+    static_configs:
+      - targets: ['app:3000']
+    metrics_path: /api/metrics
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: '(warehouse_.*|nodejs_.*|process_.*)'
+        action: keep
+
+  # Claude Agent Tracker
+  - job_name: 'claude-agent-tracker'
+    static_configs:
+      - targets: ['claude-agent-tracker:3001']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Claude Dev Standards
+  - job_name: 'claude-dev-standards'
+    static_configs:
+      - targets: ['claude-dev-standards:3002']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Claude DB Integrity
+  - job_name: 'claude-db-integrity'
+    static_configs:
+      - targets: ['claude-db-integrity:3003']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # Claude DevOps Platform
+  - job_name: 'claude-devops-platform'
+    static_configs:
+      - targets: ['claude-devops-platform:3004']
+    metrics_path: /metrics
+    scrape_interval: 30s
+
+  # cAdvisor - Container Metrics
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    metric_relabel_configs:
+      - source_labels: [container_label_com_docker_compose_service]
+        target_label: service
+      - source_labels: [container_label_com_docker_compose_project]
+        target_label: project
+
+  # Blackbox Exporter - HTTP/HTTPS Monitoring
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+          - http://app:3000
+          - http://app:3000/api/health
+          - http://app:3000/api/warehouses
+          - http://claude-agent-tracker:3001/health
+          - http://claude-dev-standards:3002/health
+          - http://claude-db-integrity:3003/health
+          - http://claude-devops-platform:3004/health
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Blackbox Exporter - TCP Monitoring
+  - job_name: 'blackbox-tcp'
+    metrics_path: /probe
+    params:
+      module: [tcp_connect]
+    static_configs:
+      - targets:
+          - postgres:5432
+          - redis:6379
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Docker daemon metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'engine_daemon_.*|builder_builds_.*|swarm_.*'
+        action: keep
+
+  # Loki - Log System Metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: /metrics
+
+  # Jaeger metrics
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:14269']
+    metrics_path: /metrics

@@ -1,0 +1,137 @@
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+        cors:
+          allowed_origins:
+            - "http://*"
+            - "https://*"
+  
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: 'otel-collector'
+          scrape_interval: 10s
+          static_configs:
+            - targets: ['0.0.0.0:8888']
+
+processors:
+  batch:
+    timeout: 10s
+    send_batch_size: 1024
+  
+  memory_limiter:
+    check_interval: 1s
+    limit_percentage: 75
+    spike_limit_percentage: 25
+  
+  resource:
+    attributes:
+      - key: environment
+        value: production
+        action: insert
+      - key: service.namespace
+        value: marketing-engine
+        action: insert
+  
+  attributes:
+    actions:
+      - key: http.user_agent
+        action: delete
+      - key: http.request.body
+        action: delete
+      - key: http.response.body
+        action: delete
+  
+  filter:
+    error_mode: ignore
+    metrics:
+      exclude:
+        match_type: regexp
+        metric_names:
+          - .*_bucket
+    
+  probabilistic_sampler:
+    sampling_percentage: 10
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+    namespace: marketing_engine
+    const_labels:
+      environment: production
+    send_timestamps: true
+    metric_expiration: 10m
+  
+  otlp/jaeger:
+    endpoint: jaeger:14250
+    tls:
+      insecure: true
+  
+  elasticsearch/logs:
+    endpoints:
+      - http://elasticsearch:9200
+    auth:
+      authenticator: basicauth
+      username: elastic
+      password: ${env:ELASTIC_PASSWORD}
+    index: marketing-logs
+    mapping:
+      mode: raw
+    retry:
+      enabled: true
+      max_requests: 5
+  
+  logging:
+    verbosity: normal
+    sampling_initial: 10
+    sampling_thereafter: 100
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+    path: /health
+    check_collector_pipeline:
+      enabled: true
+      interval: 5s
+      exporter_failure_threshold: 5
+  
+  pprof:
+    endpoint: 0.0.0.0:1777
+  
+  zpages:
+    endpoint: 0.0.0.0:55679
+  
+  memory_ballast:
+    size_in_percentage: 20
+
+service:
+  extensions: [health_check, pprof, zpages, memory_ballast]
+  
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes, probabilistic_sampler]
+      exporters: [otlp/jaeger, logging]
+    
+    metrics:
+      receivers: [otlp, prometheus]
+      processors: [memory_limiter, batch, resource, filter]
+      exporters: [prometheus, logging]
+    
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes]
+      exporters: [elasticsearch/logs, logging]
+  
+  telemetry:
+    logs:
+      level: info
+      initial_fields:
+        service: otel-collector
+    metrics:
+      level: detailed
+      address: 0.0.0.0:8888
