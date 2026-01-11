@@ -1,5 +1,5 @@
 # Optimized Dockerfile for Cloud Run
-FROM node:18-slim
+FROM node:25-slim
 
 WORKDIR /app
 

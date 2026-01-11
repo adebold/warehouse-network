@@ -2,7 +2,7 @@
 # Optimized for Mac ARM64 to Linux AMD64 cross-compilation
 
 # Stage 1: Dependencies (Platform-specific)
-FROM --platform=linux/amd64 node:20-alpine AS deps
+FROM --platform=linux/amd64 node:25-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -14,7 +14,7 @@ COPY prisma ./prisma/
 RUN npm ci --only=production --ignore-scripts 2>/dev/null || npm install --production --ignore-scripts
 
 # Stage 2: Build Stage (Platform-specific)
-FROM --platform=linux/amd64 node:20-alpine AS builder
+FROM --platform=linux/amd64 node:25-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl openssl-dev
 WORKDIR /app
 
@@ -37,7 +37,7 @@ ENV NODE_ENV production
 RUN npm run build
 
 # Stage 3: Production Image
-FROM --platform=linux/amd64 node:20-alpine AS runner
+FROM --platform=linux/amd64 node:25-alpine AS runner
 WORKDIR /app
 
 # Set production environment
