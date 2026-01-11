@@ -3,7 +3,7 @@
 # Optimized for Cloud Run deployment with minimal image size
 
 # Build stage - use specific platform for consistency
-FROM --platform=linux/amd64 node:18-alpine AS deps
+FROM --platform=linux/amd64 node:25-alpine AS deps
 WORKDIR /app
 
 # Install dependencies only when needed
@@ -16,7 +16,7 @@ COPY ../../packages/db/package*.json ../../packages/db/
 RUN npm ci --only=production
 
 # Rebuild the source code only when needed
-FROM --platform=linux/amd64 node:18-alpine AS builder
+FROM --platform=linux/amd64 node:25-alpine AS builder
 WORKDIR /app
 
 # Copy node_modules from deps stage
@@ -40,7 +40,7 @@ ENV SKIP_ENV_VALIDATION=1
 RUN npm run build
 
 # Production image, copy all the files and run next
-FROM --platform=linux/amd64 node:18-alpine AS runner
+FROM --platform=linux/amd64 node:25-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
