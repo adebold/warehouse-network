@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-import { log } from './lib/logger';
+// Edge-compatible logger (no winston)
+const edgeLog = {
+  security: (message: string, meta?: Record<string, unknown>) => {
+    console.log(JSON.stringify({ level: 'security', message, ...meta, timestamp: new Date().toISOString() }));
+  },
+};
 
 // Security headers configuration
 const securityHeaders = {
@@ -80,15 +85,8 @@ function checkRateLimit(ip: string, endpoint: string, config: RateLimitConfig): 
   return true;
 }
 
-// Clean up old rate limit entries periodically
-setInterval(() => {
-  const now = Date.now();
-  for (const [key, value] of rateLimitStore.entries()) {
-    if (now > value.resetTime) {
-      rateLimitStore.delete(key);
-    }
-  }
-}, 60 * 1000); // Every minute
+// Note: Rate limit cleanup happens on each request check
+// setInterval not used as it's not compatible with Edge Runtime
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -126,7 +124,7 @@ export function middleware(request: NextRequest) {
     }
     
     if (rateLimitConfig && !checkRateLimit(ip, endpoint, rateLimitConfig)) {
-      log.security('Rate limit exceeded', {
+      edgeLog.security('Rate limit exceeded', {
         ip,
         endpoint,
         pathname,
@@ -156,7 +154,7 @@ export function middleware(request: NextRequest) {
   ];
   
   if (suspiciousPaths.some(pattern => pattern.test(pathname))) {
-    log.security('Suspicious path blocked', {
+    edgeLog.security('Suspicious path blocked', {
       ip,
       pathname,
       userAgent: request.headers.get('user-agent'),
@@ -175,7 +173,7 @@ export function middleware(request: NextRequest) {
   ];
   
   if (sqlInjectionPatterns.some(pattern => pattern.test(queryString))) {
-    log.security('Potential SQL injection attempt blocked', {
+    edgeLog.security('Potential SQL injection attempt blocked', {
       ip,
       pathname,
       queryString,

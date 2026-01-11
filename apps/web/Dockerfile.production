@@ -6,26 +6,24 @@ FROM --platform=linux/amd64 node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copy package files from root and current directory
-COPY package.json ./
-COPY ../../package-lock.json ./ || echo "No root package-lock.json found"
+# Copy package files
+COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 # Install production dependencies only
-RUN npm install --only=production --ignore-scripts || npm install --production --ignore-scripts
+RUN npm ci --only=production --ignore-scripts 2>/dev/null || npm install --production --ignore-scripts
 
 # Stage 2: Build Stage (Platform-specific)
 FROM --platform=linux/amd64 node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl openssl-dev
 WORKDIR /app
 
-# Copy package files from root and current directory
-COPY package.json ./
-COPY ../../package-lock.json ./ || echo "No root package-lock.json found"
+# Copy package files
+COPY package.json package-lock.json* ./
 COPY prisma ./prisma/
 
 # Install all dependencies (including dev)
-RUN npm install --ignore-scripts
+RUN npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
 
 # Copy source code
 COPY . .
@@ -47,7 +45,7 @@ ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
 # Install production runtime dependencies
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs

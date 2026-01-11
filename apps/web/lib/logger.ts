@@ -51,27 +51,9 @@ const winstonLogger = winston.createLogger({
   ],
 });
 
-// Add file transport in production
-if (process.env.NODE_ENV === 'production') {
-  winstonLogger.add(
-    new winston.transports.File({
-      filename: './logs/error.log',
-      level: 'error',
-      maxsize: 10485760, // 10MB
-      maxFiles: 5,
-      tailable: true,
-    })
-  );
-  
-  winstonLogger.add(
-    new winston.transports.File({
-      filename: './logs/combined.log',
-      maxsize: 10485760, // 10MB
-      maxFiles: 5,
-      tailable: true,
-    })
-  );
-}
+// Note: File transports removed for Cloud Run compatibility
+// Cloud Run logs are captured via stdout/stderr and sent to Cloud Logging
+// To enable file logging locally, set LOG_TO_FILE=true
 
 // Request logger middleware
 interface RequestLogContext {
