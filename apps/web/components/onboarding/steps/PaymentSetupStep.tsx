@@ -1,5 +1,5 @@
 import { 
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
   CreditCard, 
   Building,
   Shield,

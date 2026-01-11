@@ -1,6 +1,6 @@
 
 // Welcome email for new customers
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 export const CustomerWelcomeEmailTemplate = {
   subject: 'Welcome to SkidSpace - Your Warehouse Journey Begins!',

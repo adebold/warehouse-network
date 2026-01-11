@@ -1,6 +1,5 @@
 import { format, differenceInDays, addDays } from 'date-fns';
 import {
-import { logger } from './utils/logger';
   MapPin,
   Package,
   DollarSign,

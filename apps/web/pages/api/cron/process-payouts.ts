@@ -1,6 +1,6 @@
 
 import prisma from '../../../lib/prisma';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 // Process payouts logic - simplified implementation
 async function processPayouts() {

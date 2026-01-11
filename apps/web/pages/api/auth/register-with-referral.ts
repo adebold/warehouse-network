@@ -9,7 +9,7 @@ import { registerWithReferralSchema } from '../../../lib/schemas';
 import { securityConfig, validatePassword } from '@/lib/config/security';
 import { withCSRFProtection } from '@/lib/middleware/csrf';
 import { withAuthSecurity } from '@/lib/middleware/security';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'POST') {

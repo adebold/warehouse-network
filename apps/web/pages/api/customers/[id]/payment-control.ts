@@ -2,7 +2,6 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { getServerSession } from 'next-auth';
 
 import {
-import { logger } from './utils/logger';
   lockCustomerAccount,
   unlockCustomerAccount,
 } from '@/lib/payment-control';

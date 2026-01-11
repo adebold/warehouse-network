@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { authOptions } from '../auth/[...nextauth]';
 
 import { prisma } from '@/lib/prisma';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 const ProfileUpdateSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),

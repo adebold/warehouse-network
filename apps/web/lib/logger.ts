@@ -39,8 +39,8 @@ const prodFormat = winston.format.combine(
   winston.format.json()
 );
 
-// Create the logger instance
-const logger = winston.createLogger({
+// Create the winston logger instance
+const winstonLogger = winston.createLogger({
   level: process.env.LOG_LEVEL || 'info',
   levels,
   format: process.env.NODE_ENV === 'production' ? prodFormat : devFormat,
@@ -53,7 +53,7 @@ const logger = winston.createLogger({
 
 // Add file transport in production
 if (process.env.NODE_ENV === 'production') {
-  logger.add(
+  winstonLogger.add(
     new winston.transports.File({
       filename: './logs/error.log',
       level: 'error',
@@ -63,7 +63,7 @@ if (process.env.NODE_ENV === 'production') {
     })
   );
   
-  logger.add(
+  winstonLogger.add(
     new winston.transports.File({
       filename: './logs/combined.log',
       maxsize: 10485760, // 10MB
@@ -100,14 +100,14 @@ export function requestLogger(req: any, res: any, next: any) {
     userId: req.user?.id,
   };
   
-  logger.http('Incoming request', context);
+  winstonLogger.http('Incoming request', context);
   
   // Log response
   const originalSend = res.send;
   res.send = function (data: any) {
     const responseTime = Date.now() - startTime;
     
-    logger.http('Request completed', {
+    winstonLogger.http('Request completed', {
       ...context,
       statusCode: res.statusCode,
       responseTime: `${responseTime}ms`,
@@ -123,47 +123,47 @@ export function requestLogger(req: any, res: any, next: any) {
 // Structured logging functions
 export const log = {
   error: (message: string, error?: Error | any, context?: any) => {
-    logger.error(message, {
+    winstonLogger.error(message, {
       error: error?.message || error,
       stack: error?.stack,
       ...context,
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   warn: (message: string, context?: any) => {
-    logger.warn(message, {
+    winstonLogger.warn(message, {
       ...context,
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   info: (message: string, context?: any) => {
-    logger.info(message, {
+    winstonLogger.info(message, {
       ...context,
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   debug: (message: string, context?: any) => {
-    logger.debug(message, {
+    winstonLogger.debug(message, {
       ...context,
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   // Specialized logging functions
   security: (event: string, context?: any) => {
-    logger.warn(`SECURITY: ${event}`, {
+    winstonLogger.warn(`SECURITY: ${event}`, {
       type: 'security',
       event,
       ...context,
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   audit: (action: string, userId: string, context?: any) => {
-    logger.info(`AUDIT: ${action}`, {
+    winstonLogger.info(`AUDIT: ${action}`, {
       type: 'audit',
       action,
       userId,
@@ -171,9 +171,9 @@ export const log = {
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   performance: (operation: string, duration: number, context?: any) => {
-    logger.info(`PERFORMANCE: ${operation}`, {
+    winstonLogger.info(`PERFORMANCE: ${operation}`, {
       type: 'performance',
       operation,
       duration,
@@ -181,9 +181,9 @@ export const log = {
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   database: (query: string, duration: number, context?: any) => {
-    logger.debug(`DATABASE: Query executed`, {
+    winstonLogger.debug(`DATABASE: Query executed`, {
       type: 'database',
       query: query.substring(0, 200), // Truncate long queries
       duration,
@@ -191,9 +191,9 @@ export const log = {
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   api: (endpoint: string, method: string, statusCode: number, context?: any) => {
-    logger.info(`API: ${method} ${endpoint}`, {
+    winstonLogger.info(`API: ${method} ${endpoint}`, {
       type: 'api',
       endpoint,
       method,
@@ -202,9 +202,9 @@ export const log = {
       timestamp: new Date().toISOString(),
     });
   },
-  
+
   payment: (event: string, amount?: number, currency?: string, context?: any) => {
-    logger.info(`PAYMENT: ${event}`, {
+    winstonLogger.info(`PAYMENT: ${event}`, {
       type: 'payment',
       event,
       amount,
@@ -253,5 +253,8 @@ export function createTraceContext(operationName: string) {
     },
   };
 }
+
+// Alias for compatibility with code using `logger.info()`, etc.
+export const logger = log;
 
 export default log;

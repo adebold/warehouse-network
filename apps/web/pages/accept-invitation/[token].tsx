@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { useState } from 'react';
 
 import prisma from '../../lib/prisma';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 interface AcceptInvitationProps {
   invitation: Invitation | null;

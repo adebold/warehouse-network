@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../../api/auth/[...nextauth]';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 interface NewRFQProps {
   warehouses: Warehouse[];

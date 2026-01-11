@@ -4,7 +4,7 @@ import { z } from 'zod';
 
 import prisma from '../../../../lib/prisma';
 import { authOptions } from '../../auth/[...nextauth]';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 // Schema for updating quote
 const updateQuoteSchema = z.object({

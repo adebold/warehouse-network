@@ -1,6 +1,5 @@
 import { format, parseISO } from 'date-fns';
 import {
-import { logger } from './utils/logger';
   CalendarDays,
   MoreVertical,
   Search,

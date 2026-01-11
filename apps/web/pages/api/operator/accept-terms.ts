@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 
 import prisma from '../../../lib/prisma';
 import { authOptions } from '../auth/[...nextauth]';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'PUT') {

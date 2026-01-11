@@ -1,5 +1,4 @@
 import {
-import { logger } from './utils/logger';
   MapPin,
   MoreVertical,
   Search,

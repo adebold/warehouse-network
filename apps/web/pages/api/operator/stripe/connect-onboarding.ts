@@ -2,7 +2,7 @@
 import { getServerSession } from 'next-auth/next';
 
 import { authOptions } from '../../auth/[...nextauth]';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 // TODO: Stripe integration - package not installed
 // This endpoint would handle Stripe Connect onboarding for operators

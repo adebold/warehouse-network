@@ -244,13 +244,13 @@
   "suites": [],
   "errors": [
     {
-      "message": "Error: Process from config.webServer was not able to start. Exit code: 125",
-      "stack": "Error: Process from config.webServer was not able to start. Exit code: 125"
+      "message": "Error: Process from config.webServer was not able to start. Exit code: 1",
+      "stack": "Error: Process from config.webServer was not able to start. Exit code: 1"
     }
   ],
   "stats": {
-    "startTime": "2025-12-29T00:39:47.889Z",
-    "duration": 961.869,
+    "startTime": "2026-01-10T23:38:07.505Z",
+    "duration": 21688.325999999997,
     "expected": 0,
     "skipped": 0,
     "unexpected": 0,

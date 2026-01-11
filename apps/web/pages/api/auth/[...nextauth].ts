@@ -5,7 +5,7 @@ import CredentialsProvider from 'next-auth/providers/credentials';
 
 import { securityConfig } from '../../../lib/config/security';
 import prisma from '../../../lib/prisma';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 
 export const authOptions: NextAuthOptions = {

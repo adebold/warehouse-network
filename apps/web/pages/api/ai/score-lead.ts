@@ -10,7 +10,7 @@ import { z } from 'zod';
 import { authOptions } from '../auth/[...nextauth]';
 
 import prisma from '@/lib/prisma';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 const scoreLeadSchema = z.object({
   warehouseId: z.string(),

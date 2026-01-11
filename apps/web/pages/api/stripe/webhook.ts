@@ -4,7 +4,7 @@ import type { Stripe } from 'stripe';
 
 import prisma from '../../../lib/prisma';
 import { stripe } from '../../../lib/stripe';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 export const config = {
   api: {

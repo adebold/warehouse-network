@@ -18,7 +18,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import log from '@/lib/logger';
+import log from '@/lib/client-logger';
 
 interface Agent {
   id: string;

@@ -8,7 +8,7 @@ import { getServerSession } from 'next-auth/next';
 
 import { goapService } from '../../../../lib/goap/goap-service';
 import { authOptions } from '../../auth/[...nextauth]';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {

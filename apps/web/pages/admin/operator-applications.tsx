@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BRAND_ASSETS } from '@/lib/asset-urls';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 
 

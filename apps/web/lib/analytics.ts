@@ -1,10 +1,9 @@
 import ReactGA from 'react-ga4';
-import { logger } from './utils/logger';
 
 // Initialize Google Analytics
 export const initGA = (measurementId?: string) => {
   if (!measurementId || measurementId === 'G-XXXXXXXXXX') {
-    logger.warn('Google Analytics: Invalid or missing measurement ID');
+    console.warn('Google Analytics: Invalid or missing measurement ID');
     return;
   }
   ReactGA.initialize(measurementId);

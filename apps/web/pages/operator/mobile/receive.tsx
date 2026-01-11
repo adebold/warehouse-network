@@ -2,7 +2,7 @@ import type { NextPage } from 'next';
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect, useState } from 'react';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 const Receive: NextPage = () => {
   const { data: session, status } = useSession();

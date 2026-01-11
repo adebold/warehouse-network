@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth/next';
 import prisma from '../../../../../lib/prisma';
 import { pricingRulesSchema } from '../../../../../lib/schemas';
 import { authOptions } from '../../../auth/[...nextauth]';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 // TODO: Implement SEO city page creation when core package is available
 async function createOrUpdateCityPageForWarehouse(warehouseId: string) {
   logger.info(`SEO: Creating city page for warehouse ${warehouseId}`);

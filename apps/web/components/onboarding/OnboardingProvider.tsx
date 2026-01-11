@@ -1,6 +1,6 @@
 import { useSession } from 'next-auth/react';
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 export interface OnboardingStep {
   id: string;

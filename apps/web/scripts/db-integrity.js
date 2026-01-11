@@ -16,7 +16,7 @@ const path = require('path');
 const fs = require('fs');
 const { format } = require('date-fns');
 const { execSync } = require('child_process');
-import { logger } from './utils/logger';
+const { logger } = require('./utils/logger');
 
 // Load configuration
 const config = {

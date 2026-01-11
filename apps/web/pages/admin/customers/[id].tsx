@@ -1,7 +1,6 @@
 
 import { formatDistanceToNow } from 'date-fns';
 import {
-import { logger } from './utils/logger';
   ArrowLeft,
   Lock,
   Unlock,

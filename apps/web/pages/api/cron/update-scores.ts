@@ -1,6 +1,6 @@
 
 import prisma from '../../../lib/prisma';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/logger';
 
 // Scoring logic - simplified implementation
 async function calculateOperatorTrustScore(operatorId: string): Promise<number> {

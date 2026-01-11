@@ -2,7 +2,7 @@
 import { useRouter } from 'next/router';
 import { useSession } from 'next-auth/react';
 import { useEffect } from 'react';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 const WelcomeOperator: NextPage = () => {
   const { data: session, status } = useSession();

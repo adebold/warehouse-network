@@ -1,6 +1,6 @@
 
 import { useRouter } from 'next/router';
-import { logger } from './utils/logger';
+import { logger } from '@/lib/client-logger';
 
 const OnboardingRefresh: NextPage = () => {
   const router = useRouter();

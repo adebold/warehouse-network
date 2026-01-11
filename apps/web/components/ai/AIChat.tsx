@@ -8,7 +8,7 @@ import { Send, Bot, User, Loader2, X } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 
 import { cn } from '@/lib/utils';
-import log from '@/lib/logger';
+import log from '@/lib/client-logger';
 
 interface Message {
   id: string;
