@@ -70,12 +70,12 @@ const testScenarios: TestScenario[] = [
 async function seed() {
   logger.info('🌱 Starting test database seed...');
 
-  // Clear existing test data
+  // Clear existing test data (delete users/customers with test email patterns)
   await prisma.accountLockHistory.deleteMany({});
   await prisma.releaseRequest.deleteMany({});
   await prisma.skid.deleteMany({});
-  await prisma.user.deleteMany({ where: { isTestUser: true } });
-  await prisma.customer.deleteMany({ where: { isTestData: true } });
+  await prisma.user.deleteMany({ where: { email: { contains: '@test.com' } } });
+  await prisma.customer.deleteMany({ where: { name: { contains: 'Test ' } } });
   await prisma.warehouse.deleteMany({});
   await prisma.operator.deleteMany({});
   await prisma.platform.deleteMany({});
@@ -121,7 +121,7 @@ async function seed() {
         totalSpace: 50000,
         operatingHours: '24/7',
         capacity: 1000,
-        supportedGoods: ['Electronics', 'General Merchandise'],
+        supportedGoods: 'Electronics, General Merchandise',
         dockAccessInstructions: 'Use Dock A for deliveries',
         status: 'ACTIVE',
         operatorId: operator.id,
@@ -140,7 +140,7 @@ async function seed() {
         totalSpace: 75000,
         operatingHours: '6 AM - 10 PM',
         capacity: 1500,
-        supportedGoods: ['Food', 'Beverages', 'Dry Goods'],
+        supportedGoods: 'Food, Beverages, Dry Goods',
         dockAccessInstructions: 'Check in at security first',
         status: 'ACTIVE',
         operatorId: operator.id,
@@ -156,9 +156,8 @@ async function seed() {
       email: process.env.TEST_ADMIN_EMAIL || 'admin@test.com',
       name: 'Test Admin',
       password: await bcrypt.hash(process.env.TEST_ADMIN_PASSWORD || 'admin123', 10),
-      role: 'ADMIN',
+      role: 'SUPER_ADMIN',
       emailVerified: new Date(),
-      isTestUser: true,
     },
   });
 
@@ -168,9 +167,8 @@ async function seed() {
       email: process.env.TEST_OPERATOR_EMAIL || 'operator@test.com',
       name: 'Test Operator',
       password: await bcrypt.hash(process.env.TEST_OPERATOR_PASSWORD || 'operator123', 10),
-      role: 'OPERATOR',
+      role: 'OPERATOR_ADMIN',
       emailVerified: new Date(),
-      isTestUser: true,
     },
   });
 
@@ -190,8 +188,6 @@ async function seed() {
         lockReason: scenario.lockReason,
         lockedAt: scenario.lockedAt,
         lockedBy: scenario.lockedAt ? adminUser.id : null,
-        isTestData: true,
-        testScenario: scenario.name.toLowerCase().replace(/\s+/g, '_'),
       },
     });
 
@@ -204,7 +200,6 @@ async function seed() {
         role: 'CUSTOMER_ADMIN',
         customerId: customer.id,
         emailVerified: new Date(),
-        isTestUser: true,
       },
     });
 
@@ -232,13 +227,9 @@ async function seed() {
         prisma.skid.create({
           data: {
             skidCode: `TEST-${customer.id.slice(-4)}-${i + 1}`,
-            trackingNumber: `TN${Date.now()}${i}`,
             customerId: customer.id,
             warehouseId: warehouses[i % warehouses.length].id,
-            weight: Math.floor(Math.random() * 500) + 100,
-            description: `Test Skid ${i + 1} for ${scenario.name}`,
             status: 'STORED',
-            createdAt: subDays(new Date(), Math.floor(Math.random() * 30)),
           },
         })
       );
@@ -257,8 +248,6 @@ async function seed() {
       overdueAmount: 0,
       totalOutstanding: 0,
       paymentDueDate: null,
-      isTestData: true,
-      testScenario: 'regular',
     },
   });
 
@@ -270,7 +259,6 @@ async function seed() {
       role: 'CUSTOMER_ADMIN',
       customerId: regularCustomer.id,
       emailVerified: new Date(),
-      isTestUser: true,
     },
   });
 
@@ -288,19 +276,26 @@ async function seed() {
   });
 
   if (pendingSkids.length > 0) {
-    await prisma.releaseRequest.create({
+    const releaseRequest = await prisma.releaseRequest.create({
       data: {
         customerId: pendingSkids[0].customerId,
+        warehouseId: pendingSkids[0].warehouseId,
         status: 'PENDING',
-        requestedById: (await prisma.user.findFirst({
-          where: { customerId: pendingSkids[0].customerId },
-        }))!.id,
-        deliveryAddress: '789 Delivery St, Test City, TC 12345',
-        skids: {
-          connect: pendingSkids.map(s => ({ id: s.id })),
-        },
+        requestedAt: new Date(),
+        carrierDetails: 'Test Carrier - 789 Delivery St, Test City, TC 12345',
       },
     });
+    // Connect skids to release request via junction table
+    await Promise.all(
+      pendingSkids.map(skid =>
+        prisma.skidsOnReleaseRequests.create({
+          data: {
+            skidId: skid.id,
+            releaseRequestId: releaseRequest.id,
+          },
+        })
+      )
+    );
     logger.info('✅ Created test release request');
   }
 
