@@ -43,7 +43,7 @@ jobs:
           EOF
           
       - name: Upload deployment instructions
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: deployment-instructions
           path: DEPLOY_INSTRUCTIONS.md
