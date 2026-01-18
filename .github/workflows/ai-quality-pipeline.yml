@@ -63,7 +63,7 @@ jobs:
         npx tsx scripts/ai-quality-integration.ts . markdown
     
     - name: Upload Quality Report
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: quality-report
         path: ai-quality-report.md

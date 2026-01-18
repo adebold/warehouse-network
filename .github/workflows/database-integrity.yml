@@ -101,7 +101,7 @@ jobs:
 
       - name: Upload integrity report
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v6
         with:
           name: integrity-report
           path: |
