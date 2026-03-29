@@ -1,0 +1,192 @@
+# Google App Engine Configuration for Skidspace Production
+# Optimized for security, performance, and scalability
+
+runtime: nodejs20
+env: standard
+service: default
+
+instance_class: F4_1G
+min_instances: 2
+max_instances: 10
+
+automatic_scaling:
+  min_instances: 2
+  max_instances: 10
+  min_idle_instances: 1
+  max_idle_instances: 2
+  min_pending_latency: 30ms
+  max_pending_latency: automatic
+  target_cpu_utilization: 0.6
+  target_throughput_utilization: 0.6
+
+# Security-enhanced environment variables
+env_variables:
+  NODE_ENV: production
+  PORT: 8080
+
+  # Application Configuration
+  NEXT_PUBLIC_APP_NAME: "Skidspace"
+  NEXT_PUBLIC_APP_URL: "https://skidspace.com"
+  APP_VERSION: "1.0.0"
+
+  # Database Configuration (Cloud SQL)
+  DB_HOST: "/cloudsql/skidspace-prod:us-central1:skidspace-main"
+  DB_PORT: "5432"
+  DB_NAME: "skidspace_prod"
+  DB_SSL: "true"
+  DATABASE_POOL_MIN: "2"
+  DATABASE_POOL_MAX: "10"
+
+  # Redis Configuration (Memorystore)
+  REDIS_HOST: "10.0.0.1"
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_SESSION_PREFIX: "sess:"
+  REDIS_SESSION_TTL: "28800"
+
+  # Security Configuration
+  NEXTAUTH_URL: "https://skidspace.com"
+  COOKIE_DOMAIN: ".skidspace.com"
+  SECURE_COOKIES: "true"
+  SAME_SITE_COOKIES: "strict"
+  HTTP_ONLY_COOKIES: "true"
+
+  # Rate Limiting Configuration
+  API_RATE_LIMIT: "1000"
+  API_RATE_LIMIT_WINDOW: "60000"
+  API_BURST_LIMIT: "100"
+
+  # Feature Flags
+  ENABLE_ANALYTICS: "true"
+  ENABLE_AUDIT_LOGGING: "true"
+  ENABLE_RATE_LIMITING: "true"
+  ENABLE_2FA: "true"
+  ENABLE_SECURITY_HEADERS: "true"
+  ENABLE_CSRF_PROTECTION: "true"
+  ENABLE_HELMET: "true"
+
+  # Monitoring and Logging
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  SENTRY_ENVIRONMENT: "production"
+
+  # GCP Configuration
+  GCP_PROJECT_ID: "skidspace-prod"
+  GCP_REGION: "us-central1"
+  GOOGLE_APPLICATION_CREDENTIALS: "/app/credentials/service-account.json"
+
+  # Performance Configuration
+  NODE_OPTIONS: "--max-old-space-size=1024"
+  CLUSTER_MODE: "true"
+  CACHE_TTL: "3600"
+
+# VPC Configuration for security
+vpc_access_connector:
+  name: "projects/skidspace-prod/locations/us-central1/connectors/skidspace-vpc"
+
+# Health checks
+liveness_check:
+  path: "/api/health/live"
+  check_interval_sec: 30
+  timeout_sec: 10
+  failure_threshold: 3
+  success_threshold: 1
+  initial_delay_sec: 60
+
+readiness_check:
+  path: "/api/health/ready"
+  check_interval_sec: 15
+  timeout_sec: 5
+  failure_threshold: 2
+  success_threshold: 1
+  app_start_timeout_sec: 120
+
+# Resource limits for security
+resources:
+  cpu: 1
+  memory_gb: 1
+  disk_size_gb: 10
+
+# Handlers for static assets and security
+handlers:
+  # Security headers for all routes
+  - url: /.*
+    script: auto
+    secure: always
+    redirect_http_response_code: 301
+    headers:
+      Strict-Transport-Security: "max-age=31536000; includeSubDomains; preload"
+      X-Content-Type-Options: "nosniff"
+      X-Frame-Options: "DENY"
+      X-XSS-Protection: "1; mode=block"
+      Content-Security-Policy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none';"
+      Referrer-Policy: "strict-origin-when-cross-origin"
+      Permissions-Policy: "camera=(), microphone=(), geolocation=(), payment=()"
+
+  # Static assets with caching
+  - url: /_next/static
+    static_dir: .next/static
+    expiration: 1y
+    secure: always
+    headers:
+      Cache-Control: "public, max-age=31536000, immutable"
+
+  - url: /favicon.ico
+    static_files: public/favicon.ico
+    upload: public/favicon.ico
+    expiration: 1d
+    secure: always
+
+  - url: /robots.txt
+    static_files: public/robots.txt
+    upload: public/robots.txt
+    expiration: 1h
+    secure: always
+
+  # API routes with rate limiting headers
+  - url: /api/.*
+    script: auto
+    secure: always
+    headers:
+      X-RateLimit-Limit: "1000"
+      X-RateLimit-Window: "60"
+
+# Network settings for security
+network:
+  forwarded_ports: []
+  instance_tag: "skidspace-app"
+
+# Error handlers
+error_handlers:
+  - file: error_handlers/404.html
+    error_code: over_quota
+  - file: error_handlers/500.html
+    error_code: dos_api_denial
+  - file: error_handlers/500.html
+    error_code: timeout
+
+# Skip files to reduce deployment size and improve security
+skip_files:
+  - ^(.*/)?#.*#$
+  - ^(.*/)?.*~$
+  - ^(.*/)?.*\.py[co]$
+  - ^(.*/)?.*/RCS/.*$
+  - ^(.*/)?\..*$
+  - ^(.*/)?tests/.*$
+  - ^(.*/)?test/.*$
+  - ^(.*/)?node_modules/.*$
+  - ^(.*/)?coverage/.*$
+  - ^(.*/)?\.nyc_output/.*$
+  - ^(.*/)?\.git/.*$
+  - ^(.*/)?\.github/.*$
+  - ^(.*/)?\.vscode/.*$
+  - ^(.*/)?docs/.*$
+  - ^(.*/)?README\.md$
+  - ^(.*/)?CHANGELOG\.md$
+  - ^(.*/)?\.env\..*$
+  - ^(.*/)?\.eslintrc\..*$
+  - ^(.*/)?jest\.config\..*$
+  - ^(.*/)?playwright\.config\..*$
+  - ^(.*/)?\.prettierrc$
+  - ^(.*/)?package-lock\.json$
+  - ^(.*/)?yarn\.lock$

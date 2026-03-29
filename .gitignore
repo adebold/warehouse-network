@@ -1,0 +1,236 @@
+# ==========================================
+# CRITICAL SECURITY - SENSITIVE FILES
+# ==========================================
+
+# Environment Variables (ALL)
+.env
+.env.*
+*.env
+.env.local
+.env.production
+.env.staging
+.env.development
+.env.test
+
+# Credentials & Secrets
+*credential*
+*secret*
+*password*
+*key*
+credentials/
+secrets/
+security/credentials/
+super-admin-credentials*.json
+credential-summary*.json
+
+# Authentication & Security
+auth-config.json
+super-admin-setup.json
+production-secrets.json
+gcp-secrets.json
+nextauth-secret
+jwt-signing-key*
+
+# Database
+*.db
+*.sqlite
+database.url
+connection-string*
+
+# Logs (Security Sensitive)
+logs/
+*.log
+audit-*.log
+security-*.log
+auth-*.log
+
+# ==========================================
+# STANDARD NODE.JS / NEXT.JS
+# ==========================================
+
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional stylelint cache
+.stylelintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
+tmp/
+temp/
+
+# ==========================================
+# IDE & EDITOR FILES
+# ==========================================
+
+# VS Code
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.swp
+*.swo
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ==========================================
+# OPERATING SYSTEM FILES
+# ==========================================
+
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+
+# ==========================================
+# CLOUD & DEPLOYMENT
+# ==========================================
+
+# Google Cloud
+gcloud-key*.json
+service-account*.json
+gcp-credentials*.json
+
+# Docker
+.dockerignore
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+terraform.tfvars
+terraform.tfvars.json
+
+# ==========================================
+# TESTING & DEVELOPMENT
+# ==========================================
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+test-results/
+test-output/
+
+# Storybook
+storybook-static/
+
+# ==========================================
+# PROJECT SPECIFIC
+# ==========================================
+
+# Prisma
+prisma/.env
+prisma/migrations/**/migration.sql
+
+# Claude Flow
+.claude-flow/sessions/
+.claude-flow/memory/
+.claude-flow/logs/
+
+# Build outputs
+apps/web/.next/
+packages/*/dist/
+packages/*/build/
+
+# Generated files
+generated/
+auto-generated/
+
+# Backup files
+*.backup
+*.bak
+backup/
+
+# ==========================================
+# KEEP THESE PATTERNS AT THE END
+# ==========================================
+
+# Any file ending in .local (often contains sensitive data)
+*.local
+
+# Any file starting with . and containing secret, key, pass
+.*secret*
+.*key*
+.*pass*
+.*credential*

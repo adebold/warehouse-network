@@ -1,0 +1,175 @@
+{
+  "agents": {
+    "queen-coordinator": {
+      "agentId": "queen-coordinator",
+      "agentType": "hierarchical-coordinator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "role": "queen",
+        "responsibilities": [
+          "strategic_planning",
+          "task_decomposition",
+          "agent_supervision",
+          "progress_monitoring"
+        ],
+        "model": "opus"
+      },
+      "createdAt": "2026-03-23T20:23:37.702Z",
+      "model": "opus",
+      "modelRoutedBy": "explicit"
+    },
+    "goap-agent": {
+      "agentId": "goap-agent",
+      "agentType": "goap-planner",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "planning_method": "GOAP",
+        "goal_state": "multi_tenant_saas_with_rbac",
+        "current_state": "no_authentication",
+        "model": "opus"
+      },
+      "createdAt": "2026-03-23T20:23:41.165Z",
+      "model": "opus",
+      "modelRoutedBy": "explicit"
+    },
+    "prd-agent": {
+      "agentId": "prd-agent",
+      "agentType": "prd-specialist",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "document_type": "PRD",
+        "focus_areas": [
+          "authentication",
+          "multi_tenancy",
+          "persona_based_access",
+          "SaaS_features"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-23T20:23:45.722Z",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "adr-agent": {
+      "agentId": "adr-agent",
+      "agentType": "adr-architect",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "document_type": "ADR",
+        "decisions_scope": [
+          "auth_provider",
+          "database_schema",
+          "multi_tenancy_pattern",
+          "persona_management"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-23T20:23:49.229Z",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "research-agent": {
+      "agentId": "research-agent",
+      "agentType": "researcher",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "focus": [
+          "authentication_patterns",
+          "multi_tenancy",
+          "saas_architecture",
+          "security_requirements"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-23T20:26:41.012Z",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "architect-agent": {
+      "agentId": "architect-agent",
+      "agentType": "system-architect",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "architecture_focus": [
+          "system_design",
+          "database_schema",
+          "security_architecture",
+          "scalability_patterns"
+        ],
+        "model": "opus"
+      },
+      "createdAt": "2026-03-23T20:26:44.468Z",
+      "model": "opus",
+      "modelRoutedBy": "explicit"
+    },
+    "implementation-agent": {
+      "agentId": "implementation-agent",
+      "agentType": "coder",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {
+        "implementation_focus": [
+          "nextauth_setup",
+          "prisma_schema",
+          "api_routes",
+          "middleware",
+          "rbac_system"
+        ],
+        "model": "sonnet"
+      },
+      "createdAt": "2026-03-23T20:26:48.070Z",
+      "model": "sonnet",
+      "modelRoutedBy": "explicit"
+    },
+    "agent-1774399024090-q2rqxl": {
+      "agentId": "agent-1774399024090-q2rqxl",
+      "agentType": "deployment-coordinator",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {},
+      "createdAt": "2026-03-25T00:37:04.127Z",
+      "domain": "infrastructure",
+      "model": "haiku",
+      "modelRoutedBy": "router"
+    },
+    "agent-1774399025071-1um5hc": {
+      "agentId": "agent-1774399025071-1um5hc",
+      "agentType": "security-specialist",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {},
+      "createdAt": "2026-03-25T00:37:05.074Z",
+      "domain": "security",
+      "model": "sonnet",
+      "modelRoutedBy": "router"
+    },
+    "agent-1774399025674-8tlgqx": {
+      "agentId": "agent-1774399025674-8tlgqx",
+      "agentType": "infrastructure-manager",
+      "status": "idle",
+      "health": 1,
+      "taskCount": 0,
+      "config": {},
+      "createdAt": "2026-03-25T00:37:05.675Z",
+      "domain": "cloud",
+      "model": "haiku",
+      "modelRoutedBy": "router"
+    }
+  },
+  "version": "3.0.0"
+}

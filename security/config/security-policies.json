@@ -1,0 +1,328 @@
+{
+  "version": "1.0",
+  "environment": "production",
+  "lastUpdated": "2024-03-24T00:00:00Z",
+
+  "passwordPolicies": {
+    "enterprise": {
+      "minLength": 14,
+      "maxLength": 128,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumbers": true,
+      "requireSymbols": true,
+      "maxRepeatingChars": 2,
+      "minEntropy": 70,
+      "forbiddenPatterns": [
+        "password", "admin", "user", "test", "guest", "root",
+        "123456", "qwerty", "letmein", "welcome", "monkey",
+        "dragon", "master", "shadow", "superman", "michael"
+      ],
+      "maxAge": "90d",
+      "preventReuse": 12,
+      "complexityScore": 4
+    },
+
+    "development": {
+      "minLength": 8,
+      "maxLength": 128,
+      "requireUppercase": true,
+      "requireLowercase": true,
+      "requireNumbers": true,
+      "requireSymbols": false,
+      "maxRepeatingChars": 3,
+      "minEntropy": 40,
+      "forbiddenPatterns": ["password", "admin", "test"],
+      "maxAge": "180d",
+      "preventReuse": 5,
+      "complexityScore": 3
+    },
+
+    "testing": {
+      "minLength": 6,
+      "maxLength": 128,
+      "requireUppercase": false,
+      "requireLowercase": true,
+      "requireNumbers": false,
+      "requireSymbols": false,
+      "maxRepeatingChars": 5,
+      "minEntropy": 20,
+      "forbiddenPatterns": [],
+      "maxAge": "365d",
+      "preventReuse": 1,
+      "complexityScore": 2
+    }
+  },
+
+  "encryptionPolicies": {
+    "dataAtRest": {
+      "algorithm": "aes-256-gcm",
+      "keyLength": 256,
+      "keyDerivation": {
+        "function": "scrypt",
+        "iterations": 100000,
+        "memory": 67108864,
+        "parallelization": 1,
+        "saltLength": 32
+      },
+      "requireHardwareSecurityModule": false,
+      "keyRotationInterval": "90d"
+    },
+
+    "dataInTransit": {
+      "minimumTlsVersion": "1.3",
+      "cipherSuites": [
+        "TLS_AES_256_GCM_SHA384",
+        "TLS_CHACHA20_POLY1305_SHA256",
+        "TLS_AES_128_GCM_SHA256"
+      ],
+      "requirePerfectForwardSecrecy": true,
+      "certificateValidation": "strict"
+    },
+
+    "keyManagement": {
+      "provider": "gcp-kms",
+      "keyEscrow": false,
+      "splitKnowledge": true,
+      "dualControl": true,
+      "keyWrapping": true,
+      "backupEncryption": true
+    }
+  },
+
+  "rotationPolicies": {
+    "apiKeys": {
+      "interval": "30d",
+      "gracePeriod": "7d",
+      "notificationWindow": "3d",
+      "emergencyRotation": true,
+      "auditRequired": true
+    },
+
+    "databasePasswords": {
+      "interval": "60d",
+      "gracePeriod": "14d",
+      "notificationWindow": "7d",
+      "emergencyRotation": true,
+      "auditRequired": true,
+      "maintenanceWindowRequired": true
+    },
+
+    "serviceAccountKeys": {
+      "interval": "90d",
+      "gracePeriod": "30d",
+      "notificationWindow": "14d",
+      "emergencyRotation": true,
+      "auditRequired": true
+    },
+
+    "encryptionKeys": {
+      "interval": "365d",
+      "gracePeriod": "90d",
+      "notificationWindow": "30d",
+      "emergencyRotation": false,
+      "auditRequired": true,
+      "dataReencryptionRequired": true
+    }
+  },
+
+  "accessControlPolicies": {
+    "authentication": {
+      "maxFailedAttempts": 5,
+      "lockoutDuration": "15m",
+      "sessionTimeout": "60m",
+      "maxConcurrentSessions": 3,
+      "requireMfa": true,
+      "mfaMethods": ["totp", "webauthn", "sms"]
+    },
+
+    "authorization": {
+      "principleOfLeastPrivilege": true,
+      "roleBasedAccess": true,
+      "attributeBasedAccess": true,
+      "regularAccessReview": "90d",
+      "privilegedAccessMonitoring": true
+    },
+
+    "secretAccess": {
+      "requireJustification": true,
+      "approvalWorkflow": true,
+      "timeBasedAccess": true,
+      "accessLogging": true,
+      "breakGlassAccess": true
+    }
+  },
+
+  "auditingPolicies": {
+    "logging": {
+      "level": "info",
+      "retention": "7y",
+      "tamperProofing": true,
+      "realTimeMonitoring": true,
+      "structuredLogging": true,
+      "correlationIds": true
+    },
+
+    "events": {
+      "credentialGeneration": true,
+      "credentialAccess": true,
+      "credentialModification": true,
+      "credentialDeletion": true,
+      "rotationEvents": true,
+      "failedAccess": true,
+      "privilegedOperations": true,
+      "configurationChanges": true
+    },
+
+    "alerting": {
+      "suspiciousActivity": true,
+      "failedRotations": true,
+      "unauthorizedAccess": true,
+      "policyViolations": true,
+      "systemAnomalies": true
+    }
+  },
+
+  "complianceStandards": {
+    "nist": {
+      "enabled": true,
+      "framework": "SP 800-63B",
+      "level": "AAL3",
+      "requirements": [
+        "password_complexity",
+        "multi_factor_auth",
+        "session_management",
+        "audit_logging"
+      ]
+    },
+
+    "iso27001": {
+      "enabled": true,
+      "version": "2022",
+      "controls": [
+        "A.5.15", "A.5.16", "A.5.17", "A.5.18",
+        "A.8.2", "A.8.3", "A.8.5", "A.8.6"
+      ]
+    },
+
+    "soc2": {
+      "enabled": true,
+      "type": "Type II",
+      "trustServicesCriteria": [
+        "security",
+        "availability",
+        "confidentiality"
+      ]
+    },
+
+    "gdpr": {
+      "enabled": true,
+      "dataProtection": true,
+      "rightsManagement": true,
+      "breachNotification": "72h",
+      "dataRetention": "as_required",
+      "encryption": "required"
+    },
+
+    "pciDss": {
+      "enabled": false,
+      "version": "4.0",
+      "applicableRequirements": []
+    }
+  },
+
+  "securityThresholds": {
+    "rateLimit": {
+      "credentialRequests": "100/hour",
+      "failedAttempts": "10/minute",
+      "secretAccess": "1000/hour"
+    },
+
+    "anomalyDetection": {
+      "unusualAccessPatterns": true,
+      "geographicAnomalies": true,
+      "timeBasedAnomalies": true,
+      "volumeAnomalies": true
+    },
+
+    "threatDetection": {
+      "bruteForceAttacks": true,
+      "credentialStuffing": true,
+      "suspiciousIpAddresses": true,
+      "botDetection": true
+    }
+  },
+
+  "incidentResponse": {
+    "classificationLevels": {
+      "low": {
+        "responseTime": "24h",
+        "escalation": false,
+        "notification": ["security_team"]
+      },
+      "medium": {
+        "responseTime": "4h",
+        "escalation": true,
+        "notification": ["security_team", "management"]
+      },
+      "high": {
+        "responseTime": "1h",
+        "escalation": true,
+        "notification": ["security_team", "management", "compliance"]
+      },
+      "critical": {
+        "responseTime": "15m",
+        "escalation": true,
+        "notification": ["all_stakeholders"]
+      }
+    },
+
+    "procedures": {
+      "containment": true,
+      "eradication": true,
+      "recovery": true,
+      "postIncidentAnalysis": true,
+      "lessonsLearned": true
+    }
+  },
+
+  "backup": {
+    "credentialBackup": {
+      "enabled": true,
+      "frequency": "daily",
+      "retention": "90d",
+      "encryption": "required",
+      "offSiteStorage": true,
+      "testRestoration": "monthly"
+    },
+
+    "configurationBackup": {
+      "enabled": true,
+      "frequency": "on_change",
+      "retention": "365d",
+      "versionControl": true
+    }
+  },
+
+  "testing": {
+    "penetrationTesting": {
+      "frequency": "annually",
+      "scope": "comprehensive",
+      "thirdParty": true,
+      "reportGeneration": true
+    },
+
+    "vulnerabilityScanning": {
+      "frequency": "weekly",
+      "automated": true,
+      "reporting": true,
+      "remediation": "required"
+    },
+
+    "securityUnitTesting": {
+      "coverage": "90%",
+      "automation": true,
+      "continuous": true
+    }
+  }
+}

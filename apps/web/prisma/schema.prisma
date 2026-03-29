@@ -1,0 +1,827 @@
+// Skidspace Multi-Tenant Authentication and RBAC Schema
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==============================================================================
+// NEXTAUTH.JS REQUIRED TABLES
+// ==============================================================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+// ==============================================================================
+// MULTI-TENANT ORGANIZATION STRUCTURE
+// ==============================================================================
+
+model Organization {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  domain      String?  @unique // For subdomain routing (e.g., acme.skidspace.com)
+  type        OrgType
+  status      OrgStatus @default(ACTIVE)
+
+  // Contact Information
+  contactEmail String?
+  contactPhone String?
+  address     Json?     // Flexible address storage
+
+  // Subscription & Billing
+  subscriptionId   String?
+  subscriptionTier String   @default("FREE")
+  billingEmail     String?
+
+  // Configuration
+  settings    Json      @default("{}")
+  metadata    Json      @default("{}")
+
+  // Timestamps
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  users       User[]
+  roles       Role[]
+  permissions Permission[]
+  warehouses  Warehouse[]
+  invitations Invitation[]
+  apiKeys     ApiKey[]
+  auditLogs   AuditLog[]
+  stripeAccount StripeAccount?
+  customers   Customer[]
+  platformFees PlatformFee[]
+
+  @@map("organizations")
+}
+
+enum OrgType {
+  PLATFORM         // Super admin organization
+  WAREHOUSE        // Warehouse partners
+  EBIKE_BUSINESS   // E-bike rental/sales companies
+  CUSTOMER         // End customers (typically individuals)
+  ENTERPRISE       // Large enterprise customers
+}
+
+enum OrgStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+// ==============================================================================
+// USER MANAGEMENT & AUTHENTICATION
+// ==============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  name          String?
+  image         String?
+  phone         String?
+
+  // Authentication
+  password      String?   // For credential-based auth
+  lastLoginAt   DateTime?
+  loginCount    Int       @default(0)
+
+  // Multi-tenant relationship
+  organizationId String?  @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // Status and metadata
+  status        UserStatus @default(ACTIVE)
+  preferences   Json       @default("{}")
+  metadata      Json       @default("{}")
+
+  // Timestamps
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  userRoles     UserRole[]
+  invitations   Invitation[] @relation("InvitedBy")
+  invitedUsers  Invitation[] @relation("InvitedUser")
+  apiKeys       ApiKey[]
+  auditLogs     AuditLog[]
+  warehouseAccess WarehouseAccess[]
+  customer      Customer?
+
+  @@map("users")
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+  DELETED
+}
+
+// ==============================================================================
+// ROLE-BASED ACCESS CONTROL (RBAC)
+// ==============================================================================
+
+model Role {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   // machine-readable identifier
+  description   String?
+
+  // Multi-tenant scoping
+  organizationId String? @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // Role hierarchy and configuration
+  level         Int      @default(0) // For role hierarchy (0 = lowest, 100 = highest)
+  isSystem      Boolean  @default(false) // System roles can't be deleted
+  isDefault     Boolean  @default(false) // Default role for new users
+
+  // Metadata
+  color         String?  @default("#6B7280")
+  icon          String?
+  metadata      Json     @default("{}")
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  permissions   RolePermission[]
+  userRoles     UserRole[]
+
+  @@unique([slug, organizationId])
+  @@map("roles")
+}
+
+model Permission {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   // machine-readable identifier (e.g., "warehouse:read")
+  description   String?
+  category      String?  // Group permissions (e.g., "warehouse", "inventory", "analytics")
+
+  // Multi-tenant scoping
+  organizationId String? @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // Permission configuration
+  isSystem      Boolean  @default(false)
+  metadata      Json     @default("{}")
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@unique([slug, organizationId])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           String @id @default(cuid())
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  // Permission constraints (for fine-grained control)
+  constraints  Json?  @default("{}")
+
+  // Relations
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model UserRole {
+  id             String    @id @default(cuid())
+  userId         String    @map("user_id")
+  roleId         String    @map("role_id")
+
+  // Assignment metadata
+  assignedBy     String?   @map("assigned_by")
+  assignedAt     DateTime  @default(now())
+  expiresAt      DateTime? // For temporary role assignments
+
+  // Scoping (for resource-specific roles)
+  resourceType   String?   @map("resource_type") // e.g., "warehouse", "organization"
+  resourceId     String?   @map("resource_id")
+
+  // Relations
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId, resourceType, resourceId])
+  @@map("user_roles")
+}
+
+// ==============================================================================
+// INVITATION & ONBOARDING SYSTEM
+// ==============================================================================
+
+model Invitation {
+  id             String         @id @default(cuid())
+  email          String
+  token          String         @unique
+  status         InvitationStatus @default(PENDING)
+
+  // Organization context
+  organizationId String         @map("organization_id")
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+
+  // Role assignment
+  roleIds        String[]       @map("role_ids") // Array of role IDs to assign
+
+  // Invitation context
+  invitedBy      String?        @map("invited_by")
+  inviter        User?          @relation("InvitedBy", fields: [invitedBy], references: [id])
+  invitedUser    String?        @map("invited_user")
+  invitee        User?          @relation("InvitedUser", fields: [invitedUser], references: [id])
+
+  // Metadata
+  message        String?
+  metadata       Json           @default("{}")
+
+  // Timestamps
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  expiresAt      DateTime       // Invitations expire after 7 days
+  acceptedAt     DateTime?
+
+  @@map("invitations")
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
+}
+
+// ==============================================================================
+// API KEY MANAGEMENT
+// ==============================================================================
+
+model ApiKey {
+  id             String    @id @default(cuid())
+  name           String
+  keyHash        String    @unique // Hashed API key for security
+  keyPrefix      String    // First 8 characters for identification
+
+  // Ownership
+  userId         String?   @map("user_id")
+  user           User?     @relation(fields: [userId], references: [id])
+  organizationId String    @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Configuration
+  permissions    String[]  // Array of permission slugs
+  scope          Json?     @default("{}")  // Additional scoping rules
+  rateLimit      Int?      // Requests per minute
+
+  // Status and metadata
+  status         ApiKeyStatus @default(ACTIVE)
+  lastUsedAt     DateTime?
+  usageCount     Int       @default(0)
+
+  // Timestamps
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  expiresAt      DateTime? // Optional expiration
+
+  @@map("api_keys")
+}
+
+enum ApiKeyStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+// ==============================================================================
+// WAREHOUSE-SPECIFIC MODELS
+// ==============================================================================
+
+model Warehouse {
+  id             String    @id @default(cuid())
+  name           String
+  code           String    @unique // Short identifier (e.g., "NYC-01")
+
+  // Organization relationship
+  organizationId String    @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  // Location and contact
+  address        Json      // Structured address information
+  contactEmail   String?
+  contactPhone   String?
+  timezone       String    @default("UTC")
+
+  // Operational details
+  operatingHours Json?     // Operating schedule
+  capacity       Json?     // Storage capacity information
+  features       String[]  // Available features/services
+
+  // Status and metadata
+  status         WarehouseStatus @default(ACTIVE)
+  settings       Json      @default("{}")
+  metadata       Json      @default("{}")
+
+  // Timestamps
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  userAccess     WarehouseAccess[]
+
+  @@map("warehouses")
+}
+
+enum WarehouseStatus {
+  ACTIVE
+  INACTIVE
+  MAINTENANCE
+  CLOSED
+}
+
+model WarehouseAccess {
+  id           String    @id @default(cuid())
+  userId       String    @map("user_id")
+  warehouseId  String    @map("warehouse_id")
+  accessLevel  AccessLevel
+
+  // Access metadata
+  grantedBy    String?   @map("granted_by")
+  grantedAt    DateTime  @default(now())
+  expiresAt    DateTime?
+
+  // Relations
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  warehouse    Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, warehouseId])
+  @@map("warehouse_access")
+}
+
+enum AccessLevel {
+  READ_ONLY
+  OPERATOR     // Can perform basic operations
+  MANAGER      // Can manage inventory and users
+  ADMIN        // Full warehouse administration
+}
+
+// ==============================================================================
+// AUDIT LOGGING & SECURITY
+// ==============================================================================
+
+model AuditLog {
+  id             String    @id @default(cuid())
+
+  // Actor information
+  userId         String?   @map("user_id")
+  user           User?     @relation(fields: [userId], references: [id])
+  organizationId String?   @map("organization_id")
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+
+  // Action details
+  action         String    // Action performed (e.g., "user.login", "warehouse.create")
+  resource       String?   // Resource affected (e.g., "user:123", "warehouse:456")
+  method         String?   // HTTP method or operation type
+  path           String?   // API endpoint or page accessed
+
+  // Request context
+  userAgent      String?   @map("user_agent")
+  ipAddress      String?   @map("ip_address")
+  sessionId      String?   @map("session_id")
+  apiKeyId       String?   @map("api_key_id")
+
+  // Result and metadata
+  status         String?   // Success, failure, etc.
+  statusCode     Int?      // HTTP status code
+  details        Json?     // Additional context
+  changes        Json?     // Before/after values for modifications
+
+  // Timestamp
+  createdAt      DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([organizationId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+// ==============================================================================
+// STRIPE PAYMENTS & BILLING
+// ==============================================================================
+
+model StripeAccount {
+  id                String    @id @default(cuid())
+
+  // Organization relationship
+  organizationId    String    @unique @map("organization_id")
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Stripe Connect Account
+  stripeAccountId   String?   @unique @map("stripe_account_id") // Stripe Connect account ID
+  accountType       StripeAccountType @default(STANDARD)
+
+  // Account status
+  chargesEnabled    Boolean   @default(false) @map("charges_enabled")
+  payoutsEnabled    Boolean   @default(false) @map("payouts_enabled")
+  detailsSubmitted  Boolean   @default(false) @map("details_submitted")
+
+  // Onboarding
+  onboardingUrl     String?   @map("onboarding_url") @db.Text
+  onboardingExpiry  DateTime? @map("onboarding_expiry")
+
+  // Dashboard & Management
+  dashboardUrl      String?   @map("dashboard_url") @db.Text
+  country           String?
+  currency          String?   @default("usd")
+
+  // Requirements & Verification
+  requirements      Json?     @default("{}")
+  capabilities      Json?     @default("{}")
+
+  // Metadata
+  metadata          Json      @default("{}")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  payments          Payment[]
+  subscriptions     Subscription[]
+  webhookEvents     WebhookEvent[]
+
+  @@map("stripe_accounts")
+}
+
+enum StripeAccountType {
+  STANDARD    // Standard Connect accounts (full control)
+  EXPRESS     // Express accounts (quick onboarding)
+  CUSTOM      // Custom accounts (full customization)
+}
+
+model Customer {
+  id                String    @id @default(cuid())
+
+  // User relationship (optional for guest checkout)
+  userId            String?   @unique @map("user_id")
+  user              User?     @relation(fields: [userId], references: [id])
+
+  // Organization context
+  organizationId    String?   @map("organization_id")
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+
+  // Stripe Customer
+  stripeCustomerId  String    @unique @map("stripe_customer_id")
+
+  // Customer details
+  email             String
+  name              String?
+  phone             String?
+
+  // Address information
+  address           Json?     @default("{}")
+  shippingAddress   Json?     @default("{}")
+
+  // Payment methods
+  defaultPaymentMethod String? @map("default_payment_method")
+
+  // Metadata
+  metadata          Json      @default("{}")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  payments          Payment[]
+  subscriptions     Subscription[]
+  paymentMethods    PaymentMethod[]
+
+  @@map("customers")
+}
+
+model PaymentMethod {
+  id                String    @id @default(cuid())
+
+  // Customer relationship
+  customerId        String    @map("customer_id")
+  customer          Customer  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // Stripe Payment Method
+  stripePaymentMethodId String @unique @map("stripe_payment_method_id")
+
+  // Payment method details
+  type              String    // card, bank_account, etc.
+  card              Json?     @default("{}")
+  billingDetails    Json?     @default("{}")
+
+  // Status
+  isDefault         Boolean   @default(false) @map("is_default")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("payment_methods")
+}
+
+model Payment {
+  id                String    @id @default(cuid())
+
+  // Customer and account relationships
+  customerId        String    @map("customer_id")
+  customer          Customer  @relation(fields: [customerId], references: [id])
+
+  stripeAccountId   String?   @map("stripe_account_id")
+  stripeAccount     StripeAccount? @relation(fields: [stripeAccountId], references: [id])
+
+  // Stripe Payment Intent
+  stripePaymentIntentId String? @unique @map("stripe_payment_intent_id")
+  stripeChargeId    String?   @unique @map("stripe_charge_id")
+
+  // Payment details
+  amount            Int       // Amount in cents
+  currency          String    @default("usd")
+  description       String?
+
+  // Status and metadata
+  status            PaymentStatus @default(PENDING)
+  paymentMethod     String?   @map("payment_method")
+
+  // Application fee (platform commission)
+  applicationFee    Int?      @map("application_fee") // Amount in cents
+
+  // Order context (if applicable)
+  orderId           String?   @map("order_id")
+  subscriptionId    String?   @map("subscription_id")
+  subscription      Subscription? @relation(fields: [subscriptionId], references: [id])
+
+  // Failure handling
+  failureCode       String?   @map("failure_code")
+  failureMessage    String?   @map("failure_message")
+
+  // Receipt and metadata
+  receiptUrl        String?   @map("receipt_url")
+  metadata          Json      @default("{}")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  confirmedAt       DateTime? @map("confirmed_at")
+
+  // Relations
+  refunds           Refund[]
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  CONFIRMED
+  FAILED
+  CANCELED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+model Refund {
+  id                String    @id @default(cuid())
+
+  // Payment relationship
+  paymentId         String    @map("payment_id")
+  payment           Payment   @relation(fields: [paymentId], references: [id])
+
+  // Stripe Refund
+  stripeRefundId    String    @unique @map("stripe_refund_id")
+
+  // Refund details
+  amount            Int       // Amount in cents
+  currency          String    @default("usd")
+  reason            String?
+
+  // Status
+  status            RefundStatus @default(PENDING)
+
+  // Metadata
+  metadata          Json      @default("{}")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("refunds")
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELED
+}
+
+model Subscription {
+  id                String    @id @default(cuid())
+
+  // Customer and account relationships
+  customerId        String    @map("customer_id")
+  customer          Customer  @relation(fields: [customerId], references: [id])
+
+  stripeAccountId   String?   @map("stripe_account_id")
+  stripeAccount     StripeAccount? @relation(fields: [stripeAccountId], references: [id])
+
+  // Stripe Subscription
+  stripeSubscriptionId String @unique @map("stripe_subscription_id")
+  stripePriceId     String    @map("stripe_price_id")
+
+  // Subscription details
+  status            SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart DateTime @map("current_period_start")
+  currentPeriodEnd  DateTime @map("current_period_end")
+
+  // Billing
+  billingCycle      String    @default("monthly") @map("billing_cycle") // monthly, yearly
+  amount            Int       // Amount in cents per billing period
+  currency          String    @default("usd")
+
+  // Trial and promotions
+  trialEnd          DateTime? @map("trial_end")
+  discountId        String?   @map("discount_id")
+
+  // Cancellation
+  cancelAtPeriodEnd Boolean   @default(false) @map("cancel_at_period_end")
+  canceledAt        DateTime? @map("canceled_at")
+  cancellationReason String? @map("cancellation_reason")
+
+  // Usage-based billing (for metered subscriptions)
+  usageRecords      Json?     @default("[]") @map("usage_records")
+
+  // Metadata
+  metadata          Json      @default("{}")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  payments          Payment[]
+
+  @@map("subscriptions")
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  UNPAID
+  INCOMPLETE
+  INCOMPLETE_EXPIRED
+  PAUSED
+}
+
+model WebhookEvent {
+  id                String    @id @default(cuid())
+
+  // Account relationship (for Connect webhooks)
+  stripeAccountId   String?   @map("stripe_account_id")
+  stripeAccount     StripeAccount? @relation(fields: [stripeAccountId], references: [id])
+
+  // Stripe webhook event
+  stripeEventId     String    @unique @map("stripe_event_id")
+  eventType         String    @map("event_type")
+
+  // Processing status
+  processed         Boolean   @default(false)
+  processedAt       DateTime? @map("processed_at")
+
+  // Event data
+  data              Json      @default("{}")
+
+  // Error handling
+  processingErrors  Json?     @default("[]") @map("processing_errors")
+  retryCount        Int       @default(0) @map("retry_count")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@map("webhook_events")
+}
+
+model PlatformFee {
+  id                String    @id @default(cuid())
+
+  // Organization context
+  organizationId    String?   @map("organization_id")
+  organization      Organization? @relation(fields: [organizationId], references: [id])
+
+  // Fee configuration
+  feeType           PlatformFeeType
+  name              String
+  description       String?
+
+  // Fee calculation
+  percentage        Decimal?  @db.Decimal(5,4) // e.g., 0.029 for 2.9%
+  fixedAmount       Int?      // Fixed amount in cents
+  minimumFee        Int?      @map("minimum_fee") // Minimum fee in cents
+  maximumFee        Int?      @map("maximum_fee") // Maximum fee in cents
+
+  // Conditions
+  conditions        Json?     @default("{}") // Conditions for when this fee applies
+
+  // Status
+  isActive          Boolean   @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  effectiveFrom     DateTime  @default(now()) @map("effective_from")
+  effectiveUntil    DateTime? @map("effective_until")
+
+  @@map("platform_fees")
+}
+
+enum PlatformFeeType {
+  MARKETPLACE_COMMISSION  // Commission on marketplace transactions
+  SUBSCRIPTION_FEE       // Monthly/yearly subscription fees
+  TRANSACTION_FEE        // Per-transaction processing fees
+  STORAGE_FEE           // Warehouse storage fees
+  SERVICE_FEE           // Additional service fees
+}
+
+// ==============================================================================
+// SYSTEM CONFIGURATION
+// ==============================================================================
+
+model SystemConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       Json
+  description String?
+  category    String?  // Group related configs
+  isSecret    Boolean  @default(false) // For sensitive configurations
+
+  // Timestamps
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("system_config")
+}
+
+// ==============================================================================
+// ADDITIONAL INDEXES FOR PERFORMANCE (defined within models above)
+// ==============================================================================

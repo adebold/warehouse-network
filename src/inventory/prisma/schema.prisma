@@ -1,0 +1,534 @@
+// Prisma schema for inventory management system
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Core entities
+model Tenant {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  settings  Json?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  warehouses    Warehouse[]
+  skus          SKU[]
+  users         User[]
+  reorderRules  ReorderRule[]
+  bikeModels    BikeModel[]
+
+  @@map("tenants")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  tenantId  String
+  email     String   @unique
+  password  String
+  firstName String
+  lastName  String
+  role      UserRole @default(OPERATOR)
+  active    Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  tenant         Tenant          @relation(fields: [tenantId], references: [id])
+  stockMovements StockMovement[]
+  adjustments    InventoryAdjustment[]
+  scanEvents     ScanEvent[]
+
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  OPERATOR
+  VIEWER
+}
+
+model Warehouse {
+  id          String  @id @default(cuid())
+  tenantId    String
+  code        String  @unique
+  name        String
+  address     Json    // Structured address data
+  timezone    String
+  settings    Json?   // Warehouse-specific settings
+  active      Boolean @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  tenant              Tenant              @relation(fields: [tenantId], references: [id])
+  locations           Location[]
+  inventoryLevels     InventoryLevel[]
+  stockMovements      StockMovement[]
+  reorderRules        ReorderRule[]
+  transfers           Transfer[]
+
+  @@map("warehouses")
+}
+
+model Location {
+  id           String  @id @default(cuid())
+  warehouseId  String
+  zone         String?
+  rack         String?
+  bin          String?
+  locationCode String  @unique
+  capacity     Decimal? @db.Decimal(10, 2)
+  locationType LocationType @default(STORAGE)
+  active       Boolean @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  warehouse       Warehouse         @relation(fields: [warehouseId], references: [id])
+  inventoryLevels InventoryLevel[]
+  stockMovements  StockMovement[]
+
+  @@map("locations")
+}
+
+enum LocationType {
+  STORAGE
+  RECEIVING
+  SHIPPING
+  STAGING
+  QUARANTINE
+  RETURNS
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  parentId    String?
+  attributes  Json?    // Category-specific attributes schema
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  parent   Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+  skus     SKU[]
+
+  @@map("categories")
+}
+
+model SKU {
+  id           String    @id @default(cuid())
+  tenantId     String
+  skuCode      String    @unique
+  name         String
+  description  String?
+  categoryId   String?
+  dimensions   Json?     // Physical dimensions and weight
+  cost         Decimal?  @db.Decimal(10, 2)
+  price        Decimal?  @db.Decimal(10, 2)
+  attributes   Json?     // Flexible product attributes
+  tags         String[]
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  tenant              Tenant              @relation(fields: [tenantId], references: [id])
+  category            Category?           @relation(fields: [categoryId], references: [id])
+  barcodes            Barcode[]
+  inventoryLevels     InventoryLevel[]
+  stockMovements      StockMovement[]
+  reorderRules        ReorderRule[]
+  partCompatibility   PartCompatibility[]
+  batchTrackings      BatchTracking[]
+  serialNumbers       SerialNumber[]
+
+  @@map("skus")
+}
+
+model Barcode {
+  id       String      @id @default(cuid())
+  skuId    String
+  code     String      @unique
+  format   BarcodeFormat
+  primary  Boolean     @default(false)
+  active   Boolean     @default(true)
+  createdAt DateTime   @default(now())
+
+  // Relations
+  sku        SKU         @relation(fields: [skuId], references: [id])
+  scanEvents ScanEvent[]
+
+  @@map("barcodes")
+}
+
+enum BarcodeFormat {
+  CODE128
+  CODE39
+  EAN13
+  UPC_A
+  QR_CODE
+}
+
+model InventoryLevel {
+  id          String   @id @default(cuid())
+  skuId       String
+  warehouseId String
+  locationId  String?
+  onHand      Int      @default(0)
+  reserved    Int      @default(0)
+  inTransit   Int      @default(0)
+  available   Int      @default(0) // Calculated field: onHand - reserved
+  minLevel    Int?     // Minimum stock level
+  maxLevel    Int?     // Maximum stock level
+  lastCountedAt DateTime?
+  lastUpdated   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  sku       SKU       @relation(fields: [skuId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  location  Location? @relation(fields: [locationId], references: [id])
+
+  @@unique([skuId, warehouseId, locationId])
+  @@map("inventory_levels")
+}
+
+model StockMovement {
+  id                String       @id @default(cuid())
+  movementType      MovementType
+  skuId             String
+  fromWarehouseId   String?
+  toWarehouseId     String?
+  fromLocationId    String?
+  toLocationId      String?
+  quantity          Int
+  unitCost          Decimal?     @db.Decimal(10, 2)
+  reason            String?
+  referenceNumber   String?      // PO number, SO number, etc.
+  userId            String
+  batchNumber       String?
+  serialNumbers     String[]
+  metadata          Json?        // Additional movement data
+  processed         Boolean      @default(false)
+  processedAt       DateTime?
+  createdAt         DateTime     @default(now())
+
+  // Relations
+  sku           SKU        @relation(fields: [skuId], references: [id])
+  fromWarehouse Warehouse? @relation(fields: [fromWarehouseId], references: [id])
+  toWarehouse   Warehouse? @relation(fields: [toWarehouseId], references: [id], map: "StockMovementToWarehouse")
+  fromLocation  Location?  @relation(fields: [fromLocationId], references: [id])
+  toLocation    Location?  @relation(fields: [toLocationId], references: [id], map: "StockMovementToLocation")
+  user          User       @relation(fields: [userId], references: [id])
+
+  @@index([skuId, createdAt])
+  @@index([movementType, createdAt])
+  @@map("stock_movements")
+}
+
+enum MovementType {
+  RECEIPT        // Receiving inventory
+  SHIPMENT       // Shipping out
+  ADJUSTMENT     // Manual adjustment
+  TRANSFER       // Inter-warehouse transfer
+  CYCLE_COUNT    // Physical count adjustment
+  RETURN         // Customer return
+  DAMAGE         // Damaged goods
+  EXPIRED        // Expired items
+  FOUND          // Found inventory
+  LOST           // Lost inventory
+}
+
+model InventoryAdjustment {
+  id          String   @id @default(cuid())
+  skuId       String
+  warehouseId String
+  locationId  String?
+  adjustmentType AdjustmentType
+  previousQty Int
+  newQty      Int
+  difference  Int
+  reason      String
+  userId      String
+  approved    Boolean  @default(false)
+  approvedBy  String?
+  approvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("inventory_adjustments")
+}
+
+enum AdjustmentType {
+  POSITIVE  // Increase inventory
+  NEGATIVE  // Decrease inventory
+  RECOUNT   // Recount adjustment
+}
+
+model ReorderRule {
+  id              String   @id @default(cuid())
+  tenantId        String
+  skuId           String
+  warehouseId     String
+  reorderLevel    Int
+  reorderQuantity Int
+  leadTimeDays    Int      @default(7)
+  safetyStock     Int      @default(0)
+  supplierId      String?
+  active          Boolean  @default(true)
+  lastTriggered   DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  tenant    Tenant    @relation(fields: [tenantId], references: [id])
+  sku       SKU       @relation(fields: [skuId], references: [id])
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id])
+  alerts    ReorderAlert[]
+
+  @@unique([skuId, warehouseId])
+  @@map("reorder_rules")
+}
+
+model ReorderAlert {
+  id             String      @id @default(cuid())
+  reorderRuleId  String
+  skuId          String
+  warehouseId    String
+  currentLevel   Int
+  reorderLevel   Int
+  suggestedQty   Int
+  status         AlertStatus @default(PENDING)
+  acknowledged   Boolean     @default(false)
+  acknowledgedBy String?
+  acknowledgedAt DateTime?
+  createdAt      DateTime    @default(now())
+
+  // Relations
+  reorderRule ReorderRule @relation(fields: [reorderRuleId], references: [id])
+
+  @@map("reorder_alerts")
+}
+
+enum AlertStatus {
+  PENDING
+  PROCESSING
+  ORDERED
+  DISMISSED
+}
+
+model Transfer {
+  id              String        @id @default(cuid())
+  fromWarehouseId String
+  toWarehouseId   String
+  status          TransferStatus @default(PENDING)
+  requestedBy     String
+  approvedBy      String?
+  approvedAt      DateTime?
+  shippedAt       DateTime?
+  receivedAt      DateTime?
+  notes           String?
+  trackingNumber  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  fromWarehouse Warehouse         @relation(fields: [fromWarehouseId], references: [id])
+  toWarehouse   Warehouse         @relation(fields: [toWarehouseId], references: [id], map: "TransferToWarehouse")
+  items         TransferItem[]
+
+  @@map("transfers")
+}
+
+enum TransferStatus {
+  PENDING
+  APPROVED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model TransferItem {
+  id               String  @id @default(cuid())
+  transferId       String
+  skuId            String
+  requestedQty     Int
+  shippedQty       Int?
+  receivedQty      Int?
+  fromLocationId   String?
+  toLocationId     String?
+  notes            String?
+
+  // Relations
+  transfer Transfer @relation(fields: [transferId], references: [id])
+
+  @@map("transfer_items")
+}
+
+// Batch and serial number tracking
+model BatchTracking {
+  id            String    @id @default(cuid())
+  skuId         String
+  batchNumber   String
+  quantity      Int
+  expirationDate DateTime?
+  manufacturedDate DateTime?
+  supplier      String?
+  notes         String?
+  active        Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+
+  // Relations
+  sku SKU @relation(fields: [skuId], references: [id])
+
+  @@unique([skuId, batchNumber])
+  @@map("batch_tracking")
+}
+
+model SerialNumber {
+  id           String  @id @default(cuid())
+  skuId        String
+  serialNumber String  @unique
+  status       SerialStatus @default(AVAILABLE)
+  warehouseId  String?
+  locationId   String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  sku SKU @relation(fields: [skuId], references: [id])
+
+  @@map("serial_numbers")
+}
+
+enum SerialStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  DAMAGED
+  RETURNED
+}
+
+// Ebike-specific models
+model BikeModel {
+  id             String  @id @default(cuid())
+  tenantId       String
+  modelCode      String  @unique
+  name           String
+  manufacturer   String
+  modelYear      Int
+  category       String  // mountain, road, electric, etc.
+  specifications Json?   // Technical specifications
+  active         Boolean @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relations
+  tenant            Tenant             @relation(fields: [tenantId], references: [id])
+  partCompatibility PartCompatibility[]
+
+  @@map("bike_models")
+}
+
+model PartCompatibility {
+  id                String           @id @default(cuid())
+  bikeModelId       String
+  partSkuId         String
+  compatibilityType CompatibilityType @default(COMPATIBLE)
+  notes             String?
+  createdAt         DateTime         @default(now())
+
+  // Relations
+  bikeModel BikeModel @relation(fields: [bikeModelId], references: [id])
+  partSku   SKU       @relation(fields: [partSkuId], references: [id])
+
+  @@unique([bikeModelId, partSkuId])
+  @@map("part_compatibility")
+}
+
+enum CompatibilityType {
+  COMPATIBLE
+  RECOMMENDED
+  OPTIONAL
+  NOT_COMPATIBLE
+}
+
+// Barcode scanning events
+model ScanEvent {
+  id          String    @id @default(cuid())
+  barcodeId   String
+  userId      String
+  warehouseId String?
+  locationId  String?
+  scanType    ScanType
+  quantity    Int?
+  metadata    Json?     // Scanner info, app version, etc.
+  processed   Boolean   @default(false)
+  processedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Relations
+  barcode Barcode @relation(fields: [barcodeId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@map("scan_events")
+}
+
+enum ScanType {
+  RECEIVE
+  PICK
+  COUNT
+  LOOKUP
+  MOVE
+}
+
+// Demand forecasting
+model DemandForecast {
+  id          String   @id @default(cuid())
+  skuId       String
+  warehouseId String?
+  forecastDate DateTime
+  predictedDemand Int
+  confidence  Float
+  model       String   // Algorithm used
+  accuracy    Float?   // Historical accuracy
+  generated   DateTime @default(now())
+
+  @@unique([skuId, warehouseId, forecastDate])
+  @@map("demand_forecasts")
+}
+
+// System audit trail
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  action      String
+  resource    String
+  resourceId  String
+  changes     Json?    // Before/after values
+  metadata    Json?    // IP, user agent, etc.
+  createdAt   DateTime @default(now())
+
+  @@index([resource, resourceId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
