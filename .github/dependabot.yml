@@ -1,0 +1,131 @@
+version: 2
+updates:
+  # Web application dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "adebold"
+    assignees:
+      - "adebold"
+    commit-message:
+      prefix: "deps(web)"
+      include: "scope"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+
+  # Analytics platform dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/analytics"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "adebold"
+    commit-message:
+      prefix: "deps(analytics)"
+
+  # AI platform dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/ai-platform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "adebold"
+    commit-message:
+      prefix: "deps(ai)"
+
+  # API management dependencies
+  - package-ecosystem: "npm"
+    directory: "/api-management-platform"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "adebold"
+    commit-message:
+      prefix: "deps(api)"
+
+  # Security module dependencies
+  - package-ecosystem: "npm"
+    directory: "/security"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 3
+    reviewers:
+      - "adebold"
+    commit-message:
+      prefix: "deps(security)"
+
+  # Analytics package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/analytics"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    commit-message:
+      prefix: "deps(pkg-analytics)"
+
+  # Notifications package dependencies
+  - package-ecosystem: "npm"
+    directory: "/packages/notifications"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    commit-message:
+      prefix: "deps(pkg-notifications)"
+
+  # Test dependencies
+  - package-ecosystem: "npm"
+    directory: "/tests"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    commit-message:
+      prefix: "deps(tests)"
+
+  # Scripts dependencies
+  - package-ecosystem: "npm"
+    directory: "/scripts"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    commit-message:
+      prefix: "deps(scripts)"
+
+  # Inventory service dependencies
+  - package-ecosystem: "npm"
+    directory: "/src/inventory"
+    schedule:
+      interval: "weekly"
+      day: "thursday"
+      time: "09:00"
+    commit-message:
+      prefix: "deps(inventory)"
+
+  # GitHub Actions dependencies
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "friday"
+      time: "09:00"
+    commit-message:
+      prefix: "ci"
+      include: "scope"

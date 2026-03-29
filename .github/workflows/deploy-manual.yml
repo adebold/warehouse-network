@@ -1,0 +1,262 @@
+name: Manual Deployment
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      service:
+        description: 'Service to deploy'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - web
+          - analytics
+          - ai-platform
+          - api-management
+      skip_tests:
+        description: 'Skip tests (emergency deployment)'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      deploy_web: ${{ steps.services.outputs.deploy_web }}
+      deploy_analytics: ${{ steps.services.outputs.deploy_analytics }}
+      deploy_ai: ${{ steps.services.outputs.deploy_ai }}
+      deploy_api: ${{ steps.services.outputs.deploy_api }}
+
+    steps:
+      - name: Determine services to deploy
+        id: services
+        run: |
+          if [ "${{ github.event.inputs.service }}" = "all" ]; then
+            echo "deploy_web=true" >> $GITHUB_OUTPUT
+            echo "deploy_analytics=true" >> $GITHUB_OUTPUT
+            echo "deploy_ai=true" >> $GITHUB_OUTPUT
+            echo "deploy_api=true" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.service }}" = "web" ]; then
+            echo "deploy_web=true" >> $GITHUB_OUTPUT
+            echo "deploy_analytics=false" >> $GITHUB_OUTPUT
+            echo "deploy_ai=false" >> $GITHUB_OUTPUT
+            echo "deploy_api=false" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.service }}" = "analytics" ]; then
+            echo "deploy_web=false" >> $GITHUB_OUTPUT
+            echo "deploy_analytics=true" >> $GITHUB_OUTPUT
+            echo "deploy_ai=false" >> $GITHUB_OUTPUT
+            echo "deploy_api=false" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.service }}" = "ai-platform" ]; then
+            echo "deploy_web=false" >> $GITHUB_OUTPUT
+            echo "deploy_analytics=false" >> $GITHUB_OUTPUT
+            echo "deploy_ai=true" >> $GITHUB_OUTPUT
+            echo "deploy_api=false" >> $GITHUB_OUTPUT
+          elif [ "${{ github.event.inputs.service }}" = "api-management" ]; then
+            echo "deploy_web=false" >> $GITHUB_OUTPUT
+            echo "deploy_analytics=false" >> $GITHUB_OUTPUT
+            echo "deploy_ai=false" >> $GITHUB_OUTPUT
+            echo "deploy_api=true" >> $GITHUB_OUTPUT
+          fi
+
+  quick-test:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.inputs.skip_tests != 'true' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Quick validation
+        run: |
+          cd apps/web
+          npm ci
+          npm run build
+          echo "✅ Build validation passed"
+
+  build-images:
+    runs-on: ubuntu-latest
+    needs: [validate, quick-test]
+    if: ${{ always() && (needs.quick-test.result == 'success' || needs.quick-test.result == 'skipped') }}
+
+    strategy:
+      matrix:
+        service: [web, analytics, ai-platform, api-management-platform]
+
+    steps:
+      - name: Skip if service not selected
+        run: |
+          case "${{ matrix.service }}" in
+            web) if [ "${{ needs.validate.outputs.deploy_web }}" != "true" ]; then exit 0; fi ;;
+            analytics) if [ "${{ needs.validate.outputs.deploy_analytics }}" != "true" ]; then exit 0; fi ;;
+            ai-platform) if [ "${{ needs.validate.outputs.deploy_ai }}" != "true" ]; then exit 0; fi ;;
+            api-management-platform) if [ "${{ needs.validate.outputs.deploy_api }}" != "true" ]; then exit 0; fi ;;
+          esac
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./apps/${{ matrix.service }}
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/skidspace-${{ matrix.service }}:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/skidspace-${{ matrix.service }}:${{ github.event.inputs.environment }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [validate, build-images]
+    environment: ${{ github.event.inputs.environment }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy Web Service
+        if: ${{ needs.validate.outputs.deploy_web == 'true' }}
+        run: |
+          SERVICE_NAME="skidspace-web"
+          if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+            SERVICE_NAME="skidspace-web-staging"
+          fi
+
+          gcloud run deploy $SERVICE_NAME \
+            --image ${{ env.REGISTRY }}/${{ github.repository_owner }}/skidspace-web:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --allow-unauthenticated \
+            --set-env-vars NODE_ENV=${{ github.event.inputs.environment }} \
+            --memory 2Gi \
+            --cpu 2 \
+            --min-instances ${{ github.event.inputs.environment == 'production' && '1' || '0' }} \
+            --max-instances ${{ github.event.inputs.environment == 'production' && '50' || '10' }}
+
+      - name: Deploy Analytics Service
+        if: ${{ needs.validate.outputs.deploy_analytics == 'true' }}
+        run: |
+          SERVICE_NAME="skidspace-analytics"
+          if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+            SERVICE_NAME="skidspace-analytics-staging"
+          fi
+
+          gcloud run deploy $SERVICE_NAME \
+            --image ${{ env.REGISTRY }}/${{ github.repository_owner }}/skidspace-analytics:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --no-allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 1 \
+            --min-instances 0 \
+            --max-instances 5
+
+      - name: Deploy AI Platform
+        if: ${{ needs.validate.outputs.deploy_ai == 'true' }}
+        run: |
+          SERVICE_NAME="skidspace-ai"
+          if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+            SERVICE_NAME="skidspace-ai-staging"
+          fi
+
+          gcloud run deploy $SERVICE_NAME \
+            --image ${{ env.REGISTRY }}/${{ github.repository_owner }}/skidspace-ai-platform:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --no-allow-unauthenticated \
+            --memory 4Gi \
+            --cpu 4 \
+            --min-instances 0 \
+            --max-instances 10
+
+      - name: Deploy API Management
+        if: ${{ needs.validate.outputs.deploy_api == 'true' }}
+        run: |
+          SERVICE_NAME="skidspace-api"
+          if [ "${{ github.event.inputs.environment }}" = "staging" ]; then
+            SERVICE_NAME="skidspace-api-staging"
+          fi
+
+          gcloud run deploy $SERVICE_NAME \
+            --image ${{ env.REGISTRY }}/${{ github.repository_owner }}/skidspace-api-management-platform:${{ github.sha }} \
+            --platform managed \
+            --region us-central1 \
+            --no-allow-unauthenticated \
+            --memory 1Gi \
+            --cpu 2 \
+            --min-instances 0 \
+            --max-instances 20
+
+  smoke-test:
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    steps:
+      - name: Run smoke tests
+        run: |
+          # Determine service URLs based on environment
+          if [ "${{ github.event.inputs.environment }}" = "production" ]; then
+            WEB_URL="https://skidspace.com"
+          else
+            WEB_URL=$(gcloud run services describe skidspace-web-staging --platform managed --region us-central1 --format 'value(status.url)' || echo "")
+          fi
+
+          if [ -n "$WEB_URL" ]; then
+            echo "Testing $WEB_URL"
+            curl -f "$WEB_URL" || echo "Warning: Web service health check failed"
+          fi
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [deploy, smoke-test]
+    if: always()
+
+    steps:
+      - name: Notify deployment status
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#deployments'
+          text: |
+            🚀 Manual deployment to ${{ github.event.inputs.environment }}
+            Service: ${{ github.event.inputs.service }}
+            Status: ${{ job.status }}
+            Triggered by: ${{ github.actor }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
