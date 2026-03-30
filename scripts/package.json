@@ -12,7 +12,7 @@
     "deploy-setup": "npm run generate-credentials && npm run upload-secrets && npm run init-database"
   },
   "dependencies": {
-    "@google-cloud/secret-manager": "^5.6.0",
+    "@google-cloud/secret-manager": "^6.1.1",
     "@prisma/client": "^5.10.0",
     "bcryptjs": "^2.4.3"
   },
