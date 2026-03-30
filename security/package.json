@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@google-cloud/logging": "^10.5.0",
-    "@google-cloud/secret-manager": "^4.2.2",
+    "@google-cloud/secret-manager": "^6.1.1",
     "argon2": "^0.31.2",
     "bcryptjs": "^2.4.3",
     "express-rate-limit": "^7.1.5",
