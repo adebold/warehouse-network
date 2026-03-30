@@ -1,0 +1,23 @@
+{
+  "initialized": true,
+  "topology": "hierarchical",
+  "workers": [
+    "integration-specialist-1774813091557-qvjy",
+    "integration-specialist-1774813091560-j6na",
+    "integration-specialist-1774813091561-179k",
+    "integration-specialist-1774813091561-2sxt",
+    "integration-specialist-1774813091561-1gu3"
+  ],
+  "consensus": {
+    "pending": [],
+    "history": []
+  },
+  "sharedMemory": {},
+  "createdAt": "2026-03-29T16:44:02.001Z",
+  "updatedAt": "2026-03-29T19:38:11.564Z",
+  "queen": {
+    "agentId": "integration-queen",
+    "electedAt": "2026-03-29T16:44:02.002Z",
+    "term": 1
+  }
+}

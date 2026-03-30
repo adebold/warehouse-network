@@ -7,12 +7,21 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Icons } from '@/components/ui/icons'
 import { validatePassword } from '@/lib/utils'
+import Image from 'next/image'
+
+interface TwoFactorSetup {
+  qrCodeUrl: string
+  backupCodes: string[]
+  manualEntryKey: string
+}
 
 export function SuperAdminSetupForm() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [step, setStep] = useState(1) // 1: Instructions, 2: Form, 3: Success
+  const [step, setStep] = useState(1) // 1: Instructions, 2: Form, 3: 2FA Setup, 4: Success
+  const [twoFactorSetup, setTwoFactorSetup] = useState<TwoFactorSetup | null>(null)
+  const [setupResponse, setSetupResponse] = useState<any>(null)
   const [passwordValidation, setPasswordValidation] = useState<{
     isValid: boolean
     errors: string[]
@@ -63,11 +72,9 @@ export function SuperAdminSetupForm() {
       const result = await response.json()
 
       if (response.ok) {
-        setStep(3) // Show success message
-        // Redirect to sign-in after a delay
-        setTimeout(() => {
-          router.push('/auth/signin?mode=super-admin&setup=complete')
-        }, 2000)
+        setSetupResponse(result)
+        setTwoFactorSetup(result.twoFactorAuth)
+        setStep(3) // Show 2FA setup
       } else {
         setError(result.error || 'Setup failed. Please try again.')
       }
@@ -141,7 +148,157 @@ export function SuperAdminSetupForm() {
     )
   }
 
+  const handleTwoFactorVerification = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setIsLoading(true)
+    setError('')
+
+    const formData = new FormData(event.currentTarget)
+    const token = formData.get('token') as string
+
+    try {
+      const response = await fetch('/api/auth/2fa/setup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'verify',
+          token,
+        }),
+      })
+
+      const result = await response.json()
+
+      if (response.ok) {
+        setStep(4) // Show success message
+        // Redirect to sign-in after a delay
+        setTimeout(() => {
+          router.push('/auth/signin?mode=super-admin&setup=complete')
+        }, 3000)
+      } else {
+        setError(result.message || 'Invalid 2FA token. Please try again.')
+      }
+    } catch (error) {
+      setError('Failed to verify 2FA token. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   if (step === 3) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center mb-6">
+          <div className="mx-auto w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+            <Icons.shield className="h-6 w-6 text-blue-600" />
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900">Setup Two-Factor Authentication</h3>
+          <p className="text-gray-600 mt-2">
+            Secure your super admin account with 2FA. Scan the QR code with your authenticator app.
+          </p>
+        </div>
+
+        {twoFactorSetup && (
+          <div className="space-y-6">
+            {/* QR Code */}
+            <div className="bg-gray-50 p-6 rounded-lg text-center">
+              <h4 className="font-medium text-gray-900 mb-4">Scan with your authenticator app</h4>
+              <div className="flex justify-center mb-4">
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <Image
+                    src={twoFactorSetup.qrCodeUrl}
+                    alt="2FA QR Code"
+                    width={200}
+                    height={200}
+                    className="mx-auto"
+                  />
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 mb-4">
+                Can't scan? Enter this code manually:
+              </p>
+              <div className="bg-white border rounded p-3">
+                <code className="text-sm font-mono break-all">{twoFactorSetup.manualEntryKey}</code>
+              </div>
+            </div>
+
+            {/* Backup Codes */}
+            <div className="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Icons.alertTriangle className="h-5 w-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                <div>
+                  <h4 className="font-medium text-yellow-900">Save Your Backup Codes</h4>
+                  <p className="text-sm text-yellow-800 mt-1 mb-3">
+                    Store these codes safely. You can use them if you lose access to your authenticator app.
+                  </p>
+                  <div className="bg-white border border-yellow-300 rounded p-3">
+                    <div className="grid grid-cols-2 gap-2 text-sm font-mono">
+                      {twoFactorSetup.backupCodes.map((code, index) => (
+                        <div key={index} className="text-gray-700">{code}</div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Verification Form */}
+            <form onSubmit={handleTwoFactorVerification} className="space-y-4">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+                  <div className="flex items-center gap-2">
+                    <Icons.alertCircle className="h-4 w-4" />
+                    {error}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="token">Verification Code</Label>
+                <Input
+                  id="token"
+                  name="token"
+                  type="text"
+                  placeholder="Enter 6-digit code"
+                  maxLength={6}
+                  pattern="[0-9]{6}"
+                  required
+                  disabled={isLoading}
+                  className="text-center text-lg tracking-widest"
+                />
+                <p className="text-xs text-gray-500">
+                  Enter the 6-digit code from your authenticator app
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(2)}
+                  disabled={isLoading}
+                  className="flex-1"
+                >
+                  Back
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1"
+                  disabled={isLoading}
+                >
+                  {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
+                  Verify & Complete Setup
+                </Button>
+              </div>
+            </form>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (step === 4) {
     return (
       <div className="text-center space-y-6">
         <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center">
@@ -150,8 +307,14 @@ export function SuperAdminSetupForm() {
         <div>
           <h3 className="text-xl font-semibold text-gray-900">Setup Complete!</h3>
           <p className="text-gray-600 mt-2">
-            Your super admin account has been created successfully.
+            Your super admin account has been created successfully with 2FA enabled.
             You'll be redirected to the sign-in page shortly.
+          </p>
+        </div>
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-800">
+            <strong>Important:</strong> Make sure you've saved your backup codes before continuing.
+            You won't be able to see them again.
           </p>
         </div>
         <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
