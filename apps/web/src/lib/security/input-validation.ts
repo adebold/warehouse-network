@@ -380,7 +380,7 @@ export const ValidationUtils = {
   hasSQLInjection: (input: string): boolean => {
     const sqlPatterns = [
       /(\b(SELECT|INSERT|UPDATE|DELETE|DROP|CREATE|ALTER|EXEC|UNION|SCRIPT)\b)/gi,
-      /('|(\\')|(\")|(\\\")|(;)|(--)|(/\*)|(\*/)/gi,
+      /['";\\-]|\/\*|\*\//gi,
       /(OR\s+\d+\s*=\s*\d+)|(AND\s+\d+\s*=\s*\d+)/gi,
     ];
     return sqlPatterns.some(pattern => pattern.test(input));

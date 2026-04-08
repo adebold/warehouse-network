@@ -31,37 +31,92 @@ jest.mock('next-auth/react', () => ({
   SessionProvider: ({ children }) => children,
 }))
 
-// Mock Prisma client
-jest.mock('@/lib/prisma', () => ({
-  prisma: {
-    user: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
+// Mock Prisma client for unit tests only
+// Integration tests will use real database via test-prisma.ts
+const isIntegrationTest = process.env.TEST_TYPE === 'integration' ||
+                         process.env.INTEGRATION_TEST === 'true' ||
+                         process.env.DATABASE_URL?.includes('test')
+
+if (!isIntegrationTest) {
+  jest.mock('@/lib/prisma', () => ({
+    prisma: {
+      user: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      organization: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      role: {
+        findFirst: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      invitation: {
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+        findFirst: jest.fn(),
+      },
+      userRole: {
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        create: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      auditLog: {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      rolePermission: {
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        create: jest.fn(),
+        delete: jest.fn(),
+      },
+      permission: {
+        findMany: jest.fn(),
+        findFirst: jest.fn(),
+        findUnique: jest.fn(),
+      },
+      address: {
+        create: jest.fn(),
+        findUnique: jest.fn(),
+        findMany: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
+      },
+      // Prisma client methods
+      $connect: jest.fn(),
+      $disconnect: jest.fn(),
+      $executeRaw: jest.fn(),
+      $executeRawUnsafe: jest.fn(),
+      $queryRaw: jest.fn(),
+      $queryRawUnsafe: jest.fn(),
+      $transaction: jest.fn(),
     },
-    organization: {
-      findUnique: jest.fn(),
-      findMany: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-    },
-    role: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-    },
-    userRole: {
-      findMany: jest.fn(),
-      create: jest.fn(),
-      delete: jest.fn(),
-    },
-    auditLog: {
-      create: jest.fn(),
-    },
-  },
-}))
+  }))
+}
 
 // Mock environment variables
 process.env.NEXTAUTH_SECRET = 'test-secret'

@@ -1,3 +1,8 @@
-import { handlers } from "@/auth"
+// NextAuth route handlers stub
+export async function GET() {
+  return new Response('NextAuth not configured', { status: 500 })
+}
 
-export const { GET, POST } = handlers
+export async function POST() {
+  return new Response('NextAuth not configured', { status: 500 })
+}

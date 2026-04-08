@@ -180,8 +180,8 @@ async function main() {
       userId_roleId_resourceType_resourceId: {
         userId: superAdminUser.id,
         roleId: superAdminRole.id,
-        resourceType: null,
-        resourceId: null
+        resourceType: 'GLOBAL',
+        resourceId: 'system'
       }
     },
     update: {},
@@ -287,7 +287,7 @@ async function main() {
       where: {
         slug_organizationId: {
           slug: role.slug,
-          organizationId: null // These are templates
+          organizationId: 'template' // These are templates
         }
       },
       update: {},
@@ -340,7 +340,7 @@ async function main() {
       where: {
         slug_organizationId: {
           slug: permission.slug,
-          organizationId: null
+          organizationId: 'template'
         }
       },
       update: {},

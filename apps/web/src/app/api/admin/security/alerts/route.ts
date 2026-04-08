@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Check authentication and authorization
-    const session = await auth();
+    const session = auth ? await auth() : null;
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check authentication and authorization
-    const session = await auth();
+    const session = auth ? await auth() : null;
     if (!session?.user?.id) {
       return NextResponse.json(
         { error: 'Unauthorized' },

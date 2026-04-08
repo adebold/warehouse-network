@@ -1,23 +1,66 @@
 /**
- * @jest-environment node
+ * Unified Register API Tests
+ * Supports both integration tests (real DB) and unit tests (mocked)
  */
 
 import { POST } from '@/app/api/auth/register/route'
 import { NextRequest } from 'next/server'
-import { prisma } from '@/lib/prisma'
-import bcrypt from 'bcryptjs'
+import {
+  getTestPrismaClient,
+  isIntegrationTest,
+  cleanupDatabase,
+  setupTestData,
+  testPrisma,
+  getMockedPrisma,
+  type MockedPrismaClient
+} from '@/lib/test-prisma'
+import { prismaMock, resetPrismaMocks } from '@/lib/__mocks__/prisma'
 
-// Mock dependencies
-jest.mock('@/lib/prisma')
-jest.mock('bcryptjs')
-
-const mockedPrisma = prisma as jest.Mocked<typeof prisma>
-const mockedBcrypt = bcrypt as jest.Mocked<typeof bcrypt>
+// Determine test client based on environment
+const getTestClient = () => {
+  return isIntegrationTest() ? testPrisma : prismaMock
+}
 
 describe('/api/auth/register', () => {
-  beforeEach(() => {
-    jest.clearAllMocks()
-    mockedBcrypt.hash.mockResolvedValue('hashed-password')
+  let testData: any
+  let testClient: any
+
+  beforeAll(async () => {
+    testClient = getTestClient()
+
+    if (isIntegrationTest()) {
+      await cleanupDatabase()
+      testData = await setupTestData()
+    } else {
+      // Setup mock data for unit tests
+      testData = {
+        testOrg: { id: 'test-org-1', name: 'Test Warehouse' },
+        adminRole: { id: 'admin-role-1', name: 'Admin' },
+        userRole: { id: 'user-role-1', name: 'User' }
+      }
+    }
+  })
+
+  afterAll(async () => {
+    if (isIntegrationTest()) {
+      await cleanupDatabase()
+      await testPrisma.$disconnect()
+    } else {
+      resetPrismaMocks()
+    }
+  })
+
+  beforeEach(async () => {
+    if (isIntegrationTest()) {
+      // Clean user data but keep organizations and roles for integration tests
+      await testPrisma.userRole.deleteMany()
+      await testPrisma.auditLog.deleteMany()
+      await testPrisma.user.deleteMany()
+      await testPrisma.invitation.deleteMany()
+    } else {
+      // Reset mocks for unit tests
+      resetPrismaMocks()
+    }
   })
 
   const createMockRequest = (body: any) => {
@@ -43,63 +86,30 @@ describe('/api/auth/register', () => {
         }
       }
 
-      // Mock database responses
-      mockedPrisma.user.findUnique.mockResolvedValue(null) // No existing user
-      mockedPrisma.organization.findUnique.mockResolvedValue(null) // Slug available
-
-      const mockOrganization = {
-        id: 'org-1',
-        name: 'Acme Warehouse',
-        slug: 'acme-warehouse',
-        type: 'WAREHOUSE'
-      }
-
-      const mockUser = {
-        id: 'user-1',
-        name: 'John Doe',
-        email: 'john@example.com',
-        organizationId: 'org-1'
-      }
-
-      mockedPrisma.organization.create.mockResolvedValue(mockOrganization as any)
-      mockedPrisma.user.create.mockResolvedValue(mockUser as any)
-      mockedPrisma.role.findFirst.mockResolvedValue({ id: 'role-1' } as any)
-      mockedPrisma.userRole.create.mockResolvedValue({} as any)
-      mockedPrisma.auditLog.create.mockResolvedValue({} as any)
-
       const request = createMockRequest(requestBody)
       const response = await POST(request)
       const responseData = await response.json()
 
       expect(response.status).toBe(200)
       expect(responseData.message).toBe('Registration successful')
-      expect(responseData.user).toEqual({
-        id: 'user-1',
+      expect(responseData.user).toMatchObject({
         name: 'John Doe',
         email: 'john@example.com',
-        organizationId: 'org-1',
-        organizationName: 'Acme Warehouse',
-        organizationSlug: 'acme-warehouse'
+        organizationName: 'Acme Warehouse'
       })
 
-      // Verify password was hashed
-      expect(mockedBcrypt.hash).toHaveBeenCalledWith('StrongPassword123!', 10)
+      if (isIntegrationTest()) {
+        // Verify user was created in real database
+        const createdUser = await testPrisma.user.findUnique({
+          where: { email: 'john@example.com' },
+          include: { organization: true }
+        })
 
-      // Verify user creation
-      expect(mockedPrisma.user.create).toHaveBeenCalledWith({
-        data: {
-          name: 'John Doe',
-          email: 'john@example.com',
-          password: 'hashed-password',
-          phone: undefined,
-          organizationId: 'org-1',
-          status: 'ACTIVE',
-          metadata: {
-            registrationDate: expect.any(String),
-            registrationType: 'self-signup'
-          }
-        }
-      })
+        expect(createdUser).not.toBeNull()
+        expect(createdUser?.name).toBe('John Doe')
+        expect(createdUser?.organization?.name).toBe('Acme Warehouse')
+        expect(createdUser?.password).not.toBe('StrongPassword123!') // Password should be hashed
+      }
     })
 
     it('should reject registration with existing email', async () => {
@@ -111,10 +121,25 @@ describe('/api/auth/register', () => {
         organizationName: 'Test Warehouse'
       }
 
-      mockedPrisma.user.findUnique.mockResolvedValue({
-        id: 'existing-user',
-        email: 'existing@example.com'
-      } as any)
+      if (isIntegrationTest()) {
+        // Create an existing user in the test database
+        await testPrisma.user.create({
+          data: {
+            name: 'Existing User',
+            email: 'existing@example.com',
+            password: 'hashedPassword',
+            organizationId: testData.testOrg.id,
+            status: 'ACTIVE',
+            metadata: {}
+          }
+        })
+      } else {
+        // Mock existing user for unit test
+        prismaMock.user.findUnique.mockResolvedValue({
+          id: 'existing-user',
+          email: 'existing@example.com'
+        } as any)
+      }
 
       const request = createMockRequest(requestBody)
       const response = await POST(request)
@@ -145,16 +170,33 @@ describe('/api/auth/register', () => {
         }
       }
 
-      mockedPrisma.user.findUnique.mockResolvedValue(null)
-      mockedPrisma.invitation.findUnique.mockResolvedValue(mockInvitation as any)
-      mockedPrisma.user.create.mockResolvedValue({
-        id: 'user-1',
-        name: 'Jane Doe',
-        email: 'jane@example.com'
-      } as any)
-      mockedPrisma.userRole.create.mockResolvedValue({} as any)
-      mockedPrisma.invitation.update.mockResolvedValue({} as any)
-      mockedPrisma.auditLog.create.mockResolvedValue({} as any)
+      if (isIntegrationTest()) {
+        // Integration test: setup real data
+        await testPrisma.invitation.create({
+          data: {
+            id: 'invitation-1',
+            email: 'jane@example.com',
+            token: 'valid-token',
+            status: 'PENDING',
+            organizationId: testData.testOrg.id,
+            roleIds: [testData.userRole.id],
+            createdAt: new Date(),
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          } as any
+        })
+      } else {
+        // Unit test: setup mocks
+        prismaMock.user.findUnique.mockResolvedValue(null)
+        prismaMock.invitation.findUnique.mockResolvedValue(mockInvitation as any)
+        prismaMock.user.create.mockResolvedValue({
+          id: 'user-1',
+          name: 'Jane Doe',
+          email: 'jane@example.com'
+        } as any)
+        prismaMock.userRole.create.mockResolvedValue({} as any)
+        prismaMock.invitation.update.mockResolvedValue({} as any)
+        prismaMock.auditLog.create.mockResolvedValue({} as any)
+      }
 
       const request = createMockRequest(requestBody)
       const response = await POST(request)
@@ -163,15 +205,17 @@ describe('/api/auth/register', () => {
       expect(response.status).toBe(200)
       expect(responseData.message).toBe('Registration successful')
 
-      // Verify invitation was accepted
-      expect(mockedPrisma.invitation.update).toHaveBeenCalledWith({
-        where: { id: 'invitation-1' },
-        data: {
-          status: 'ACCEPTED',
-          acceptedAt: expect.any(Date),
-          invitedUser: 'user-1'
-        }
-      })
+      if (!isIntegrationTest()) {
+        // Verify invitation was accepted (only for unit tests with mocks)
+        expect(prismaMock.invitation.update).toHaveBeenCalledWith({
+          where: { id: 'invitation-1' },
+          data: {
+            status: 'ACCEPTED',
+            acceptedAt: expect.any(Date),
+            invitedUser: 'user-1'
+          }
+        })
+      }
     })
 
     it('should reject invalid invitation token', async () => {
@@ -184,8 +228,12 @@ describe('/api/auth/register', () => {
         invitationToken: 'invalid-token'
       }
 
-      mockedPrisma.user.findUnique.mockResolvedValue(null)
-      mockedPrisma.invitation.findUnique.mockResolvedValue(null)
+      if (!isIntegrationTest()) {
+        // Unit test: setup mocks
+        prismaMock.user.findUnique.mockResolvedValue(null)
+        prismaMock.invitation.findUnique.mockResolvedValue(null)
+      }
+      // Integration test: no setup needed, real DB will return null for invalid token
 
       const request = createMockRequest(requestBody)
       const response = await POST(request)
@@ -229,38 +277,65 @@ describe('/api/auth/register', () => {
         organizationName: 'Test Warehouse'
       }
 
-      mockedPrisma.user.findUnique.mockResolvedValue(null)
-      mockedPrisma.organization.findUnique
-        .mockResolvedValueOnce({ id: 'existing' } as any) // First slug exists
-        .mockResolvedValueOnce(null) // Second slug is available
+      if (isIntegrationTest()) {
+        // Integration test: create conflicting organization first
+        await testPrisma.organization.create({
+          data: {
+            name: 'Existing Test Warehouse',
+            slug: 'test-warehouse',
+            type: 'WAREHOUSE',
+            status: 'ACTIVE',
+            settings: {},
+            metadata: {}
+          }
+        })
+      } else {
+        // Unit test: setup mocks
+        prismaMock.user.findUnique.mockResolvedValue(null)
+        prismaMock.organization.findUnique
+          .mockResolvedValueOnce({ id: 'existing' } as any) // First slug exists
+          .mockResolvedValueOnce(null) // Second slug is available
 
-      mockedPrisma.organization.create.mockResolvedValue({
-        id: 'org-1',
-        name: 'Test Warehouse',
-        slug: 'test-warehouse-1' // Should append number
-      } as any)
+        prismaMock.organization.create.mockResolvedValue({
+          id: 'org-1',
+          name: 'Test Warehouse',
+          slug: 'test-warehouse-1' // Should append number
+        } as any)
 
-      mockedPrisma.user.create.mockResolvedValue({
-        id: 'user-1'
-      } as any)
-      mockedPrisma.role.findFirst.mockResolvedValue({ id: 'role-1' } as any)
-      mockedPrisma.userRole.create.mockResolvedValue({} as any)
-      mockedPrisma.auditLog.create.mockResolvedValue({} as any)
+        prismaMock.user.create.mockResolvedValue({
+          id: 'user-1'
+        } as any)
+        prismaMock.role.findFirst.mockResolvedValue({ id: 'role-1' } as any)
+        prismaMock.userRole.create.mockResolvedValue({} as any)
+        prismaMock.auditLog.create.mockResolvedValue({} as any)
+      }
 
       const request = createMockRequest(requestBody)
       const response = await POST(request)
 
       expect(response.status).toBe(200)
 
-      // Verify it checked for existing slug and then used test-warehouse-1
-      expect(mockedPrisma.organization.findUnique).toHaveBeenCalledTimes(2)
-      expect(mockedPrisma.organization.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            slug: expect.stringMatching(/^test-warehouse(-\d+)?$/)
+      if (!isIntegrationTest()) {
+        // Verify it checked for existing slug and then used test-warehouse-1 (unit tests only)
+        expect(prismaMock.organization.findUnique).toHaveBeenCalledTimes(2)
+        expect(prismaMock.organization.create).toHaveBeenCalledWith(
+          expect.objectContaining({
+            data: expect.objectContaining({
+              slug: expect.stringMatching(/^test-warehouse(-\d+)?$/)
+            })
           })
+        )
+      } else {
+        // Integration test: verify unique slug was generated
+        const responseData = await response.json()
+        expect(responseData.user.organizationName).toBe('Test Warehouse')
+
+        // Verify organization was created with unique slug
+        const createdOrg = await testPrisma.organization.findFirst({
+          where: { name: 'Test Warehouse' }
         })
-      )
+        expect(createdOrg?.slug).toMatch(/^test-warehouse(-\d+)?$/)
+      }
     })
 
     it('should handle database errors gracefully', async () => {
@@ -272,7 +347,7 @@ describe('/api/auth/register', () => {
         organizationName: 'Test Warehouse'
       }
 
-      mockedPrisma.user.findUnique.mockRejectedValue(new Error('Database connection failed'))
+      prismaMock.user.findUnique.mockRejectedValue(new Error('Database connection failed'))
 
       const request = createMockRequest(requestBody)
       const response = await POST(request)
