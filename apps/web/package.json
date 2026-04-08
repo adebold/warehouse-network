@@ -62,7 +62,7 @@
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
-    "critters": "^0.0.23",
+    "critters": "^0.0.25",
     "csurf": "1.11.0",
     "date-fns": "^4.1.0",
     "dotenv-safe": "9.1.0",
