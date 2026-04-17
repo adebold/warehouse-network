@@ -37,7 +37,7 @@
     "axios": "^1.6.7",
     "node-cron": "^3.0.3",
     "multer": "^1.4.5-lts.1",
-    "sharp": "^0.33.2",
+    "sharp": "^0.34.5",
     "jsbarcode": "^3.11.5",
     "qrcode": "^1.5.3"
   },
