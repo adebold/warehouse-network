@@ -14,7 +14,7 @@
   "dependencies": {
     "@google-cloud/secret-manager": "^5.6.0",
     "@prisma/client": "^5.10.0",
-    "bcryptjs": "^2.4.3"
+    "bcryptjs": "^3.0.3"
   },
   "engines": {
     "node": ">=18.0.0"
